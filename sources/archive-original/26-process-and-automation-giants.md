@@ -464,3 +464,4 @@ Celonis sued SAP in US federal court in March 2025. It alleged that SAP used its
 33. https://www.celonis.com/de/news/press/celonis-customers-drive-tangible-business-outcomes-with-enterprise-ai-powered-by-process-intelligence: customer value claims, Nov 2025.
 34. https://docs.celonis.com/en/accounts-receivable-starter-kit---object-centric.html: AR starter kit components.
 35. https://developer.celonis.com/process-intelligence-apis/intelligence-api/glossary: KM glossary.
+
