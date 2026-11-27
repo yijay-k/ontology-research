@@ -9,6 +9,8 @@
 | **Feeds** | [03-ontology-engine/object-storage-and-indexing](../engineering/03-ontology-engine/object-storage-and-indexing.md), [03-ontology-engine/object-type-registry](../engineering/03-ontology-engine/object-type-registry.md), [04-query-and-metrics/query-plans-and-compiler](../engineering/04-query-and-metrics/query-plans-and-compiler.md), [08-agent-platform/guardrails-and-injection](../engineering/08-agent-platform/guardrails-and-injection.md) |
 | **Evidence level** | Phase 2 repository audit (source inspection, not executed) |
 
+> **Fact-check 28 Nov 2026:** open-sourced by Alibaba Cloud on 20 May 2026 with a Universal Semantic Standard initiative; docs at <https://alibaba.github.io/UnifiedModel/>. Public surfaces: REST (OpenAPI), `umctl` CLI, `umodel-mcp` MCP server, web UI, Go/Python SDKs. See [engineering/03-ontology-engine/object-type-registry.md](../engineering/03-ontology-engine/object-type-registry.md#fact-check-notes).
+
 ## Repository audit: Repository audit — alibaba/UnifiedModel
 
 > Source: former `15-repository-audits/alibaba-umodel.md` (Phase 2 source inspection, not executed).

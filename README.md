@@ -20,7 +20,7 @@ Research for building a governed company operating model for software and AI age
 ## Status (28 Nov 2026)
 
 - Phase 1 research (32 documents) and Phase 2 source inspections are complete as research. None of the architecture has been validated by running code: no upstream tests, builds, benchmarks or production runs were executed.
-- Fact-checking against current vendor docs and repositories is in progress, ontology engine first. Each checked component has dated entries under "Fact-check notes".
+- Fact-checking against current vendor docs and repositories: **done for the ontology engine** (object types/links/interfaces, storage and indexing, edits and merge, schema evolution, semantic-model format, SDK/API/MCP) **and action types** on 28 Nov 2026. Other layers are not yet checked; their "Fact-check notes" sections say so. The corrections found are summarised in [research-log/corrections.md](research-log/corrections.md#fact-check-corrections-28-nov-2026-ontology-engine-pass).
 - Open work is listed in [research-log/backlog-and-next-tests.md](research-log/backlog-and-next-tests.md).
 
 ## Architecture rule

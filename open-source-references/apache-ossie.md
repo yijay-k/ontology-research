@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the shape** of `ai_context` onto your objects and metrics, and plan an Ossie export later. Do not make it the internal model: it has no actions, rules or permissions, and the spec is still changing. [Inference]
 
+> **Fact-check 28 Nov 2026:** entered the Apache Incubator on 22 June 2026; canonical repository is now <https://github.com/apache/ossie>. Spec unchanged by the rename. See [engineering/03-ontology-engine/semantic-model-format.md](../engineering/03-ontology-engine/semantic-model-format.md#fact-check-notes).
+
 ## From the open-source code study: 7. Apache Ossie (formerly Open Semantic Interchange)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

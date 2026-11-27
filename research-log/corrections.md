@@ -321,3 +321,18 @@ The original verification report clearly identifies market figures and some comp
 ## Archive integrity note
 
 The repository used to hold two copies of the original 32 documents (`claude-research-markdown/` and `sources/archive-original/`). They were identical except for whitespace in maps 30 and 31; the `sources/archive-original/` copy of map 31 had two table rows merged onto one line. The `claude-research-markdown/` copy was kept (now `general-references/`) and the duplicate removed in the Nov 2026 restructure.
+
+## Fact-check corrections, 28 Nov 2026 (ontology engine pass)
+
+Checked against current Palantir, Microsoft, Apache and Alibaba pages. Details and source links are in the "Fact-check notes" section of each engineering component.
+
+| ID | Claim in the research | Current state | Where noted |
+|---|---|---|---|
+| FC-01 | OSv1 "planned unavailable after 30 June 2026" | Past that date; migration to OSv2 is now "mandatory for all object types". Treat all OSv1 behaviour as historical. | engineering/03-ontology-engine/object-storage-and-indexing.md |
+| FC-02 | Derived properties are beta | Two tiers now: runtime-defined derived properties are GA and support arithmetic/date expressions; ontology-defined ones are still beta without expressions. | engineering/03-ontology-engine/object-type-registry.md |
+| FC-03 | Palantir MCP changes ontology types (tool list as of 21 Nov) | Tool list now includes create/update for action types on a branch, plus a tool-search mode. | engineering/03-ontology-engine/sdk-api-and-mcp.md |
+| FC-04 | Ossie repository `open-semantic-interchange/OSI` | Canonical repository is now `apache/ossie` (incubation from 22 Jun 2026); spec unchanged. | engineering/03-ontology-engine/semantic-model-format.md |
+| FC-05 | Fabric IQ ontology in preview | Fabric IQ itself went GA at Build (June 2026); the Ontology item is still preview. Ontology Rules (Activator) added; Ontology MCP endpoints announced. | engineering/03-ontology-engine/object-type-registry.md |
+| FC-06 | Edit conflict strategy described per object type in places | Strategy is configured per datasource; on multi-datasource types each property follows its own datasource's strategy. | engineering/03-ontology-engine/edits-and-merge-precedence.md |
+
+Not yet fact-checked in this pass: layers 01, 02, 04, 06–13 and the remaining 03/05 components. Their "Fact-check notes" sections say so.

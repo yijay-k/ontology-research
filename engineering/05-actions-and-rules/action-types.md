@@ -206,7 +206,12 @@ Failures go to action metrics, not the log [Fact 02]. The log is forward-only, w
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._
+
+- **Confirmed — per-submission limits:** 50 object types, 10,000 objects, 3 MB per object edit on OSv2; edits in a batched call count as one group. Source: https://www.palantir.com/docs/foundry/action-types/scale-property-limits
+- **New — property types actions cannot edit.** Actions do not support editing float, byte, short or time-series properties, and do not support editing decimal properties because precision cannot be guaranteed through the JSON–Java conversion. Default selection limit for multi-value object reference parameters is 1,000. Sources: same page (English and translated versions).
+- **New — function-backed actions edit far fewer objects in a batch.** A community answer, consistent with the limits page, notes that a function-backed action used for inline edits drops to 20 objects at a time unless batched execution is used. For very large edits, Palantir's community guidance is to record the intent with an action and execute it at scale with a transform. Sources: https://community.palantir.com/t/mass-upload-for-edit-only-columns-in-ontology-workshop/5776 , https://community.palantir.com/t/how-to-do-high-scale-actions/609
+- **New — conflict error.** `Actions:ObjectVersionChanged` (HTTP 409) fires when the object type's backing datasource updates while the action runs. Source: https://www.palantir.com/docs/foundry/action-types/debug-conflict-errors/
 
 ## Gaps
 

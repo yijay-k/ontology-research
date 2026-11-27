@@ -75,7 +75,16 @@ Technical detail:
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._
+
+- **Confirmed — two conflict strategies.** "Apply user edits" (default: the edit always wins for edited properties) and "Apply most recent value" (an edit applies only if its timestamp is later than the datasource's timestamp). Source: https://www.palantir.com/docs/foundry/object-edits/how-edits-applied/
+- **New — the strategy is set per datasource, not per object type.** On a multi-datasource object type each datasource can use a different strategy, and one edit that touches properties from several datasources follows each property's own datasource strategy. Source: same page.
+- **New — exact rules for "most recent value":** needs a *timestamp* property (not a date), in UTC; takes effect on save; existing edits are compared against the time the strategy was changed, new edits against action submission time; edit-only properties always apply; if the datasource timestamp is empty, all conditional edits apply; user edits to the timestamp property itself do not change the comparison. Source: same page.
+- **New — "Create object" on a key that already exists in the source.** Under "Apply user edits", unedited properties become null and later datasource updates to those properties are ignored. A community answer confirms the same trap: unset properties are stored as implicit nulls in the edit layer and win over the source. Sources: same page; https://community.palantir.com/t/object-edits-conflict-resolution-strategy-not-working-as-expected/6479
+- **Confirmed — deletes.** A row removed from the source removes the object, but if the row returns its earlier edits are re-applied; a "Delete object" action is sticky even if the source row changes; an object created by an edit survives source deletion; modifying a deleted object fails. Deletions are not treated as edits, so a recreated object does not inherit earlier edits. Source: same page.
+- **Confirmed — persistence.** Edits apply to the index immediately and are flushed to Funnel-owned datasets; the merged dataset rebuilds on each new source transaction or every 6 hours if edits exist. In OSv2 a read after an edit is guaranteed to see it. Source: same page.
+- **New — OSv2 weakened optimistic concurrency on purpose.** The Actions server version-checks only the objects used to generate edits, so objects read outside edit generation may change during an action. Separately, an action fails with `Actions:ObjectVersionChanged` (HTTP 409) if the object type's backing datasource updates while the action runs — the check tracks datasource updates for the whole type. Sources: same page; https://www.palantir.com/docs/foundry/action-types/debug-conflict-errors/
+- **Confirmed — undo.** A single edit cannot be undone directly; "drop all edits" (Delete edits) resets a type to its sources. Source: same page.
 
 ## Gaps
 

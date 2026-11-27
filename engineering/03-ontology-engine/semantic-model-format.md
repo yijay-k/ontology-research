@@ -201,7 +201,11 @@ Schema publication flow:
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._
+
+- **Confirmed — rename.** Open Semantic Interchange is now Apache Ossie (incubating); it entered the Apache Incubator on 22 June 2026. The YAML/JSON specification did not change with the rename ("nothing breaks"). Sources: https://incubator.apache.org/projects/ossie.html , https://ossie.apache.org/updates/ossie-enters-apache-incubator/
+- **New — the canonical repository has moved.** Source code is now `https://github.com/apache/ossie` (the research cites `open-semantic-interchange/OSI`). Reference converters exist for dbt MetricFlow, Apache Polaris catalog metadata and Snowflake semantic models, with Polaris integration planned. Sources: https://incubator.apache.org/projects/ossie.html , https://www.snowflake.com/content/snowflake-site/global/en/blog/apache-ossie-open-semantic-interchange-incubator
+- **Confirmed — scope.** Ossie still standardises semantic models, datasets, relationships, fields and metrics (with per-dialect expressions); it does not cover actions or permissions, so the research's advice stands: use it as an import/export format, not as the internal model. Source: https://ossie.apache.org/
 
 ## Gaps
 

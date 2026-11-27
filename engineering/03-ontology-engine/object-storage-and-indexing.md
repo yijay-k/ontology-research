@@ -280,7 +280,16 @@ Palantir's documentation describes Object Storage v1 as legacy and Object Storag
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._
+
+- **Confirmed — OSv2 architecture.** The Ontology backend is still described as Ontology Metadata Service (definitions), Object Set Service (reads: search, filter, aggregate, load) and the Object Data Funnel (indexes datasources and Action edits into the object databases). Source: https://www.palantir.com/docs/foundry/object-backend/overview/
+- **Confirmed — OSv2 limits.** Maximum 2,000 properties per object type; default Search Around limit 100,000 objects, raisable via support. Source: https://www.palantir.com/docs/foundry/object-backend/overview/
+- **Changed — OSv1 is now gone, not just deprecated.** The edits page says OSv1 (Phonograph) "is unavailable after June 30, 2026"; the migration page now says migration to OSv2 "is mandatory for all object types". Treat every OSv1 statement in the research (writeback datasets, `StaleObject` on any version change, 32 KB edit limit, query strings) as historical only. Sources: https://www.palantir.com/docs/foundry/object-edits/how-edits-applied/ , https://www.palantir.com/docs/foundry/object-backend/osv1-osv2-migration/
+- **New — how Palantir cut over storage engines.** Migration uses an optional *transition window* (low-traffic period) and a *soak period* of up to 14 days in which both indexes stay current, all reads go to OSv2, OSv1 requests are rejected, and abort is instant; after the soak, rollback needs a full re-index. Dual indexing costs extra compute and storage. This is a good pattern for any future storage migration of our own object store. Source: https://www.palantir.com/docs/foundry/object-backend/osv1-osv2-migration/
+- **Confirmed — incremental sync semantics.** OSv2 uses "latest transaction wins" per primary key for incremental datasets, and a single transaction may not contain duplicate keys. OSv2 no longer uses the legacy "latest timestamp wins" changelog semantic. Sources: https://www.palantir.com/docs/foundry/object-indexing/funnel-batch-pipelines/ , https://www.palantir.com/docs/foundry/object-backend/object-storage-v2-breaking-changes/
+- **New — streaming throughput.** Streaming indexing is limited to 2 MB/s per object type into OSv2 (raisable via support), and Ontology streaming is supported only by the OSv2 object database. Source: https://www.palantir.com/docs/foundry/object-indexing/faq/
+- **New — Actions cannot edit stream-backed object types.** "Actions are not yet supported on object types with Foundry stream datasources." Direct datasources (beta, configured in Pipeline Builder) are the low-latency write path for those. Sources: https://www.palantir.com/docs/foundry/object-edits/overview/ , https://www.palantir.com/docs/foundry/object-indexing/direct-datasources
+- **New — other permanent OSv2 breaking changes worth copying as design rules:** edits only through Actions (no direct edit API); edit history must be switched on per object type ("Track user edit history"); monitoring only through monitoring views; no query-string search in OSS. Source: https://www.palantir.com/docs/foundry/object-backend/object-storage-v2-breaking-changes
 
 ## Gaps
 

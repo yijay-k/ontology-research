@@ -58,7 +58,14 @@ Draft → validate → inspect diff → dependency checks → simulation/migrati
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._
+
+- **Confirmed — breaking changes on types with edits:** changing input datasources, primary key, a property's data type, the ID of an edited property, deleting an edited property or struct field, changing a struct field's type. Saving is blocked until each has a migration. Source: https://www.palantir.com/docs/foundry/object-edits/schema-migrations/
+- **New — the complete migration instruction set:** drop all property edits; drop all struct field edits; drop all edits; move edits (property → property, or whole type when the datasource is replaced); move struct field edits; cast property to new type; cast struct field to new type; backfill a value (sets a property on user-created objects only where unset, never overwriting an explicit null); revert migration. Source: same page.
+- **New — cast matrix.** Property casts: most scalar types → String; Double ↔ Integer/Long; Integer → Long/Double; Long → Integer/Double; String → Integer, Long, Double, Boolean, Date, Timestamp, Geopoint, Geoshape. Struct-field casts are a narrower set (no Geoshape, Attachment or Mandatory marking). Source: same page.
+- **New — limits.** At most 500 migrations applied at once; migrations cannot be applied to the primary key property; failed migrations surface a "Fix schema migrations" option on the replacement pipeline; revert is done from Ontology Manager History. Source: same page.
+- **New — branches.** If both a branch and Main contain schema migrations on the same object type, rebasing or merging the branch "will most likely fail". Source: https://www.palantir.com/docs/foundry/ontologies/test-changes-in-ontology
+- **New — data restrictions block migrations.** OSv2 enforces type coherence between datasource and object schema on every sync, rejects NaN/±infinity, and schema migrations do not proceed if incompatible values exist — they are not auto-cleaned. Source: https://www.palantir.com/docs/foundry/object-indexing/data-restrictions/
 
 ## Gaps
 
