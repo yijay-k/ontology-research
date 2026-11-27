@@ -445,7 +445,10 @@ Sacra: a mix of OpenAI, Anthropic and Cohere models plus proprietary fine-tunes.
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed — naming.** AIP Agent Studio was renamed AIP Chatbot Studio the week of 27 April 2026 (AIP Agents → AIP Chatbots); features unchanged. Source: https://www.palantir.com/docs/foundry/announcements/2024-12/ , https://www.palantir.com/docs/foundry/chatbot-studio/overview/
+- **New** — the legacy mode of the Workshop AIP Agent widget was deleted on 1 May 2026. Source: https://www.palantir.com/docs/foundry/announcements/2026-04
 
 ## Gaps
 

@@ -9,6 +9,8 @@
 | **Feeds** | [09-workflows/durable-execution](../engineering/09-workflows/durable-execution.md) |
 | **Evidence level** | Phase 2 repository audit (source inspection, not executed) |
 
+> **Source re-check 28 Nov 2026 (code):** [`dbos-inc/dbos-transact-ts@adde4eb`](https://github.com/dbos-inc/dbos-transact-ts/tree/adde4eb) — Enterprise gates now autoUpgrade, sharding, suspendMode, externalStores, workflowArchive; new system tables (streams, scheduler_state, event_dispatch_kv, workflow_queue).
+
 ## Repository audit: Repository audit — dbos-inc/dbos-transact-ts
 
 > Source: former `15-repository-audits/dbos.md` (Phase 2 source inspection, not executed).

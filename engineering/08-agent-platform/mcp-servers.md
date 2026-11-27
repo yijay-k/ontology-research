@@ -195,9 +195,19 @@ Extra detail:
 
 **Open questions.** Whether 2026-07-28 is the "current" version on modelcontextprotocol.io (document 14 unverified). Which customer agent clients already speak 2026-07-28.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Spec version check (code):** [`modelcontextprotocol/modelcontextprotocol` → `schema`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/024d525/schema) contains 2024-11-05, 2025-03-26, 2025-06-18, 2025-11-25, 2026-07-28 and `draft` — 2026-07-28 is still the latest released revision. Tool annotations confirmed in `schema/2026-07-28/schema.ts`.
+- **SDK:** `@modelcontextprotocol/server` and `@modelcontextprotocol/client` 2.4.0 ([`modelcontextprotocol/typescript-sdk` → `packages`](https://github.com/modelcontextprotocol/typescript-sdk/blob/5ee54ee/packages)).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — 2026-07-28 is still the newest released MCP schema; TypeScript SDK packages 2.4.0.
+- **New — Palantir MCP became generally available across all Foundry enrollments the week of 22 June 2026, and Ontology MCP was announced GA the same month**; Palantir MCP also gained a tool-search mode exposing only `search_tools` at startup. Source: https://www.palantir.com/docs/foundry/announcements/2026-06
 
 ## Gaps
 

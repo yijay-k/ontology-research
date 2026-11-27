@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** of `PGTableGraphStorage` and the provenance columns. This is the plan for graph storage in a Postgres-only build. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`HKUDS/LightRAG@47038cf`](https://github.com/HKUDS/LightRAG/tree/47038cf) — v1.5.9; pgtable_impl.py present.
+
 ## From the open-source code study: 9. LightRAG
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

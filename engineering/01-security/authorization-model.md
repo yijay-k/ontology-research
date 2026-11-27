@@ -281,9 +281,20 @@ Use multiple layers with explicit responsibilities:
 - Object/field/action security: resource permission, property masking and action-specific checks.
 - Agent controls: tool allow-list, principal delegation, purpose limitation, approval and audit.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Relationship tuples (OpenFGA, Apache-2.0, code):** Postgres tables `tuple`, `authorization_model`, `store`, `assertion`, `changelog` — [`openfga/openfga` → `assets/migrations/postgres`](https://github.com/openfga/openfga/blob/d67ba7b/assets/migrations/postgres).
+- **Yes/no action decisions (Cedar 4.15.0, code):** `cedar-wasm` is still built with features `wasm` + `partial-eval` only — type-aware partial evaluation (`tpe`, needed for "which resources may P see") is not in the wasm build. Write list filtering in SQL. [`cedar-policy/cedar` → `cedar-wasm/Cargo.toml`](https://github.com/cedar-policy/cedar/blob/1c9d1c2/cedar-wasm/Cargo.toml)
+- **Policy → SQL filter (OPA):** compile API in [`open-policy-agent/opa` → `v1/server/compile_handler.go`](https://github.com/open-policy-agent/opa/blob/58d4683/v1/server/compile_handler.go).
+- **Metric/column policies (Cube):** see [04-query-and-metrics/metrics-and-semantic-layer](../04-query-and-metrics/metrics-and-semantic-layer.md#implementation-starting-points-from-source-code).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — OpenFGA Postgres schema at d67ba7b; Cedar 4.15.0 with `cedar-wasm` features `wasm` + `partial-eval` only at 1c9d1c2.
 
 ## Gaps
 

@@ -150,9 +150,15 @@ These mechanisms recur across the products read:
 
 **Open questions.** Which processors serve Malaysian B2B payers (FPX, DuitNow are not mentioned in the documents) [Unverified gap]. Doc 19 names Stripe only as the example.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Risk-graded actions (UModel, code):** `action_config` carries `action_type` (pop_api, mcp, api_call, script, webhook), `inputs`, `outputs`, `confirmation_required` and `risk_level` ∈ low / medium / high — [`alibaba/UnifiedModel` → `schemas/includes/action_config.schema.yaml`](https://github.com/alibaba/UnifiedModel/blob/5cd06e9/schemas/includes/action_config.schema.yaml). Map risk_level to allowed / needs approval / never.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
 
 ## Gaps
 

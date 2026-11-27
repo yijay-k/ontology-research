@@ -11,6 +11,8 @@
 
 > **Fact-check 28 Nov 2026:** open-sourced by Alibaba Cloud on 20 May 2026 with a Universal Semantic Standard initiative; docs at <https://alibaba.github.io/UnifiedModel/>. Public surfaces: REST (OpenAPI), `umctl` CLI, `umodel-mcp` MCP server, web UI, Go/Python SDKs. See [engineering/03-ontology-engine/object-type-registry.md](../engineering/03-ontology-engine/object-type-registry.md#fact-check-notes).
 
+> **Source re-check 28 Nov 2026 (code):** [`alibaba/UnifiedModel@5cd06e9`](https://github.com/alibaba/UnifiedModel/tree/5cd06e9) — Schemas include entity_set, link, confidence, action_config (risk_level), runbook_set (observations, actions, toolkits, knowledge, automations, skills, terms).
+
 ## Repository audit: Repository audit — alibaba/UnifiedModel
 
 > Source: former `15-repository-audits/alibaba-umodel.md` (Phase 2 source inspection, not executed).

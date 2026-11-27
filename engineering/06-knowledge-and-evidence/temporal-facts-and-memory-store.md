@@ -370,9 +370,18 @@ Graph tables (LightRAG `PGTableGraphStorage` design):
 
 Adopt Graphiti's four-time distinction as a candidate pattern: `valid_at`, `invalid_at`, `recorded_at/created_at`, `expired_at/superseded_at`. Add source observation and ingestion time where needed. Conflicting facts should close/revise their valid interval with an audit trail, not silently overwrite the previous statement.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Edge time fields (Graphiti 0.32.1, code):** `valid_at`, `invalid_at` ("soft deadlines are not invalid_at"), `expired_at`, `reference_time` in [`getzep/graphiti` → `graphiti_core/edges.py`](https://github.com/getzep/graphiti/blob/343a7bb/graphiti_core/edges.py); deterministic close-out in `resolve_edge_contradictions` ([`getzep/graphiti` → `graphiti_core/utils/maintenance/edge_operations.py`](https://github.com/getzep/graphiti/blob/343a7bb/graphiti_core/utils/maintenance/edge_operations.py)). Port the four timestamps and the rule into Postgres.
+- **mem0 2.2.1 (code):** `MEM0_TELEMETRY` still defaults to `True` and posts to PostHog ([`mem0ai/mem0` → `mem0/memory/telemetry.py`](https://github.com/mem0ai/mem0/blob/cae3d8c/mem0/memory/telemetry.py)) — set it off if it is ever used.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — Graphiti four-timestamp edges and `resolve_edge_contradictions`; mem0 telemetry still on by default.
 
 ## Gaps
 

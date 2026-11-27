@@ -91,7 +91,7 @@ Palantir maps seven practices to features:
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
 
 ## Gaps
 

@@ -198,9 +198,18 @@ The query service should choose a provider plan only after validating property i
 
 Our v1 should build a relational/object-set query engine with explicit relationship traversal and semantic plans over PostgreSQL. Keep the graph store as an optional provider/projection until benchmarks and query needs justify it. The user-facing SDK should generate typed object definitions and query contracts from published ontology metadata.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Wire format:** the 15-variant `ObjectSet` union and `SearchJsonQueryV2` filter list in [`palantir/foundry-platform-python` → `foundry_sdk/v2/ontologies/models.py`](https://github.com/palantir/foundry-platform-python/blob/cb2bd92/foundry_sdk/v2/ontologies/models.py); typed builder and `$snapshot` pagination in [`palantir/osdk-ts` → `packages/api/src/objectSet/ObjectSet.ts`](https://github.com/palantir/osdk-ts/blob/fe6f8e1/packages/api/src/objectSet/ObjectSet.ts).
+- **Minimal working implementation:** [`gura105/operational-ontology` → `src/query.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/query.ts) — filter / union / intersect / subtract / aggregate with groupBy over an in-memory store; port to SQL.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — ObjectSet algebra and filter list present at cb2bd92; OSv2 search-around default 100,000 (see ontology pass).
 
 ## Gaps
 

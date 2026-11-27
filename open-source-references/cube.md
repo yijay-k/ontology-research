@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** of the policy object and the combination semantics. Running Cube itself is plausible, since it has a Postgres driver and its own SQL API, but it adds a second semantic layer next to your ontology. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`cube-js/cube@47c6d3b`](https://github.com/cube-js/cube/tree/47c6d3b) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 5. Cube: data model and access policies
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

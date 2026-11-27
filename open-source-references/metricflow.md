@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **adopt as a dependency if metrics must compile to SQL over the customer's warehouse.** Spawn the sidecar from Node, pass it a manifest generated from your own metric definitions, and execute the returned SQL yourself under your own permission filters. Otherwise **copy the design**: the entity-type join matrix, the hop limit, and the five metric types. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`dbt-labs/metricflow@013590e`](https://github.com/dbt-labs/metricflow/tree/013590e) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 4. MetricFlow: semantic models and metric-to-SQL compilation
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

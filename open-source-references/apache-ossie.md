@@ -13,6 +13,8 @@
 
 > **Fact-check 28 Nov 2026:** entered the Apache Incubator on 22 June 2026; canonical repository is now <https://github.com/apache/ossie>. Spec unchanged by the rename. See [engineering/03-ontology-engine/semantic-model-format.md](../engineering/03-ontology-engine/semantic-model-format.md#fact-check-notes).
 
+> **Source re-check 28 Nov 2026 (code):** [`apache/ossie@34e4d37`](https://github.com/apache/ossie/tree/34e4d37) — Spec 0.3.0.dev0 (unreleased); standalone documents carry version/name/datasets at root.
+
 ## From the open-source code study: 7. Apache Ossie (formerly Open Semantic Interchange)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

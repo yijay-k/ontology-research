@@ -205,9 +205,15 @@ About half a dozen checks per message is the published reference point. Record e
 
 **Open questions.** Malaysian PDPA and debt-collection messaging rules (document 27 says PDPA will matter more than SOC 2, but no document details them).
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Safe defaults:** UModel ships agent write tools disabled by default and gates actions with `confirmation_required` + `risk_level` — [`alibaba/UnifiedModel` → `schemas/includes/action_config.schema.yaml`](https://github.com/alibaba/UnifiedModel/blob/5cd06e9/schemas/includes/action_config.schema.yaml).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
 
 ## Gaps
 

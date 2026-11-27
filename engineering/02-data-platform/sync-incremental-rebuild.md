@@ -252,9 +252,20 @@ Do not use append-only event semantics to pretend a mutable invoice is immutable
 
 The findings above are based on public Foundry documentation, not Palantir's private implementation source. The original archive's detailed Foundry data layer note is preserved at `../sources/archive-original/01-palantir-data-layer.md`. No Foundry build or connector run was executed by this project.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Transaction model to copy from Palantir datasets:** four transaction types — `SNAPSHOT` (replace the view), `APPEND` (add files), `UPDATE` (add and may overwrite files), `DELETE`. An `UPDATE` that overwrites existing files breaks append-only incrementality downstream. Incremental logic must survive an occasional full `SNAPSHOT` recompute of an input. Sources: https://www.palantir.com/docs/foundry/data-integration/datasets , https://www.palantir.com/docs/foundry/building-pipelines/incremental-overview/
+- **Object sync from an incremental source** (from the ontology pass): latest transaction wins per primary key; no duplicate keys inside one transaction. See [object-storage-and-indexing](../03-ontology-engine/object-storage-and-indexing.md#fact-check-notes).
+- **Cursor and de-dup mechanics:** see [connectors-and-ingestion](connectors-and-ingestion.md#implementation-starting-points-from-source-code).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed / New — dataset transactions.** Four types SNAPSHOT, APPEND, UPDATE, DELETE; UPDATE that overwrites files breaks the append-only requirement for incremental pipelines; Python incremental decorator now exposes `strict_append` and `v2_semantics`. Sources: https://www.palantir.com/docs/foundry/data-integration/datasets , https://www.palantir.com/docs/foundry/api-reference/transforms-python-library/api-incremental
+- **New — Iceberg mapping.** Iceberg APPEND ↔ APPEND, OVERWRITE ↔ UPDATE, DELETE ↔ DELETE, REPLACE has no equivalent; Foundry captures a consistent multi-table snapshot at transaction start and retries the job on a conflicting commit. Sources: https://www.palantir.com/docs/foundry/iceberg/snapshots/ , https://www.palantir.com/docs/foundry/iceberg/transactions/
 
 ## Gaps
 

@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **consider as a sidecar** only if you want policy authors to write Rego and get SQL `WHERE` clauses back. For one person, a Go sidecar plus Rego is a second language and a second service. **Copy the design** of "partial evaluation → check translatability → emit SQL fragment". [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`open-policy-agent/opa@58d4683`](https://github.com/open-policy-agent/opa/tree/58d4683) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 18. Open Policy Agent
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

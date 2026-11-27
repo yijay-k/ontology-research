@@ -576,9 +576,23 @@ Metric changes are governed artefacts and should be released with the ontology/m
 
 Dataphin/Quick BI public documentation provides evidence about metric modelling and question-to-dataset configuration. It does not prove that their hosted systems use Palantir-like object action transactions or expose the same ontology runtime. Keep these product comparisons at the capability boundary.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Join-safety rule — copy verbatim (code)** from [`dbt-labs/metricflow` → `metricflow_semantics/metricflow_semantics/model/semantics/semantic_model_join_evaluator.py`](https://github.com/dbt-labs/metricflow/blob/013590e/metricflow_semantics/metricflow_semantics/model/semantics/semantic_model_join_evaluator.py): `MAX_JOIN_HOPS = 2`; valid entity joins are primary→{natural, primary, unique}, unique→{natural, primary, unique}, foreign→{natural, primary, unique}, natural→{primary, unique}. Anything that lands on a foreign entity, and natural→natural, is invalid (fan-out).
+- **Metric types (code):** `simple`, `ratio`, `cumulative`, `derived`, `conversion` — [`dbt-labs/metricflow` → `metricflow_semantic_interfaces/type_enums/metric_type.py`](https://github.com/dbt-labs/metricflow/blob/013590e/metricflow_semantic_interfaces/type_enums/metric_type.py).
+- **Compile-only sidecar (code):** [`dbt-labs/metricflow` → `sidecar/mf_ipc_protocol.py`](https://github.com/dbt-labs/metricflow/blob/013590e/sidecar/mf_ipc_protocol.py) — NDJSON "mf-ipc" protocol version 1; ready message reports `metricflow_version`; `explain` params `manifest_path`, `metric_names`, `group_by_names`, `where_constraints`, `order_by_names`, `limit`. Spawn from Node, generate the manifest from our own metric definitions, execute the returned SQL under our own permission filters.
+- **Metric access policy (code):** [`cube-js/cube` → `packages/cubejs-schema-compiler/src/compiler/CubeValidator.ts`](https://github.com/cube-js/cube/blob/47c6d3b/packages/cubejs-schema-compiler/src/compiler/CubeValidator.ts) — `memberLevel` (includes/excludes), `memberMasking` (requires memberLevel), `rowLevel` (exactly one of `filters` / `allowAll`), `conditions`. The validator now warns explicitly that an empty `memberLevel` grants every member. Unattributable member paths are denied by injecting `1 = 0` ([`cube-js/cube` → `packages/cubejs-server-core/src/core/CompilerApi.ts`](https://github.com/cube-js/cube/blob/47c6d3b/packages/cubejs-server-core/src/core/CompilerApi.ts)).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — MetricFlow join matrix, `MAX_JOIN_HOPS = 2`, five metric types and the sidecar protocol are unchanged at 013590e; licence Apache-2.0.
+- **Confirmed (code)** — Cube access-policy schema unchanged at 47c6d3b.
+- **New — Snowflake status.** Semantic View Autopilot reached GA on 3 Feb 2026; standard SQL querying of semantic views reached GA on 2 Mar 2026; Power BI ingestion for Autopilot reached GA on 18 Aug 2026 (report-level measures and time-intelligence functions not yet fully supported). Sources: https://www.snowflake.com/en/blog/semantic-view-autopilot/ , https://atlan.com/know/snowflake/snowflake-semantic-views/ , https://docs.snowflake.com/release-notes/2026/other/2026-08-18-semantic-views-power-bi-ingestion-ga
+- **Mixed — Databricks metric views.** The AWS docs page shows no preview banner and adds joins with other views (Beta), parameters, window measures and materialization; the Azure and GCP mirrors still label the feature Public Preview. Treat GA status as cloud-dependent. Sources: https://docs.databricks.com/en/metric-views , https://learn.microsoft.com/azure/databricks/metric-views
 
 ## Gaps
 

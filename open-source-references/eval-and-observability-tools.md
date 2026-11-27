@@ -11,6 +11,8 @@
 
 **Verdict from the code study:**  - Copy tau2's reward design for your own action evaluations: seed the database, replay the reference actions to get a target state, compare end states, run k trials. - Use promptfoo (MIT) in CI for prompt and tool regression. - For traces, either emit OpenTelemetry and self-host Phoenix (ELv2 is fine for internal use, [Inference]), or write traces to your own Postgres table. Langfuse self-hosting is a four-service footprint. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`sierra-research/tau2-bench@768f3d8`](https://github.com/sierra-research/tau2-bench/tree/768f3d8) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 29. Evaluation and observability: tau-bench, tau2-bench, Langfuse, promptfoo, Phoenix
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

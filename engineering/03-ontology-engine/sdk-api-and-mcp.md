@@ -177,11 +177,19 @@ The examples show `applyAction` and `batchApplyAction` with `$returnEdits: true`
 - Official backend architecture: https://www.palantir.com/docs/foundry/object-backend/overview
 - Official paging semantics: https://www.palantir.com/docs/foundry/api/v2/general/overview/paging
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Generated MCP tool surface to copy:** [`gura105/operational-ontology` → `src/mcp.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/mcp.ts) — per object type `search_`/`get_`/set algebra/`aggregate_`; per link `traverse_`/`pivot_`; one tool per action and function; no raw-SQL or generic-update tool; build fails on name collisions.
+- **Server SDK:** `@modelcontextprotocol/server` 2.4.0 ([`modelcontextprotocol/typescript-sdk` → `packages/server`](https://github.com/modelcontextprotocol/typescript-sdk/blob/5ee54ee/packages/server)), implementing spec 2026-07-28. Put tool annotations (`readOnlyHint`, `destructiveHint`, `idempotentHint`, `openWorldHint`) on every generated tool — defined in [`modelcontextprotocol/modelcontextprotocol` → `schema/2026-07-28/schema.ts`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/024d525/schema/2026-07-28/schema.ts).
+- **Validate/apply split and ObjectSet algebra:** [`palantir/foundry-platform-python` → `foundry_sdk/v2/ontologies/models.py`](https://github.com/palantir/foundry-platform-python/blob/cb2bd92/foundry_sdk/v2/ontologies/models.py).
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._
 
-- **New — Ontology MCP is labelled Beta.** It is a Developer Console feature that turns an app's object types, action types and query functions into MCP tools; agents' allowed actions are restricted through application scopes. Sources: https://www.palantir.com/docs/foundry/ontology-mcp , https://www.palantir.com/docs/foundry/ontology-mcp/overview/
+- **Conflict — Ontology MCP status.** The Ontology MCP docs page still shows a Beta banner, but Palantir's June 2026 announcements list "Ontology MCP is now generally available" (and Palantir MCP GA across all enrollments from the week of 22 June). Treat it as GA with docs lagging. Source: https://www.palantir.com/docs/foundry/announcements/2026-06 . It is a Developer Console feature that turns an app's object types, action types and query functions into MCP tools; agents' allowed actions are restricted through application scopes. Sources: https://www.palantir.com/docs/foundry/ontology-mcp , https://www.palantir.com/docs/foundry/ontology-mcp/overview/
 - **Confirmed — the builder/consumer split.** Palantir MCP is for builders: it can modify ontology *types* but cannot write ontology *data*; Ontology MCP is for consumers that read objects and execute predefined actions. Source: https://www.palantir.com/docs/foundry/palantir-mcp/overview
 - **Changed — Palantir MCP can now create action types.** The current tool list includes `view_foundry_action_type` and `create_or_update_foundry_action_type` (object modifications, deletions and link operations, on a provided branch) alongside object-type create/update/delete. An earlier community thread reported no action-type tool, so this was added recently. Palantir MCP also has a `--tool-search` mode that discovers tools on demand to save tokens. Sources: https://www.palantir.com/docs/foundry/palantir-mcp/available-tools/ , https://community.palantir.com/t/feature-request-mcp-tool-for-creating-updating-action-types/5694 , https://www.palantir.com/docs/foundry/announcements/2026-06
 - **New — server description as agent instructions.** Ontology MCP lets you edit a markdown server description that some clients (for example Claude) inject into the agent's context, which is the place for server-level agent instructions. Source: https://www.palantir.com/docs/foundry/ontology-mcp/mcp-tools-and-agent-configuration

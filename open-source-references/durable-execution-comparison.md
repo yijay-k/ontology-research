@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **adopt DBOS** for action write-back and long agent tasks (steps are memoised, so a write-back that crashed is resumed rather than re-run blindly), or **pg-boss** for simpler background jobs. Skip Temporal until you have operations staff. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`dbos-inc/dbos-transact-ts@adde4eb`](https://github.com/dbos-inc/dbos-transact-ts/tree/adde4eb), [`timgit/pg-boss@b2198aa`](https://github.com/timgit/pg-boss/tree/b2198aa) — DBOS gates changed (see dbos.md); pg-boss 12.40.0 with job_dependency.
+
 ## From the open-source code study: 25. Durable execution: Temporal vs DBOS vs pg-boss
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

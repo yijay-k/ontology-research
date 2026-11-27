@@ -70,9 +70,17 @@ Builder lesson: [Inference] a cascade. Deterministic keys first (tax ID, registr
 - How Splink estimates m and u (EM plus random sampling) is [Unverified] in document 09.
 - [Inference] Splink is a Python library, while the stack is TypeScript. Either reimplement the scoring (the formulas are simple) or run a Python worker.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Splink 5.0.0, MIT** ([`moj-analytical-services/splink` → `splink/internals`](https://github.com/moj-analytical-services/splink/blob/f319070/splink/internals)) — unchanged since the code study: Fellegi–Sunter linkage, blocking rules, EM-estimated m/u, term-frequency adjustment, clustering, and `realtime.py` for scoring one new record. Run as an offline Python job against Postgres; store match pairs and cluster ids as a link type.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — Splink 5.0.0, MIT, last commit 2026-11-11.
 
 ## Gaps
 

@@ -514,9 +514,21 @@ A connector must declare source identity, auth method, scopes, supported object 
 
 The original archive flags ELv2/proprietary restrictions in several integration platforms and connector-specific licences. Audit the license for the specific connector and commercial deployment model; the platform's main licence does not necessarily cover every connector. Store OAuth tokens/secrets in a secrets manager, never in ontology objects or traces.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Incremental cursor contract — copy from dlt** ([`dlt-hub/dlt` → `dlt/extract/incremental/__init__.py`](https://github.com/dlt-hub/dlt/blob/f85861b/dlt/extract/incremental/__init__.py)). Parameters: `cursor_path`, `initial_value`, `last_value_func` (`max`/`min`/custom), `primary_key`, `end_value`, `row_order`, `on_cursor_value_missing` (default `raise`), `lag`, `range_start` (default `closed`), `range_end` (default `open`).
+- **Persisted cursor state shape** ([`dlt-hub/dlt` → `dlt/common/incremental/typing.py`](https://github.com/dlt-hub/dlt/blob/f85861b/dlt/common/incremental/typing.py)): `{initial_value, last_value, unique_hashes[], start_value}`. Store this per (tenant, source, stream) row in Postgres.
+- **Boundary de-duplication rule** ([`dlt-hub/dlt` → `dlt/extract/incremental/transform.py`](https://github.com/dlt-hub/dlt/blob/f85861b/dlt/extract/incremental/transform.py)): rows whose cursor equals the previous `last_value` are hashed on the primary key and dropped if the hash is already in `unique_hashes`; rows below the start value are dropped; the hash set is reset whenever a new maximum appears. De-dup is switched off when `lag` is set or `range_start` is `open` — then the destination must de-duplicate. This is the exact behaviour to port to a TypeScript sync engine.
+- **Connector config grammar** to copy (not run): dlt's declarative `rest_api` source (client / resources / endpoint / paginator / incremental) — see [open-source-references/dlt-airbyte-and-connectors](../../open-source-references/dlt-airbyte-and-connectors.md).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Changed — Airbyte licensing is broader ELv2 than the research's "licences vary per connector".** Airbyte's current licence page says connectors and everything in its public repos except `airbyte-protocol` are under ELv2, with the protocol MIT. An older FAQ page still says connectors and CDK are MIT. In the Python CDK repo, `LICENSE.txt` is MIT but `LICENSE_SHORT` reads "all rights reserved" — get a legal reading before copying any Airbyte code. Sources: https://docs.airbyte.com/community/licenses/ , https://airbyte.com/license-faq , https://github.com/airbytehq/airbyte-python-cdk
+- **Confirmed (code) — dlt 1.32.0, Apache-2.0,** at f85861b.
 
 ## Gaps
 

@@ -335,4 +335,21 @@ Checked against current Palantir, Microsoft, Apache and Alibaba pages. Details a
 | FC-05 | Fabric IQ ontology in preview | Fabric IQ itself went GA at Build (June 2026); the Ontology item is still preview. Ontology Rules (Activator) added; Ontology MCP endpoints announced. | engineering/03-ontology-engine/object-type-registry.md |
 | FC-06 | Edit conflict strategy described per object type in places | Strategy is configured per datasource; on multi-datasource types each property follows its own datasource's strategy. | engineering/03-ontology-engine/edits-and-merge-precedence.md |
 
-Not yet fact-checked in this pass: layers 01, 02, 04, 06–13 and the remaining 03/05 components. Their "Fact-check notes" sections say so.
+
+## Fact-check corrections, 28 Nov 2026 (source-code and remaining-layer pass)
+
+27 repositories were cloned and read at pinned commits (listed in each component's "Implementation starting points"). Vendor claims for data, query/metrics, security, knowledge, agents, workflows and apps were spot-checked.
+
+| ID | Claim in the research | Current state | Where noted |
+|---|---|---|---|
+| FC-07 | Airbyte: platform ELv2, licence varies per connector, CDK MIT | Airbyte's licence page now says connectors and all public repos except the protocol are ELv2; CDK repo has an MIT `LICENSE.txt` but an "all rights reserved" `LICENSE_SHORT`. Legal check before copying any Airbyte code. | engineering/02-data-platform/connectors-and-ingestion.md |
+| FC-08 | DBOS enterprise gates: autoUpgrade, sharding, suspendWorkflows, externalStorage | Now autoUpgrade, sharding, suspendMode, externalStores, **workflowArchive**; new system tables. | engineering/09-workflows/durable-execution.md |
+| FC-09 | Graphiti 0.31.2, drivers Neo4j/FalkorDB/Neptune | 0.32.1 adds embedded **Relate**; still no Postgres. | engineering/06-knowledge-and-evidence/knowledge-graph-retrieval.md |
+| FC-10 | Versions: Docling 2.151.1, pg-boss 12.38.2 | Docling 2.154.0; pg-boss 12.40.0 (adds `job_dependency`). | engineering/06…/document-parsing.md, 09-workflows/durable-execution.md |
+| FC-11 | Pilot GA 29 Oct 2026 | Announced, but the Pilot docs page still shows a Beta banner. | engineering/12-apps-and-integration/app-surfaces.md |
+| FC-12 | Ontology MCP (status not stated) / labelled Beta in the first pass | Palantir's June 2026 announcements list Palantir MCP and Ontology MCP as GA; the OMCP docs page still shows a Beta banner. First-pass note corrected. | engineering/03-ontology-engine/sdk-api-and-mcp.md |
+| FC-13 | Databricks metric views status | AWS docs show no preview banner; Azure/GCP mirrors still say Public Preview — cloud-dependent. | engineering/04-query-and-metrics/metrics-and-semantic-layer.md |
+
+Everything else checked in this pass was **confirmed**: MetricFlow join matrix and sidecar, Cube policy schema, Palantir IR (12 rules / 9 conditions), Przyval RLS and markings, OpenFGA schema, cedar-wasm features, LightRAG pgtable, Cognee identity fields, mem0 telemetry default, MCP spec 2026-07-28 and SDK 2.4.0, tau2 reward basis, AgentScope SOP, Zen node kinds, operational-ontology's stated gaps.
+
+Components whose "Fact-check notes" say no time-sensitive claims were re-checked are mostly business, research-literature or design-pattern material with no version, licence or status claim to verify.

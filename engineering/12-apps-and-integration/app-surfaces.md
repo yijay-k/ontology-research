@@ -250,7 +250,10 @@ Technical detail: standard object views are generated automatically from the typ
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Conflict — Pilot status.** The research cites the Oct 2026 announcements for "GA on 29 Oct 2026", but the Pilot documentation page still carries a **Beta** banner ("may not be available on your enrollment"). Treat as GA-announced, docs not yet updated. Source: https://www.palantir.com/docs/foundry/pilot
+- **New** — AIP Analyst GA week of 13 April 2026 (SQL over object sets and datasets, Vega charts, actions and functions in conversation); Insight (point-and-click ontology analysis) GA from 30 March 2026. Source: https://www.palantir.com/docs/foundry/announcements/2026-03/
 
 ## Gaps
 

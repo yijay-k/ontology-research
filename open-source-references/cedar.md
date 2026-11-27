@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **adopt `@cedar-policy/cedar-wasm` as a dependency** for "may principal P run action A on object O with context C". Write the "filter the list of objects" path yourself in SQL, because resource queries are not in the wasm build. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`cedar-policy/cedar@1c9d1c2`](https://github.com/cedar-policy/cedar/tree/1c9d1c2) — 4.15.0; cedar-wasm still wasm + partial-eval only.
+
 ## From the open-source code study: 17. Cedar
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

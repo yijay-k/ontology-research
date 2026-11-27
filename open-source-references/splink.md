@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **adopt as an offline batch job** (Python against your Postgres) for merging customers and suppliers across systems. Its output is match pairs and cluster ids, which your ontology stores as a link type. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`moj-analytical-services/splink@f319070`](https://github.com/moj-analytical-services/splink/tree/f319070) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 27. Entity resolution: Splink
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

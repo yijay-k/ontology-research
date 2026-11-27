@@ -388,7 +388,9 @@ X-Analytics specifics [Fact, https://help.aliyun.com/zh/dataphin/semimanaged-v4/
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed** — see dataset transaction types in [sync-incremental-rebuild](sync-incremental-rebuild.md#fact-check-notes). **New:** Pipeline Builder "Faster pipelines" are now the default and read/write Iceberg tables (Oct–Nov 2026). Sources: https://www.palantir.com/docs/foundry/announcements/2026-10/ , https://www.palantir.com/docs/foundry/announcements/2026-11/
 
 ## Gaps
 

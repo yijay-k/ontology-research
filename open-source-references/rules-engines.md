@@ -11,6 +11,8 @@
 
 **Verdict from the code study:**  - **Adopt Zen** if business users must edit decision tables (pricing, eligibility, approval thresholds) and you want a trace of why a row fired. - Otherwise encode preconditions as the JSON condition IR copied from Palantir's `OntologyIrCondition`, evaluated in TypeScript. - Avoid DMN unless a customer demands it. [Inference] ---
 
+> **Source re-check 28 Nov 2026 (code):** [`gorules/zen@62cd159`](https://github.com/gorules/zen/tree/62cd159), [`CacheControl/json-rules-engine@e1f1fda`](https://github.com/CacheControl/json-rules-engine/tree/e1f1fda) — Zen node kinds unchanged; json-rules-engine unchanged since Feb 2026.
+
 ## From the open-source code study: 30. Rules engines: GoRules Zen, json-rules-engine, DMN
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **adopt Docling as a separate HTTP service** called from TypeScript. It is the permissive choice with structure-aware chunking. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`docling-project/docling@40e490c`](https://github.com/docling-project/docling/tree/40e490c) — Docling 2.154.0, MIT.
+
 ## From the open-source code study: 28. Document parsing: Docling and Unstructured
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

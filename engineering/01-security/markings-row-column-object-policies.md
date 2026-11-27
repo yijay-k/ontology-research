@@ -202,9 +202,17 @@ The cap is **10,000** in total, across nested groups. NOT adds no weight. A coll
 
 ---
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Marking evaluator to copy:** [`Przyval/openfoundry` → `packages/markings/src/marking-evaluator.ts`](https://github.com/Przyval/openfoundry/blob/96ff1de/packages/markings/src/marking-evaluator.ts) — user must hold all mandatory markings and at least one discretionary marking if any are present; unknown markings count as mandatory. Schema in `db/migrations/015_user_groups_markings.sql`.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **New** — Palantir made testing object and property security policies in Ontology Manager generally available (June 2026). Source: https://www.palantir.com/docs/foundry/announcements/2026-06
 
 ## Gaps
 

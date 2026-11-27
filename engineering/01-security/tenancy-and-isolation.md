@@ -152,9 +152,17 @@ OpenFGA can answer relationship questions; OPA/Cedar can evaluate policy. Neithe
 
 Cross-tenant object lookup, count, graph edge, vector hit, cache hit, autocomplete, action, file export, background workflow, webhook and error trace. Also test policy-engine outage, missing tenant header, stale ACL, changed group membership and deleted user. Security tests must assert absence of information, not just 403 on one endpoint.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Postgres RLS migrations — copy (Apache-2.0, code):** [`Przyval/openfoundry` → `db/migrations/009_multi_tenancy.sql`](https://github.com/Przyval/openfoundry/blob/96ff1de/db/migrations/009_multi_tenancy.sql) — `ENABLE` RLS → `CREATE POLICY tenant_isolation ... USING (org_rid = current_setting('app.org_rid', true)) WITH CHECK (...)` → `FORCE ROW LEVEL SECURITY` per table; separate app login role; `SET LOCAL app.org_rid` per transaction. Companion migrations: `014_resource_authorization.sql` (resource role grants and policies) and `015_user_groups_markings.sql`.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — Przyval/openfoundry RLS pattern unchanged at 96ff1de (Apache-2.0).
 
 ## Gaps
 

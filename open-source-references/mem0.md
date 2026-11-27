@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **ignore as a dependency** for company memory. It is user-centric (scoped by user_id, agent_id and run_id), the temporal features are paywalled, and telemetry is on by default. **Copy** the integer-ID mapping trick and the "report only confirmed writes" rule. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`mem0ai/mem0@cae3d8c`](https://github.com/mem0ai/mem0/tree/cae3d8c) — v2.2.1; telemetry still on by default.
+
 ## From the open-source code study: 13. mem0
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

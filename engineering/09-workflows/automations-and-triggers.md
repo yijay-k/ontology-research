@@ -412,7 +412,10 @@
 
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **New — Automate limits:** 10,000 recipients per automation; 10,000 objects per evaluation for real-time execution (first 10,000 events processed or error); 10,000 per evaluation for scheduled per-object execution (runtime error, nothing processed). Source: https://palantir.com/docs/foundry/automate/limits/
+- **New** — AI FDE gained tools to configure Automate (27 Aug 2026). Source: https://www.palantir.com/docs/foundry/announcements/2026-08
 
 ## Gaps
 

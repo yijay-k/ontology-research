@@ -301,9 +301,20 @@ A workflow instance should persist definition/version, input snapshot or referen
 
 DBOS is a PostgreSQL-based durability reference; Temporal is an alternative with a separate service cluster. Neither is an ontology or policy engine. The workflow runtime should call actions and connectors through typed contracts.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **DBOS system tables (MIT core, code):** [`dbos-inc/dbos-transact-ts` → `src/sysdb_migrations/internal/migrations.ts`](https://github.com/dbos-inc/dbos-transact-ts/blob/adde4eb/src/sysdb_migrations/internal/migrations.ts) now creates `workflow_status`, `operation_outputs` (per-step memo), `workflow_inputs`/`workflow_input`/`workflow_output`, `workflow_events`, `workflow_events_history`, `workflow_queue`, `queues`, `notifications`, `streams`, `workflow_schedules`, `scheduler_state`, `event_dispatch_kv`, `external_objects`, `application_versions`, `dbos_migrations`.
+- **pg-boss 12.40.0, MIT (code):** tables `job` (partitioned per queue), `job_dependency`, `queue`, `queue_stats`, `schedule`, `subscription`, `warning`, `version`, `bam`, `instance` — [`timgit/pg-boss` → `src/plans.ts`](https://github.com/timgit/pg-boss/blob/b2198aa/src/plans.ts).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Changed (code) — DBOS enterprise gates.** `src/enterprise.ts` now gates `autoUpgrade`, `sharding`, `suspendMode`, `externalStores` and **`workflowArchive`** (research listed four, with older names `suspendWorkflows`/`externalStorage`). The system database also has new tables (`streams`, `scheduler_state`, `event_dispatch_kv`, `workflow_queue`). [`dbos-inc/dbos-transact-ts` → `src/enterprise.ts`](https://github.com/dbos-inc/dbos-transact-ts/blob/adde4eb/src/enterprise.ts)
+- **Changed (code) — pg-boss 12.40.0** (research: 12.38.2), now with a `job_dependency` table.
+- **New — Temporal.** Task Queue Priority & Fairness became GA (May 2026); the Rust SDK went GA (Sep 2026); OSS server images were slimmed in v1.30 (breaking for Docker/Helm users). Sources: https://temporal.io/changelog/product-area/server , https://temporal.io/blog/durable-digest-february-2026
 
 ## Gaps
 

@@ -11,3 +11,4 @@ The whole system, build order, platform comparison, open hypotheses and vocabula
 | [platform-comparison](platform-comparison.md) | Palantir, Lingyang/AgentOne, Fabric IQ, Glean, Sierra, Decagon and Harvey compared at architecture level. | 358 | 5 |
 | [hypotheses-and-decisions](hypotheses-and-decisions.md) | Architecture hypotheses that are proposed but not yet decided, and the gate for deciding them. | 90 | 1 |
 | [terminology](terminology.md) | Shared vocabulary and the research charter that defines scope. | 118 | 2 |
+| [bill-of-materials](bill-of-materials.md) | Every recommended building block (depend / copy design / write), licences, and what was re-verified in source on 28 Nov 2026. | 88 | 2 |

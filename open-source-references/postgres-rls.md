@@ -9,6 +9,8 @@
 | **Feeds** | [01-security/tenancy-and-isolation](../engineering/01-security/tenancy-and-isolation.md) |
 | **Evidence level** | Source read (doc 14, 21 Nov 2026) |
 
+> **Source re-check 28 Nov 2026 (code):** [`Przyval/openfoundry@96ff1de`](https://github.com/Przyval/openfoundry/tree/96ff1de) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 20. Postgres row-level security for multi-tenant apps (pattern as found in code)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

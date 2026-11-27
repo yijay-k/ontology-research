@@ -212,9 +212,18 @@ Three channels into the agent's "company model" [Vendor claim]:
 
 **Open questions.** How much the builder should infer rules from historical decisions vs ask the controller (Ramp captures "messy exceptions" but doc 12 gives no method). Which rented model writes the procedure format reliably (doc 12's DSL warning).
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **SOP executor (AgentScope, Apache-2.0, code):** `SOPStep(subject, description, executor, …)` with a run state that outlives the process — [`agentscope-ai/agentscope` → `src/agentscope/sop/_schema.py`](https://github.com/agentscope-ai/agentscope/blob/b76f272/src/agentscope/sop/_schema.py).
+- **Runbook packaging (UModel, code):** a `RunbookSet` groups `observations`, `actions`, `toolkits`, `knowledge`, `automations`, `skills` (following the Agent Skills specification) and `terms` for one domain — [`alibaba/UnifiedModel` → `schemas/core/dataset/runbook_set.schema.yaml`](https://github.com/alibaba/UnifiedModel/blob/5cd06e9/schemas/core/dataset/runbook_set.schema.yaml). An observation pairs a `phenomenon` (query / action / dashboard / event) with `conclusions`. This is a ready shape for "role-packaged" agents.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — AgentScope SOP module present at b76f272. **New** — UModel RunbookSet packages skills per the Agent Skills spec. **New** — AIP Analyst now loads admin-enabled skills (Oct 2026). Source: https://www.palantir.com/docs/foundry/announcements/2026-10/
 
 ## Gaps
 

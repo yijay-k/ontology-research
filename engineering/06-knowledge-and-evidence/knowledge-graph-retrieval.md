@@ -360,9 +360,19 @@ Builder lesson: [Inference] a graph built by an LLM *from text* is lossy and exp
 
 **Open questions.** HippoRAG 2's PPR damping factor and passage weight are in Appendix G.1, which was not read.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Postgres-native graph storage to copy:** [`HKUDS/LightRAG` → `lightrag/kg/pgtable_impl.py`](https://github.com/HKUDS/LightRAG/blob/47038cf/lightrag/kg/pgtable_impl.py) (LightRAG 1.5.9, MIT) — two JSONB tables, canonical edge order, frontier-capped BFS.
+- **Deterministic node identity:** [`topoteretes/cognee` → `cognee/infrastructure/engine/models/DataPoint.py`](https://github.com/topoteretes/cognee/blob/dbc515b/cognee/infrastructure/engine/models/DataPoint.py) (Cognee 1.6.11) — `metadata.index_fields` (embedded) and `identity_fields` (derive the node id).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Changed (code) — Graphiti backends.** Graphiti 0.32.1 (was 0.31.2) adds **Relate**, an embedded in-process graph database (Python 3.11+, no server), alongside Neo4j, FalkorDB and Neptune; Zep's hosted Konig is also listed. There is still **no Postgres driver**. Source: [`getzep/graphiti` → `README.md`](https://github.com/getzep/graphiti/blob/343a7bb/README.md)
+- **Confirmed (code)** — LightRAG `pgtable_impl.py` still present (1.5.9); Cognee `identity_fields`/`index_fields` unchanged (1.6.11).
 
 ## Gaps
 

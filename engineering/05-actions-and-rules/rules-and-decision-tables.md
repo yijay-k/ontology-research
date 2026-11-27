@@ -325,9 +325,19 @@ The LLM drafts rules from documents, and humans approve them. Every agent action
 
 **Open questions.** Whether segments are customer-defined free text or a fixed list. How decision tables and prose policy clauses are shown together so the finance head sees one policy.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **GoRules Zen, MIT (code):** [`gorules/zen` → `core/types/src/decision/mod.rs`](https://github.com/gorules/zen/blob/62cd159/core/types/src/decision/mod.rs) — `DecisionNodeKind` = InputNode, OutputNode, FunctionNode, DecisionNode, DecisionTableNode, ExpressionNode, SwitchNode, CustomNode. Use `@gorules/zen-engine` when business users must edit decision tables and you need a trace of which row fired.
+- **json-rules-engine 7.3.2, ISC** ([`CacheControl/json-rules-engine`](https://github.com/CacheControl/json-rules-engine/tree/e1f1fda)) — last commit 16 Feb 2026, so treat as low-activity.
+- **Default (no engine):** encode preconditions as Palantir's 9-variant condition IR — see [03-ontology-engine/object-type-registry](../03-ontology-engine/object-type-registry.md#implementation-starting-points-from-source-code).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — Zen node kinds unchanged; json-rules-engine 7.3.2 unchanged since 16 Feb 2026.
 
 ## Gaps
 

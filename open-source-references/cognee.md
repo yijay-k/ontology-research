@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** of identity_fields/index_fields as metadata on your object types, and the rule that a grant can only pass on what the granter holds. **Ignore** as a dependency (Python, and a large surface of about 779k lines). [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`topoteretes/cognee@dbc515b`](https://github.com/topoteretes/cognee/tree/dbc515b) — v1.6.11.
+
 ## From the open-source code study: 14. Cognee
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

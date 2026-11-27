@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **adopt `@modelcontextprotocol/server` v2** as the external agent interface. Statelessness suits generated tools well: put the actor and tenant in auth, not in session state. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`modelcontextprotocol/typescript-sdk@5ee54ee`](https://github.com/modelcontextprotocol/typescript-sdk/tree/5ee54ee), [`modelcontextprotocol/modelcontextprotocol@024d525`](https://github.com/modelcontextprotocol/modelcontextprotocol/tree/024d525) — Spec 2026-07-28 still latest; SDK packages 2.4.0.
+
 ## From the open-source code study: 22. Model Context Protocol (spec and SDKs)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

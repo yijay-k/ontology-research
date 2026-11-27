@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **optional dependency** (model-agnostic, TypeScript, Postgres checkpointer). A hand-written loop over the provider SDKs is simpler for a generated-tool architecture. Copy the checkpoint/blob/writes split if you persist agent state yourself. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`langchain-ai/langgraphjs@61aad39`](https://github.com/langchain-ai/langgraphjs/tree/61aad39) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 23. LangGraph (Python and JS)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

@@ -138,9 +138,17 @@ Ingest → virus/type validation → parse/OCR where necessary → structural se
 
 Every chunk/fact should retain document ID, version/hash, source location/page/offset, tenant/ACL, extraction model/prompt version, timestamps, confidence and transformation history.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Docling 2.154.0, MIT** ([`docling-project/docling`](https://github.com/docling-project/docling/tree/40e490c)) — run as a separate HTTP service; structure-aware chunking via `docling-core`.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Changed (code)** — Docling is now 2.154.0 (research: 2.151.1); still MIT.
 
 ## Gaps
 

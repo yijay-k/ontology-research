@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** (four-timestamp edges, index-based LLM adjudication, the deterministic invalidation rule, the future-tense normaliser) into Postgres tables. Running Graphiti adds Python plus Neo4j or FalkorDB. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`getzep/graphiti@343a7bb`](https://github.com/getzep/graphiti/tree/343a7bb) — v0.32.1; new embedded **Relate** backend; still no Postgres driver.
+
 ## From the open-source code study: 8. Graphiti: temporal knowledge graph
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

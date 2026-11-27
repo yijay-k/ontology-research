@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **ignore as code** because of AGPL. As design reference only: the action-type authorization-policy fields, and confirmation with justification. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`Przyval/openfoundry@96ff1de`](https://github.com/Przyval/openfoundry/tree/96ff1de) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 3. The "open Foundry" family
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

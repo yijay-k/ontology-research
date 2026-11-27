@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** Verdict, per tool: - Nango: self-hosting it as an internal component behind your SaaS is arguably not "providing the software as a hosted service", but that reading is mine and should be checked by a lawyer [Inference]. The safer path is Nango Cloud (paid) or writing OAuth for the 5–10 systems you need. - dlt: copy its config grammar for a TypeScript sync engine. - Airbyte: ignore the platform. - Pipedream: ignore entirely.
 
+> **Source re-check 28 Nov 2026 (code):** [`dlt-hub/dlt@f85861b`](https://github.com/dlt-hub/dlt/tree/f85861b), [`airbytehq/airbyte-python-cdk@HEAD`](https://github.com/airbytehq/airbyte-python-cdk/tree/HEAD) — dlt 1.32.0. Airbyte now says connectors and public repos except the protocol are ELv2; CDK repo has mixed licence files — get legal review.
+
 ## From the open-source code study: 26. Connectors and OAuth: dlt, Airbyte, Nango, Pipedream, mycontext
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

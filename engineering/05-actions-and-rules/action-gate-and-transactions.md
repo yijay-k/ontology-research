@@ -289,9 +289,18 @@ Official Palantir docs are product guarantees, not code disclosure. OpenFoundry 
 
 **Evidence:** OpenFoundry's schema batch edit provides a good local transaction pattern; its Cassandra+PG object writeback demonstrates the partial-commit problem when databases differ; DBOS illustrates durable execution state.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Reference gate (code):** [`gura105/operational-ontology` → `src/core.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/core.ts) v0.6.3 — fixed order: parse → load → preconditions → effects → preflight in an always-rolled-back transaction → authority check (source-owned vs ontology-owned state) → writeback before local commit → commit edits + audit together. Still **no idempotency keys and no persisted pending-invocation record** (stated in `docs/IMPLEMENTATION.md`), and calls made inside a caller-opened transaction are refused and not audited. These three gaps are what we must add: idempotency key per invocation, a `pending_invocation` row written before writeback, and a durable workflow for writeback.
+- **Durable writeback:** DBOS step memo table `operation_outputs` — see [09-workflows/durable-execution](../09-workflows/durable-execution.md#implementation-starting-points-from-source-code).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — operational-ontology v0.6.3 still documents no idempotency keys and no pending-invocation record.
 
 ## Gaps
 

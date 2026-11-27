@@ -566,6 +566,18 @@ Source: https://help.aliyun.com/en/dataphin/semimanaged-v4/user-guide/data-model
 
 The original architecture needs three distinct layers in its model language: **concrete object types, relationship types and reusable interfaces**. Relationship storage must be chosen based on whether the relationship itself has state. Declared cardinality guides semantics; database constraints enforce invariants. Stable primary keys and explicit schema evolution protect user edits, source mappings and audit history.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Action/condition IR to copy, verified (code)** in [`palantir/osdk-ts` → `packages/client.unstable/src/generated/ontology-metadata/api/__components.ts`](https://github.com/palantir/osdk-ts/blob/fe6f8e1/packages/client.unstable/src/generated/ontology-metadata/api/__components.ts): `OntologyIrLogicRule` still has exactly 12 variants (addObject, addOrModifyObjectV2, modifyObject, deleteObject, addInterface, modifyInterface, addLink, deleteLink, addInterfaceLinkV2, deleteInterfaceLink, function, scenario) and `OntologyIrCondition` exactly 9 (true, or, and, not, comparison, markings, regex, executionContext, redacted).
+- **Alibaba UModel schemas — newly open source, Apache-2.0** ([`alibaba/UnifiedModel` → `schemas`](https://github.com/alibaba/UnifiedModel/blob/5cd06e9/schemas)). Concrete pieces worth copying:
+  - `EntitySet` (`schemas/core/dataset/entity_set.schema.yaml`): `primary_key_fields[]`, `id_generator` (default id = `lower(to_hex(md5(join(primaryKeys, '#$#'))))`), `first_observed_time_field`, `last_observed_time_field`, `keep_alive_seconds` (entity expires after last observation + keep-alive), `dynamic`.
+  - `Link` (`schemas/includes/link.schema.yaml`): `src{domain, kind, name, filter}`, `dest{domain, kind, name}`, `filter_by_entity`, `priority` (default 5). A link can apply to a filtered subset of the source set.
+  - `confidence` (`schemas/includes/confidence.schema.yaml`): `score` 0–100, `status` ∈ manually_applied / auto_applied / not_applied, `source` ∈ human / llm / system / hybrid / imported, `basis[]` ∈ schema / sample_data / query_history / dashboard / …, `reason`. Attach this to every definition the system drafts.
+  - Dataset kinds beyond entities: `event_set`, `metric_set`, `log_set`, `trace_set`, `profile_set`, `runbook_set`, `explorer`; storage bindings for MySQL, ClickHouse, Elasticsearch, Prometheus and others under `schemas/core/storage`.
+- **Ontology-as-code reference:** [`gura105/operational-ontology` → `src/core.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/core.ts) (v0.6.3, MIT) — `defineObject` / `defineLink` / `defineAction` / `defineFunction` with Zod; still the smallest complete reference.
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._

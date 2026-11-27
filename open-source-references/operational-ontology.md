@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design.** It is the most honest small statement of the pattern. Do not depend on it. To make it production-grade, add Postgres, real identity, fail-closed visibility, idempotency keys, an outbox/pending-invocation record, and asynchronous write-back on a durable workflow. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`gura105/operational-ontology@cd8dea3`](https://github.com/gura105/operational-ontology/tree/cd8dea3) — v0.6.3; still no idempotency keys or pending-invocation record.
+
 ## From the open-source code study: 1. gura105/operational-ontology: the action gate, implemented
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

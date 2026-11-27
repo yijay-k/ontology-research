@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the tuple-table design** if you need relationship-based sharing ("viewer of this account because member of team T, which owns region R"). Run OpenFGA itself only if relationship graphs become deep; at 100–1,000 staff, group and role grants in Postgres are likely enough. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`openfga/openfga@d67ba7b`](https://github.com/openfga/openfga/tree/d67ba7b) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 19. OpenFGA
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

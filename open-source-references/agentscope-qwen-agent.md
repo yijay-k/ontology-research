@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the SOP executor/verifier/max_attempts structure** for multi-step agent procedures, a close analogue of what Lingyang-style "SOP agents" describe [Inference]. Ignore both as dependencies in a TypeScript build. Qwen's fncall templates matter only if you call Qwen models without native tool calling. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** [`agentscope-ai/agentscope@b76f272`](https://github.com/agentscope-ai/agentscope/tree/b76f272) — structures cited below verified present; no licence change.
+
 ## From the open-source code study: 24. AgentScope (Alibaba Tongyi) and Qwen-Agent
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

@@ -199,6 +199,13 @@ Schema publication flow:
 8. Monitor old/new reads and preserve rollback until consumers migrate.
 9. Deprecate before removal; never silently reinterpret historical facts.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Spec to target for import/export (code):** [`apache/ossie` → `core-spec/spec.md`](https://github.com/apache/ossie/blob/34e4d37/core-spec/spec.md) — development version `0.3.0.dev0` (unreleased, mutable; 0.2.0 was never released). A standalone document now carries `version`, `name` and a non-empty `datasets` at the root instead of under a `semantic_model` wrapper. JSON Schema at `core-spec/ossie-schema.json`; ontology layer under `ontology/`; validation and compliance suites under `validation/` and `compliance/`.
+- **Confidence metadata** for drafted definitions: copy UModel's `confidence` block — see [object-type-registry](object-type-registry.md#implementation-starting-points-from-source-code).
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._

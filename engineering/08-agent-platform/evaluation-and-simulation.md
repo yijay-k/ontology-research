@@ -434,9 +434,17 @@ Report answer quality separately from workflow completion and policy compliance.
 - Add a failing production case to the golden set and verify it blocks promotion.
 - Verify rollback moves new sessions to the prior release without mutating historical traces.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **Reward design to copy (tau2-bench 2.0.0, MIT, code):** `RewardType` in [`sierra-research/tau2-bench` → `src/tau2/data_model/tasks.py`](https://github.com/sierra-research/tau2-bench/blob/768f3d8/src/tau2/data_model/tasks.py) — final reward is the product of the components in `reward_basis`; default basis `[DB, COMMUNICATE]` (end-state database match × required information communicated). Report pass^k over repeated trials.
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **Confirmed (code)** — tau2-bench 2.0.0 reward basis default `[DB, COMMUNICATE]`.
 
 ## Gaps
 

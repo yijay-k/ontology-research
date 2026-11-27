@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** (IR shapes, the validate/apply split, ObjectSet algebra, error taxonomy). As a dependency the SDKs only make sense when talking to a real Foundry.
 
+> **Source re-check 28 Nov 2026 (code):** [`palantir/osdk-ts@fe6f8e1`](https://github.com/palantir/osdk-ts/tree/fe6f8e1), [`palantir/foundry-platform-python@cb2bd92`](https://github.com/palantir/foundry-platform-python/tree/cb2bd92) — IR still 12 logic-rule and 9 condition variants.
+
 ## From the open-source code study: 2. Palantir's public SDKs: osdk-ts, foundry-platform-python, conjure
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

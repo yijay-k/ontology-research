@@ -241,9 +241,17 @@ MetricFlow shows a semantic dataflow and SQL plan with explicit join validation,
 
 **Evidence:** MetricFlow's typed dataflow and join validator; UModel's query-plan boundary; Fabric IQ's source-binding model.
 
+## Implementation starting points (from source code)
+
+_Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
+
+- **One read surface, three query roots (UModel):** `.umodel` (definitions), `.entity` (instances, with filters such as `with(domain='platform', name='platform.service', query='degraded')`) and `.topo` (topology), served by one Query Service, exposed through REST, the `umctl` CLI and the `umodel-mcp` server. Source: https://alibaba.github.io/UnifiedModel/en/concepts/object-graph-semantic-layer.html ; code [`alibaba/UnifiedModel`](https://github.com/alibaba/UnifiedModel/tree/5cd06e9).
+
 ## Fact-check notes
 
-_Not yet checked against current sources in this pass._
+_Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
+
+- **New** — UModel is now open source (20 May 2026) with a single Query Service over `.umodel` / `.entity` / `.topo`. Source: https://alibaba.github.io/UnifiedModel/en/concepts/object-graph-semantic-layer.html
 
 ## Gaps
 
