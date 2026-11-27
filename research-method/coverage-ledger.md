@@ -53,3 +53,8 @@ See [Phase 1/2 repository reconciliation](../16-validation/phase1-phase2-reconci
 - Run UModel provider/model-pack contract tests and tenant isolation tests.
 - Execute snapshot pagination, action write-skew, outbox recovery, workflow replay and ACL revocation tests in our own prototype.
 - Select a first domain workflow only after interviews and measurable buyer pain are evidenced.
+
+
+## Additional ontology schema research
+
+Palantir official docs were inspected for object identity, link backing strategies, cardinality, object-backed relationships and interfaces. Evidence is documented in `03-ontology-engine/phase2-schema-language-and-relationships.md`. This is official product-contract evidence, not private server code inspection. No schema migration or cardinality enforcement tests were executed.

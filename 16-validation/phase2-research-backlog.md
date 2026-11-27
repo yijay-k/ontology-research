@@ -47,3 +47,13 @@ Build a vertical slice following the original build sequence:
 8. Eval suite, release pinning, audit and rollback.
 
 Record commit, environment, command, logs and observed results. A source-code inspection or a test file is not a passing test.
+
+
+## Additional schema evolution tests
+
+- Stable source/canonical IDs survive title-key and display-label edits.
+- Primary-key change requires an explicit migration of edits, relationships and audit references.
+- A one-to-one semantic declaration is backed by an actual uniqueness constraint when business correctness requires it.
+- Stateful relationships (membership, representation, allocation, assignment) have their own object identity, lifecycle and permission checks.
+- Interface property/link/action contract changes produce a compatibility report for all implementing object types.
+- A model package that fails link endpoint or interface constraint validation cannot replace the current published model.

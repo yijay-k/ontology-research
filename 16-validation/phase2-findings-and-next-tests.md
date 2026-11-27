@@ -32,6 +32,10 @@ The strongest cross-cutting finding is that an enterprise ontology is not merely
 18. **Question-to-dataset selection is a governed routing hint.** Quick BI Q-Data lets business definitions and synonyms select candidate datasets (up to ten per rule). This can improve intent resolution but must never bypass authorization or semantic query validation.
 19. **Agent tasks need durable typed state.** Palantir's public Agent Stack models sessions, typed context items, events and state transitions; sessions can remain open while waiting for human input. Session history itself needs scope-aware permissions.
 20. **Agent evaluation should be regression-oriented.** AIP Evals provides per-case evaluators, aggregate metrics, cross-version/model comparisons and traces. The run guide recommends at least three runs for LLM-backed functions to observe variance.
+21. **Object identity needs an immutable key contract.** Palantir warns that object edits are attached to primary-key values; changing the key can require deleting existing edits. Source identity and canonical identity must therefore be separated.
+22. **Relationship shape must reflect relationship state.** A direct FK or join-table link is appropriate for simple relationships, while relationships with dates, roles, status, allocations or permissions should be first-class object-backed relationships.
+23. **Declared cardinality is not the same as enforced uniqueness.** Palantir documents one-to-one cardinality as an intent signal rather than an enforcement guarantee. Our database must enforce uniqueness/exclusion/foreign-key invariants separately.
+24. **Interfaces are abstract contracts, not concrete object types.** They can standardize properties, links and actions across implementing object types, but feature support varies by service and should be treated as capability-specific.
 
 ## Provisional architecture direction — not final decisions
 
@@ -52,6 +56,7 @@ These remain hypotheses to test. They are not architecture approvals.
 
 - `02-data-platform/phase2-sync-and-build-semantics.md`
 - `03-ontology-engine/phase2-object-and-query-contracts.md`
+- `03-ontology-engine/phase2-schema-language-and-relationships.md`
 - `05-semantic-and-metrics-engine/phase2-metric-contracts.md`
 - `06-action-and-execution-engine/phase2-action-isolation-and-invariants.md`
 - `08-agent-platform/phase2-agent-sessions-and-evaluation.md`
@@ -67,6 +72,10 @@ These remain hypotheses to test. They are not architecture approvals.
 
 ### Ontology/query
 - Schema publish does not rewrite runtime facts unnecessarily.
+- Primary-key migration is blocked unless an explicit edit/link/audit identity migration exists.
+- Declared one-to-one relationships have matching database uniqueness constraints where exclusivity is required.
+- Object-backed relationships preserve their own metadata, lifecycle and authorization.
+- Interface changes identify all implementing object types and produce a compatibility/migration report.
 - Stable IDs survive re-sync and re-index.
 - Snapshot pagination has no duplicates/missing records; live pagination behaviour is documented.
 - Query tokens are bound to query hash, model version, tenant and policy scope.

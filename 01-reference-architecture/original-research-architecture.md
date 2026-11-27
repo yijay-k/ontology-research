@@ -63,7 +63,7 @@ The model needs distinct concepts for:
 - Object identity resolution when multiple systems refer to the same real-world entity.
 - Model-pack versioning, validation, publication, compatibility and rollback.
 
-The original study deliberately treats ontology definitions (the “TBox”/model) separately from runtime facts/instances (the “ABox”). It also separates an operational object from an extracted knowledge-graph assertion. A graph database alone does not provide this product.
+The original study deliberately treats ontology definitions (the “TBox”/model) separately from runtime facts/instances (the “ABox”). It also separates an operational object from an extracted knowledge-graph assertion. A graph database alone does not provide this product. The follow-up schema-language audit now makes the concrete object/link/interface distinction, relationship backing and schema-evolution constraints explicit; see [Phase 2 schema-language and relationship research](../03-ontology-engine/phase2-schema-language-and-relationships.md).
 
 ### C. Read/query and semantic computation — answer with typed meaning
 

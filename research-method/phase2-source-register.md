@@ -44,3 +44,18 @@
 - The OSDK source audit is a client-side API/SDK inspection, not an audit of Palantir's backend.
 - No upstream repositories were built; no test suites, benchmarks or Foundry/Dataphin runtime workflows were executed.
 - Documentation may describe product features with plan/region/preview dependencies. Re-check availability and lifecycle before implementing against a specific customer environment.
+
+
+## Additional Palantir schema-language documentation checked
+
+- Object type primary key/title key and stable object identity: https://www.palantir.com/docs/foundry/object-link-types/create-object-type
+- Link type backing patterns and declared cardinality: https://www.palantir.com/docs/foundry/object-link-types/create-link-type
+- Link type semantic definition and instances: https://www.palantir.com/docs/foundry/object-link-types/link-types-overview
+- Object-backed relationship modelling guidance: https://www.palantir.com/docs/foundry/ontology/ontology-structural-guidance
+- Interface properties and abstraction: https://www.palantir.com/docs/foundry/interfaces/interface-overview
+- Interface implementation and property/link/action contract mapping: https://www.palantir.com/docs/foundry/interfaces/implement-interface
+- Interface link constraints: https://www.palantir.com/docs/foundry/interfaces/interface-link-types-overview
+
+## Additional Alibaba documentation checked
+
+- Dataphin dimensional modeling follows Kimball-style business entity/dimension and business activity/fact modelling: https://help.aliyun.com/en/dataphin/semimanaged-v4/user-guide/data-modeling-research-and-development

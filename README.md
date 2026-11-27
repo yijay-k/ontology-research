@@ -23,7 +23,7 @@ This repository studies how to build a governed company operating model for soft
 
 - The 82-path Phase 1 bundle and 32 original research Markdown documents, including the full Palantir Foundry/Ontology/AIP/security/apps/business research, Lingyang/AgentOne and Alibaba stack, literature, cost, competitors and six consolidated build maps.
 - Phase 2 correctness research and source-level audits for OpenFoundry, UModel, OpenFGA and Temporal/DBOS.
-- New Phase 2 deep dives on source sync/build semantics, ontology object/query contracts, Dataphin/Quick BI metric semantics, action isolation/invariants, agent sessions/evaluation and the Palantir TypeScript OSDK client contract.
+- New Phase 2 deep dives on source sync/build semantics, ontology object/query contracts, ontology schema language/relationship semantics, Dataphin/Quick BI metric semantics, action isolation/invariants, agent sessions/evaluation and the Palantir TypeScript OSDK client contract. Start with [ontology schema language and relationships](03-ontology-engine/phase2-schema-language-and-relationships.md).
 - Research protocol, coverage ledger, evidence register, architecture synthesis and Mermaid system diagrams.
 
 ## Research status and limitations
