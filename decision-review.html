@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Architecture decisions H1–H7 — review</title>
+<style>
+  :root{
+    --bg:#f6f5f1; --panel:#ffffff; --ink:#1c1b19; --muted:#6b6860; --line:#e3e0d8;
+    --accent:#2f5d50; --accent-soft:#e4eee9; --warn:#a3561c; --warn-soft:#f7ebe0;
+    --bad:#9b2c2c; --bad-soft:#f6e3e3; --ok:#2f6b3a; --ok-soft:#e3f0e5; --chip:#efece5;
+    --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif}
+  a{color:var(--accent)}
+  header{position:sticky;top:0;z-index:5;background:rgba(246,245,241,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+  .bar{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .bar h1{font-size:17px;margin:0;font-weight:650;letter-spacing:-.01em}
+  .bar .sub{color:var(--muted);font-size:13px}
+  .progress{margin-left:auto;display:flex;align-items:center;gap:10px;font-size:13px;color:var(--muted)}
+  .track{width:160px;height:6px;border-radius:9px;background:var(--line);overflow:hidden}
+  .fill{height:100%;width:0;background:var(--accent);transition:width .25s}
+  nav.tabs{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;gap:4px}
+  nav.tabs button{border:0;background:none;padding:10px 14px;font:inherit;font-size:14px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+  nav.tabs button.on{color:var(--ink);border-color:var(--accent);font-weight:600}
+  main{max-width:1180px;margin:0 auto;padding:24px}
+  .layout{display:grid;grid-template-columns:260px 1fr;gap:24px;align-items:start}
+  @media(max-width:860px){.layout{grid-template-columns:1fr}}
+  .list{position:sticky;top:110px;display:flex;flex-direction:column;gap:6px}
+  .item{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);cursor:pointer;text-align:left;font:inherit}
+  .item:hover{border-color:#cfcabd}
+  .item.on{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+  .item .id{font-family:var(--mono);font-size:12px;color:var(--muted);width:24px}
+  .item .t{flex:1;font-size:14px}
+  .dot{width:10px;height:10px;border-radius:50%;background:var(--line);flex:none}
+  .dot.approve{background:var(--ok)} .dot.discuss{background:var(--warn)} .dot.reject{background:var(--bad)}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px 28px}
+  .eyebrow{font-family:var(--mono);font-size:12px;color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
+  .card h2{font-size:24px;margin:4px 0 6px;letter-spacing:-.015em}
+  .hyp{color:var(--muted);margin:0 0 18px}
+  .rec{background:var(--accent-soft);border-left:3px solid var(--accent);padding:12px 14px;border-radius:8px;margin:0 0 18px}
+  .rec b{color:var(--accent)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:760px){.grid2{grid-template-columns:1fr}}
+  .box{border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+  .box h3{font-size:12px;margin:0 0 8px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-family:var(--mono);font-weight:500}
+  .box ul{margin:0;padding-left:18px} .box li{margin:4px 0}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 18px}
+  .tag{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--chip);color:var(--ink)}
+  .tag.hard{background:var(--warn-soft);color:var(--warn)} .tag.easy{background:var(--ok-soft);color:var(--ok)} .tag.proof{background:var(--accent-soft);color:var(--accent)}
+  .proofs{display:flex;gap:6px;flex-wrap:wrap}
+  .pt{font-family:var(--mono);font-size:12px;padding:3px 8px;border-radius:6px;background:var(--ok-soft);color:var(--ok);cursor:help}
+  .decide{margin-top:20px;border-top:1px solid var(--line);padding-top:18px}
+  .btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .btn{border:1px solid var(--line);background:var(--panel);border-radius:9px;padding:9px 14px;font:inherit;font-size:14px;cursor:pointer}
+  .btn:hover{border-color:#bdb7a8}
+  .btn.approve.on{background:var(--ok);color:#fff;border-color:var(--ok)}
+  .btn.discuss.on{background:var(--warn);color:#fff;border-color:var(--warn)}
+  .btn.reject.on{background:var(--bad);color:#fff;border-color:var(--bad)}
+  textarea{width:100%;min-height:74px;border:1px solid var(--line);border-radius:9px;padding:10px 12px;font:inherit;font-size:14px;resize:vertical;background:#fdfcfa}
+  .nav2{display:flex;justify-content:space-between;margin-top:14px}
+  .link{background:none;border:0;color:var(--accent);font:inherit;cursor:pointer;padding:0}
+  table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top;font-size:14px}
+  th{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:500;background:#faf9f6}
+  tr:last-child td{border-bottom:0}
+  td select{font:inherit;font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;background:#fff}
+  .section-title{font-size:20px;margin:0 0 6px;letter-spacing:-.01em}
+  .lead{color:var(--muted);margin:0 0 18px;max-width:760px}
+  .test{display:flex;gap:12px;padding:10px 14px;border-bottom:1px solid var(--line);align-items:flex-start}
+  .test:last-child{border-bottom:0}
+  .test .k{font-family:var(--mono);font-size:12px;background:var(--ok-soft);color:var(--ok);padding:2px 7px;border-radius:6px;flex:none;margin-top:2px}
+  .finding{border:1px solid var(--warn-soft);background:#fffaf4;border-radius:10px;padding:12px 14px;margin-bottom:10px}
+  .finding b{color:var(--warn)}
+  .export{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  pre{background:#1f1e1b;color:#efece5;padding:16px;border-radius:10px;overflow:auto;font-family:var(--mono);font-size:12.5px;line-height:1.5;white-space:pre-wrap}
+  .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:9px 16px;border-radius:9px;font-size:14px;opacity:0;transition:opacity .2s;pointer-events:none}
+  .toast.on{opacity:1}
+  .layers{display:grid;gap:8px}
+  .layer{display:flex;gap:12px;align-items:center;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+  .layer .n{font-family:var(--mono);font-size:12px;color:var(--muted);width:28px}
+  .layer .hs{margin-left:auto;display:flex;gap:4px}
+  .hchip{font-family:var(--mono);font-size:11px;padding:2px 6px;border-radius:5px;background:var(--chip);cursor:pointer;border:0}
+  .wrap{background:var(--accent-soft);border:1px dashed var(--accent)}
+  .btn.on kbd{background:transparent;color:#fff;border-color:rgba(255,255,255,.55)}
+  kbd{font-family:var(--mono);font-size:11px;border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;background:#fff}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <h1>Architecture decisions H1–H7</h1>
+    <span class="sub">ontology-research · recommended 28 Nov 2026 · awaiting your sign-off</span>
+    <div class="progress"><span id="pcount">0 / 7 decided</span><div class="track"><div class="fill" id="pfill"></div></div></div>
+  </div>
+  <nav class="tabs" id="tabs">
+    <button data-tab="decisions" class="on">Decisions</button>
+    <button data-tab="map">Where they apply</button>
+    <button data-tab="stack">Tech stack</button>
+    <button data-tab="proofs">Proofs</button>
+    <button data-tab="export">Export</button>
+  </nav>
+</header>
+
+<main>
+  <section id="tab-decisions">
+    <div class="layout">
+      <div class="list" id="list"></div>
+      <div id="detail"></div>
+    </div>
+  </section>
+
+  <section id="tab-map" hidden>
+    <h2 class="section-title">Where each decision applies</h2>
+    <p class="lead">The engineering layers in build order. Click a decision chip to open it.</p>
+    <div class="layers" id="layers"></div>
+  </section>
+
+  <section id="tab-stack" hidden>
+    <h2 class="section-title">Recommended technology stack</h2>
+    <p class="lead">One choice per concern, with the reason. Mark each one; your choices go into the export.</p>
+    <table><thead><tr><th style="width:18%">Concern</th><th style="width:26%">Recommended</th><th>Why</th><th style="width:140px">Your call</th></tr></thead><tbody id="stack"></tbody></table>
+  </section>
+
+  <section id="tab-proofs" hidden>
+    <h2 class="section-title">Executable proofs — 21 / 21 passed</h2>
+    <p class="lead">Run against PostgreSQL 16.15 and Node 22.23 with <code>cd proofs &amp;&amp; npm test</code>. These are the evidence behind H2, H4, H5 and H6.</p>
+    <div id="findings"></div>
+    <div class="card" style="padding:0" id="tests"></div>
+  </section>
+
+  <section id="tab-export" hidden>
+    <h2 class="section-title">Export your decisions</h2>
+    <p class="lead">Copy this into the chat (or into <code>engineering/00-overview/hypotheses-and-decisions.md</code>) and I'll record it in the repo.</p>
+    <div class="export">
+      <button class="btn" id="copy">Copy as Markdown</button>
+      <button class="btn" id="dl">Download .md</button>
+      <button class="btn" id="approveAll">Approve all remaining</button>
+      <button class="btn" id="reset">Reset</button>
+    </div>
+    <pre id="out"></pre>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+const REPO = 'https://github.com/yijay-k/ontology-research/blob/main/';
+const PROOFS = {
+  G1:'Same idempotency key twice → one effect; second call replays the first outcome',
+  G2:'Ten concurrent calls with one key → exactly one effect',
+  G3:'Precondition refusal is audited and changes nothing',
+  G4:'Preflight failure leaves no writes and is audited',
+  G5:'Crash between writeback and local commit → recovered once, no double writeback',
+  G6:'Snapshot isolation allows write skew on a cross-object rule; SERIALIZABLE prevents it',
+  T1:'No tenant set → zero rows (fails closed)',
+  T2:'Tenant A sees only A, even with an explicit WHERE for B',
+  T3:'WITH CHECK blocks writing another tenant’s row',
+  T4:'SET LOCAL does not leak across pooled transactions',
+  T5:'A view owned by a privileged role bypasses RLS unless security_invoker = true',
+  T6:'The app role cannot switch off RLS',
+  M1:'Fan-out bug is real: revenue 220 becomes 420 across an order_lines join',
+  M2:'MetricFlow rule refuses the fan-out path',
+  M3:'Safe direction allowed: revenue by customer region',
+  M4:'Quantity by order is safe from the line side',
+  M5:'Three hops exceed MAX_JOIN_HOPS = 2',
+  I1:'"updated_at > last" silently loses late rows at the boundary',
+  I2:'"updated_at >= last" loads boundary rows twice',
+  I3:'">=" plus boundary hashes loads every row exactly once',
+  D1:'DBOS: crashed workflow resumes without re-running finished steps',
+};
+const H = [
+ {id:'H1', title:'Start as one service (modular monolith)', layers:['00','all'],
+  hyp:'One deployable TypeScript application with clear internal modules; extract services only for independent scaling, a security boundary, another team, or a different release cadence.',
+  rec:'Adopt. One service with module-owned tables and explicit interfaces; Docling and (optionally) the MetricFlow sidecar run as side processes.',
+  why:['Fastest path for one person building','The research bill of materials is a single TypeScript + Postgres build','CapTrix/openfoundry’s 51 services show the cost of starting distributed'],
+  risk:['Modules slowly tangle through the shared database','Mitigate: each module owns its tables, talks through interfaces, architecture tests in CI'],
+  change:'A module that needs independent scaling, a separate security boundary, or another team.',
+  undo:'easy', proofs:[], links:[['Bill of materials','engineering/00-overview/bill-of-materials.md']]},
+ {id:'H2', title:'PostgreSQL for everything first', layers:['02','03','06','09'],
+  hyp:'Definitions, objects, edits, actions, audit, outbox, workflow state, vectors and graph tables all in PostgreSQL; other stores only as projections when load justifies them.',
+  rec:'Adopt. Postgres 16 + pgvector + pgcrypto; graph tables on the LightRAG pattern; DBOS keeps workflow state in Postgres.',
+  why:['Every proof ran on one Postgres 16','Transactions, RLS, JSONB and constraints in one place','LightRAG shows a working graph-in-Postgres design'],
+  risk:['Scale: a very large customer or heavy graph traversal could outgrow it','Move that one part out when a benchmark says so'],
+  change:'Sustained write or traversal load that Postgres cannot meet in a benchmark.',
+  undo:'hard', proofs:['G1','G5','T1','D1'], links:[['Object storage and indexing','engineering/03-ontology-engine/object-storage-and-indexing.md'],['Knowledge graph retrieval','engineering/06-knowledge-and-evidence/knowledge-graph-retrieval.md']]},
+ {id:'H3', title:'Keep business records separate from AI-extracted facts', layers:['03','06'],
+  hyp:'Authoritative objects and agent-extracted knowledge share identities but have separate tables, trust levels and write paths.',
+  rec:'Adopt. Extracted facts carry provenance (episodes / chunk_ids) and a confidence/status block; only actions change business objects.',
+  why:['Stops an AI guess from becoming official data','Graphiti and LightRAG facts are useful but not canonical','Legal and finance need cited, reviewed evidence'],
+  risk:['Two representations of related information to keep linked','Mitigate with shared stable ids'],
+  change:'None expected — this is a safety property.',
+  undo:'medium', proofs:[], links:[['Temporal facts and memory store','engineering/06-knowledge-and-evidence/temporal-facts-and-memory-store.md'],['Provenance and answer transparency','engineering/06-knowledge-and-evidence/provenance-and-answer-transparency.md']]},
+ {id:'H4', title:'Typed query compiler', layers:['04'],
+  hyp:'Questions compile to typed object-set queries and metric plans; the server validates joins, grain, filters, policy and time before running anything.',
+  rec:'Adopt. Object-set algebra and metric plans compiled server-side; MetricFlow’s join matrix and 2-hop cap enforced; text-to-SQL only as a checked fallback.',
+  why:['Without it agents return wrong numbers','The proof reproduced the fan-out bug and the rule blocked it'],
+  risk:['More up-front modelling work than free-form SQL'],
+  change:'—',
+  undo:'medium', proofs:['M1','M2','M3','M4','M5'], links:[['Metrics and semantic layer','engineering/04-query-and-metrics/metrics-and-semantic-layer.md'],['Object-set queries','engineering/04-query-and-metrics/object-set-queries.md']]},
+ {id:'H5', title:'Durable write path: local commit + outbox + workflows', layers:['05','09'],
+  hyp:'Object changes, audit and outbox commit together in one transaction; a durable workflow performs external calls and reconciliation.',
+  rec:'Adopt with three mandatory additions — an idempotency key per invocation, a pending record persisted before writeback, and a recovery pass. Writeback runs as a DBOS workflow. Actions that protect rules across objects run SERIALIZABLE (with retry) or lock a shared row.',
+  why:['Proofs showed exactly-once effect under duplicates, concurrency and a crash','Snapshot isolation alone broke a cross-object rule (G6)','DBOS resumed a crashed workflow without repeating steps'],
+  risk:['SERIALIZABLE adds retries under contention','Writeback targets must be idempotent or need a reconciliation step'],
+  change:'A target system that cannot be made idempotent → add reconciliation for it.',
+  undo:'hard', proofs:['G1','G2','G3','G4','G5','G6','D1'], links:[['Action gate and transactions','engineering/05-actions-and-rules/action-gate-and-transactions.md'],['Durable execution','engineering/09-workflows/durable-execution.md']]},
+ {id:'H6', title:'Layered permissions', layers:['01','03','04','06'],
+  hyp:'Tenant isolation in the database, markings and row/column policies compiled into queries, a policy engine for action decisions, relationship authorization only when needed.',
+  rec:'Adopt. Forced RLS per tenant with a non-owner app role and security_invoker on every view; markings and row/column predicates compiled into SQL; Cedar-wasm for yes/no action decisions; OpenFGA deferred until sharing rules get deep.',
+  why:['This is what prevents one customer seeing another’s data','Proofs: fails closed, no cross-tenant reads/writes, no pool leaks','The view bypass (T5) was found by testing — it is now a rule'],
+  risk:['Search, vector and cache projections must carry the same predicates (not yet proven)'],
+  change:'Evidence that projections cannot carry the same predicates.',
+  undo:'medium', proofs:['T1','T2','T3','T4','T5','T6'], links:[['Tenancy and isolation','engineering/01-security/tenancy-and-isolation.md'],['Authorization model','engineering/01-security/authorization-model.md']]},
+ {id:'H7', title:'Versioned agent configuration', layers:['08','10'],
+  hyp:'Procedures, tools, guardrails and evaluation sets are versioned together and released through review, evaluation and canary — no untracked prompt changes in production.',
+  rec:'Adopt. Release = diff → review → eval suite (tau2-style database-state reward, pass^k) → canary flag (OpenFeature) → snapshot.',
+  why:['Cheap on day one, painful to retrofit','Sierra and Decagon both version agent logic with review'],
+  risk:['Slower one-off tweaks — by design'],
+  change:'—',
+  undo:'easy', proofs:[], links:[['Release pipeline','engineering/10-change-control/release-pipeline.md'],['Evaluation and simulation','engineering/08-agent-platform/evaluation-and-simulation.md']]},
+];
+const LAYERS = [
+ ['01','Security, tenancy, identity (wraps everything)'],['02','Data platform'],['03','Ontology engine'],['04','Query and metrics'],
+ ['05','Actions and rules'],['06','Knowledge and evidence'],['07','Model access'],['08','Agent platform'],['09','Workflows'],
+ ['10','Change control and release'],['11','Observability and audit'],['12','Apps and integration']];
+const STACK = [
+ ['Core API','TypeScript (Node 22)','MCP SDK, Cedar-wasm, isolated-vm and DBOS are TypeScript-native; one-person build'],
+ ['Primary database','PostgreSQL 16 + pgvector + pgcrypto','H2; all proofs ran on it'],
+ ['Graph','Postgres tables (LightRAG pgtable pattern)','No graph database needed at this scale'],
+ ['Ingestion','Own TypeScript sync engine (dlt cursor rules) + Nango Cloud for OAuth','Proofs I1–I3; Airbyte and Nango code are ELv2 — read only'],
+ ['Durable workflows','DBOS Transact (MIT core); pg-boss for simple jobs','Proof D1; Temporal needs its own cluster'],
+ ['Authorization','Forced RLS + SQL marking predicates + Cedar-wasm; OpenFGA later','H6; proofs T1–T6'],
+ ['Metrics','Own TypeScript planner with MetricFlow’s join matrix; sidecar fallback','Proofs M1–M5'],
+ ['Agent runtime','Own model-agnostic loop; @modelcontextprotocol/server 2.4.0','Must run Claude, GPT and Qwen; Claude Agent SDK is commercial-terms'],
+ ['Document parsing','Docling as an HTTP side service','MIT; structure-aware chunking'],
+ ['Observability','OpenTelemetry spans into Postgres; promptfoo in CI','Small footprint; Langfuse self-host is seven services'],
+ ['Feature flags / kill switch','OpenFeature','Apache-2.0; Unleash server is AGPL'],
+];
+const FINDINGS = [
+ ['Views can leak other tenants’ data','A view created by the database owner skips row-level security unless created WITH (security_invoker = true). Every view needs it — enforce with a migration lint. (T5)'],
+ ['Default isolation is not enough for cross-object rules','Two concurrent actions under REPEATABLE READ broke a “keep one primary contact” rule. Use SERIALIZABLE with retry, or lock a shared row. (G6)'],
+];
+const UNDO = {easy:['easy','Easy to reverse later'], medium:['','Moderate to reverse'], hard:['hard','Hard to reverse — decide carefully']};
+
+let state = {current:0, d:{}, stack:{}};
+try { const s = localStorage.getItem('h1h7-review'); if (s) state = Object.assign(state, JSON.parse(s)); } catch(e) {}
+const save = () => { try { localStorage.setItem('h1h7-review', JSON.stringify(state)); } catch(e) {} };
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function toast(m){ const t=$('toast'); t.textContent=m; t.classList.add('on'); setTimeout(()=>t.classList.remove('on'),1400); }
+
+function renderList(){
+  $('list').innerHTML = H.map((h,i)=>`<button class="item ${i===state.current?'on':''}" data-i="${i}">
+    <span class="id">${h.id}</span><span class="t">${esc(h.title)}</span><span class="dot ${state.d[h.id]?.v||''}"></span></button>`).join('');
+  const n = H.filter(h=>state.d[h.id]?.v).length;
+  $('pcount').textContent = `${n} / 7 decided`; $('pfill').style.width = (n/7*100)+'%';
+}
+function renderDetail(){
+  const h = H[state.current], d = state.d[h.id] || {};
+  const u = UNDO[h.undo];
+  $('detail').innerHTML = `<div class="card">
+    <div class="eyebrow">${h.id} · layers ${h.layers.join(', ')}</div>
+    <h2>${esc(h.title)}</h2>
+    <p class="hyp">${esc(h.hyp)}</p>
+    <div class="tags"><span class="tag ${u[0]}">${u[1]}</span>${h.proofs.length?`<span class="tag proof">${h.proofs.length} proof${h.proofs.length>1?'s':''} passed</span>`:'<span class="tag">Design decision — no test needed</span>'}</div>
+    <div class="rec"><b>Recommendation:</b> ${esc(h.rec)}</div>
+    <div class="grid2">
+      <div class="box"><h3>Why</h3><ul>${h.why.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div class="box"><h3>Trade-off / risk</h3><ul>${h.risk.map(x=>`<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div class="box"><h3>What would change it</h3>${esc(h.change)}</div>
+      <div class="box"><h3>Evidence</h3>
+        ${h.proofs.length?`<div class="proofs" style="margin-bottom:8px">${h.proofs.map(p=>`<span class="pt" title="${esc(PROOFS[p])}">${p} ✓</span>`).join('')}</div>`:''}
+        <ul>${h.links.map(([t,p])=>`<li><a href="${REPO+p}" target="_blank" rel="noopener">${esc(t)}</a></li>`).join('')}</ul></div>
+    </div>
+    <div class="decide">
+      <div class="btns">
+        <button class="btn approve ${d.v==='approve'?'on':''}" data-v="approve">Approve <kbd>A</kbd></button>
+        <button class="btn discuss ${d.v==='discuss'?'on':''}" data-v="discuss">Needs discussion <kbd>D</kbd></button>
+        <button class="btn reject ${d.v==='reject'?'on':''}" data-v="reject">Reject <kbd>R</kbd></button>
+      </div>
+      <textarea id="note" placeholder="Notes or conditions (optional)">${esc(d.note||'')}</textarea>
+      <div class="nav2">
+        <button class="link" id="prev" ${state.current===0?'disabled style="opacity:.3"':''}>← Previous</button>
+        <button class="link" id="next">${state.current===H.length-1?'Go to export →':'Next →'}</button>
+      </div>
+    </div></div>`;
+  $('detail').querySelectorAll('[data-v]').forEach(b=>b.onclick=()=>decide(b.dataset.v));
+  $('note').oninput = e => { state.d[h.id] = Object.assign(state.d[h.id]||{}, {note:e.target.value}); save(); renderExport(); };
+  $('prev').onclick = () => go(state.current-1);
+  $('next').onclick = () => state.current===H.length-1 ? tab('export') : go(state.current+1);
+}
+function decide(v){
+  const h = H[state.current];
+  state.d[h.id] = Object.assign(state.d[h.id]||{}, {v: state.d[h.id]?.v===v ? '' : v});
+  save(); renderList(); renderDetail(); renderExport(); renderMap();
+}
+function go(i){ if(i<0||i>=H.length) return; state.current=i; save(); renderList(); renderDetail(); window.scrollTo({top:0,behavior:'smooth'}); }
+
+function renderMap(){
+  $('layers').innerHTML = LAYERS.map(([n,name])=>{
+    const hs = H.filter(h=>h.layers.includes(n) || h.layers.includes('all'));
+    return `<div class="layer ${n==='01'?'wrap':''}"><span class="n">${n}</span><span>${esc(name)}</span>
+      <span class="hs">${hs.map(h=>`<button class="hchip" data-h="${h.id}" style="${state.d[h.id]?.v==='approve'?'background:var(--ok-soft);color:var(--ok)':state.d[h.id]?.v==='reject'?'background:var(--bad-soft);color:var(--bad)':state.d[h.id]?.v==='discuss'?'background:var(--warn-soft);color:var(--warn)':''}">${h.id}</button>`).join('')}</span></div>`;
+  }).join('');
+  $('layers').querySelectorAll('[data-h]').forEach(b=>b.onclick=()=>{ tab('decisions'); go(H.findIndex(h=>h.id===b.dataset.h)); });
+}
+function renderStack(){
+  $('stack').innerHTML = STACK.map(([c,r,w],i)=>`<tr><td><b>${esc(c)}</b></td><td>${esc(r)}</td><td style="color:var(--muted)">${esc(w)}</td>
+    <td><select data-i="${i}"><option value="">—</option>${['Approve','Discuss','Change'].map(o=>`<option ${state.stack[i]===o?'selected':''}>${o}</option>`).join('')}</select></td></tr>`).join('');
+  $('stack').querySelectorAll('select').forEach(s=>s.onchange=()=>{ state.stack[s.dataset.i]=s.value; save(); renderExport(); });
+}
+function renderProofs(){
+  $('findings').innerHTML = FINDINGS.map(([t,b])=>`<div class="finding"><b>New finding — ${esc(t)}.</b> ${esc(b)}</div>`).join('');
+  $('tests').innerHTML = Object.entries(PROOFS).map(([k,v])=>`<div class="test"><span class="k">${k} ✓</span><span>${esc(v)}</span></div>`).join('');
+}
+function markdown(){
+  const label = {approve:'Approved', discuss:'Needs discussion', reject:'Rejected', '':'Undecided', undefined:'Undecided'};
+  const lines = ['## Owner decisions — ' + new Date().toLocaleDateString('en-CA'), '', '| # | Decision | Status | Notes |', '|---|---|---|---|'];
+  H.forEach(h=>{ const d=state.d[h.id]||{}; lines.push(`| ${h.id} | ${h.title} | ${label[d.v]} | ${(d.note||'').replace(/\n/g,' ').replace(/\|/g,'/')} |`); });
+  const st = STACK.map(([c,r],i)=>state.stack[i]?`| ${c} | ${r} | ${state.stack[i]} |`:null).filter(Boolean);
+  if (st.length){ lines.push('', '### Tech stack', '', '| Concern | Recommended | Call |', '|---|---|---|', ...st); }
+  return lines.join('\n');
+}
+function renderExport(){ $('out').textContent = markdown(); }
+
+function tab(name){
+  document.querySelectorAll('#tabs button').forEach(b=>b.classList.toggle('on', b.dataset.tab===name));
+  ['decisions','map','stack','proofs','export'].forEach(t=>$('tab-'+t).hidden = t!==name);
+  if(name==='export') renderExport();
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>tab(b.dataset.tab));
+$('list').onclick = e => { const b=e.target.closest('.item'); if(b) go(+b.dataset.i); };
+$('copy').onclick = async () => { try { await navigator.clipboard.writeText(markdown()); toast('Copied'); } catch(e) { toast('Select the text and copy it'); } };
+$('dl').onclick = () => { const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([markdown()],{type:'text/markdown'})); a.download='h1-h7-decisions.md'; a.click(); };
+$('approveAll').onclick = () => { H.forEach(h=>{ if(!state.d[h.id]?.v) state.d[h.id]=Object.assign(state.d[h.id]||{}, {v:'approve'}); }); save(); renderAll(); toast('Remaining marked approved'); };
+$('reset').onclick = () => { state={current:0,d:{},stack:{}}; save(); renderAll(); toast('Reset'); };
+document.addEventListener('keydown', e => {
+  if (e.target.tagName==='TEXTAREA' || $('tab-decisions').hidden) return;
+  const k=e.key.toLowerCase();
+  if(k==='a') decide('approve'); else if(k==='d') decide('discuss'); else if(k==='r') decide('reject');
+  else if(k==='arrowright'||k==='j') go(state.current+1); else if(k==='arrowleft'||k==='k') go(state.current-1);
+});
+function renderAll(){ renderList(); renderDetail(); renderMap(); renderStack(); renderProofs(); renderExport(); }
+renderAll();
+</script>
+</body>
+</html>
