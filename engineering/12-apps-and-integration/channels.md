@@ -77,12 +77,15 @@ Source: [Fact](https://robject.lydaas.com/help/en/support/im-capability-comparis
 
 **Open questions.** Malaysian WhatsApp per-message rates after 1 Oct 2026 were not read (doc 20 [Unverified]). Whether Meta treats a company chasing its own invoices as the excluded "Finance" vertical — this matters only if we use Meta's Business Agent; plain Cloud API templates are a different product [Inference].
 
+## Palantir (updated 28 Nov 2026)
+
+- AIP Chatbots deploy to Workshop, AIP Assist, OSDK and third-party apps via platform APIs — see [agent-loop-and-runtime](../08-agent-platform/agent-loop-and-runtime.md) and https://palantir.com/docs/foundry/assist/agents-in-aip-assist/.
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No open-source implementations material in the research yet.
-- No research literature material in the research yet.
+- Open-source implementations: not applicable — product, onboarding or domain content rather than code.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

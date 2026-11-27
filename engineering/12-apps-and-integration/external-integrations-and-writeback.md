@@ -213,11 +213,14 @@ Writeback should be called by a durable workflow after the action has passed loc
 
 - Nango (ELv2, 1,579 providers) — [dlt-airbyte-and-connectors](../../open-source-references/dlt-airbyte-and-connectors.md); use as a hosted service, not shipped code.
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir writeback runs through action webhooks and exports — see [01 § 3–4](../../general-references/01-palantir-data-layer.md#3-exports) and [action-types](../05-actions-and-rules/action-types.md).
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No research literature material in the research yet.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

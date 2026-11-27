@@ -23,6 +23,11 @@ Research for building a governed company operating model for software and AI age
 - **Fact-checked on 28 Nov 2026:** the ontology engine and action types against vendor docs, then 27 open-source repositories read at pinned commits (licences, versions, the exact schemas and algorithms to copy) plus vendor spot-checks across data, query/metrics, security, knowledge, agents, workflows and apps. Corrections FC-01…FC-13 are in [research-log/corrections.md](research-log/corrections.md). A final gap-filling pass added new research for the thin components (provenance, provider retention, branching, scenarios, construction and finance packs), open-source implementations for 26 components, 18 new open-source reference files, and corrections FC-14…FC-20. Each component has **Implementation starting points (from source code)** where a repository supplies one, and [engineering/00-overview/bill-of-materials.md](engineering/00-overview/bill-of-materials.md) lists every building block with its verified status.
 - Open work is listed in [research-log/backlog-and-next-tests.md](research-log/backlog-and-next-tests.md).
 
+## Executable proofs and recommended decisions (28 Nov 2026)
+
+- [`proofs/`](proofs/README.md): action gate, tenant isolation, metric join safety, incremental cursor and DBOS recovery, run against PostgreSQL 16 — **21/21 passed** ([results](research-log/proof-results.md)). Two findings were new: snapshot isolation lets concurrent actions break cross-object invariants, and owner-created views bypass row-level security unless `security_invoker = true`.
+- [Recommended decisions for H1–H7 and the technology stack](engineering/00-overview/hypotheses-and-decisions.md#recommended-decisions-28-nov-2026) — all seven recommended for adoption, awaiting owner sign-off; the end-to-end legal + finance workflow gate is still open.
+
 ## Architecture rule
 
 Do not build the product as "RAG + a graph database + agents". Follow the original sequence: tenant/security floor → source data lifecycle → versioned ontology/object runtime → object-set and semantic query → deterministic rules and governed actions → evidence/context → agent runtime → durable workflow and controlled release → application/integration surfaces. Keep the legal-market pivot separate from the original receivables/collections baseline.

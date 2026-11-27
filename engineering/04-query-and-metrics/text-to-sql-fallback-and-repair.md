@@ -117,11 +117,14 @@ Independent rerun: dbt Labs 2026 ([blog](https://docs.getdbt.com/blog/semantic-l
 
 **Open questions.** The repair limit N and the abstention UX are not given in any document.
 
+## Palantir (updated 28 Nov 2026)
+
+- **Ontology SQL (Beta):** Spark-SQL dialect over object types, many-to-many link tables and interfaces, executed against object storage with ontology-specific planning; read-only. **Ontology SQL functions** (Beta) are reusable parameterised read-only queries usable in Workshop, Actions, Automate and OSDK, not yet for high-concurrency loads. REST `POST /api/v2/sqlQueries/executeOntology` (preview) returns Apache Arrow with a `rowLimit`. Sources: https://palantir.com/docs/foundry/sql-warehousing/ontology-sql/ , https://palantir.com/docs/foundry/sql-warehousing/sql-functions/ , https://www.palantir.com/docs/foundry/api/sql-queries-v2-resources/sql-queries/execute-ontology-sql-query
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.

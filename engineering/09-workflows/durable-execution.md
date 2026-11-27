@@ -308,6 +308,10 @@ _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences ch
 - **DBOS system tables (MIT core, code):** [`dbos-inc/dbos-transact-ts` → `src/sysdb_migrations/internal/migrations.ts`](https://github.com/dbos-inc/dbos-transact-ts/blob/adde4eb/src/sysdb_migrations/internal/migrations.ts) now creates `workflow_status`, `operation_outputs` (per-step memo), `workflow_inputs`/`workflow_input`/`workflow_output`, `workflow_events`, `workflow_events_history`, `workflow_queue`, `queues`, `notifications`, `streams`, `workflow_schedules`, `scheduler_state`, `event_dispatch_kv`, `external_objects`, `application_versions`, `dbos_migrations`.
 - **pg-boss 12.40.0, MIT (code):** tables `job` (partitioned per queue), `job_dependency`, `queue`, `queue_stats`, `schedule`, `subscription`, `warning`, `version`, `bam`, `instance` — [`timgit/pg-boss` → `src/plans.ts`](https://github.com/timgit/pg-boss/blob/b2198aa/src/plans.ts).
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir does not expose a general durable-workflow engine; long work runs as Automate effects and Agent Stack sessions (see [automations-and-triggers](automations-and-triggers.md) and [session-state-and-memory](../08-agent-platform/session-state-and-memory.md#palantir-updated-28-nov-2026)); action retries are limited to actions without external calls.
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
@@ -318,6 +322,5 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No other companies and products material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.

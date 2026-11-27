@@ -205,11 +205,19 @@ About half a dozen checks per message is the published reference point. Record e
 
 **Open questions.** Malaysian PDPA and debt-collection messaging rules (document 27 says PDPA will matter more than SOC 2, but no document details them).
 
+## Palantir (updated 28 Nov 2026)
+
+- Chatbot Studio grants the model access only to what the task needs under the platform security model; retrieval context is deterministic per message rather than model-chosen. Sources: https://www.palantir.com/docs/foundry/agent-studio/overview , https://www.palantir.com/docs/foundry/agent-studio/retrieval-context
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
 
 - **Safe defaults:** UModel ships agent write tools disabled by default and gates actions with `confirmation_required` + `risk_level` — [`alibaba/UnifiedModel` → `schemas/includes/action_config.schema.yaml`](https://github.com/alibaba/UnifiedModel/blob/5cd06e9/schemas/includes/action_config.schema.yaml).
+
+## Research literature (added 28 Nov 2026)
+
+- **Design Patterns for Securing LLM Agents against Prompt Injections** (Beurer-Kellner et al., 2025, arXiv 2506.08837) — patterns that deliberately constrain agents (action-selector, plan-then-execute, privileged/quarantined LLM, and others). **CaMeL** (Debenedetti et al., 2025, arXiv 2503.18813) — extracts control and data flow from the trusted query so untrusted data cannot change program flow; capabilities block exfiltration; 67% of AgentDojo tasks solved with provable security. Both are already discussed in [general-references/10](../../general-references/10-papers-agents-memory-eval.md#11-safety-for-acting-agents-prompt-injection-permissions-human-in-the-loop). Sources: https://arxiv.org/abs/2506.08837 , https://arxiv.org/abs/2503.18813
 
 ## Fact-check notes
 
@@ -217,5 +225,4 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.

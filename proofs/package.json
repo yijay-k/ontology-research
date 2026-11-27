@@ -1,0 +1,13 @@
+{
+  "name": "ontology-proofs",
+  "private": true,
+  "type": "module",
+  "description": "Executable proofs for the ontology-research engineering claims (action gate, tenant isolation, metric join safety, incremental sync).",
+  "scripts": {
+    "test": "node --test --test-concurrency=1 tests/*.test.ts"
+  },
+  "dependencies": {
+    "@dbos-inc/dbos-sdk": "^5.7.0",
+    "pg": "^8.13.0"
+  }
+}

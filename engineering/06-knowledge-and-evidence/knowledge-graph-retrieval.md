@@ -367,6 +367,10 @@ _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences ch
 - **Postgres-native graph storage to copy:** [`HKUDS/LightRAG` → `lightrag/kg/pgtable_impl.py`](https://github.com/HKUDS/LightRAG/blob/47038cf/lightrag/kg/pgtable_impl.py) (LightRAG 1.5.9, MIT) — two JSONB tables, canonical edge order, frontier-capped BFS.
 - **Deterministic node identity:** [`topoteretes/cognee` → `cognee/infrastructure/engine/models/DataPoint.py`](https://github.com/topoteretes/cognee/blob/dbc515b/cognee/infrastructure/engine/models/DataPoint.py) (Cognee 1.6.11) — `metadata.index_fields` (embedded) and `identity_fields` (derive the node id).
 
+## Palantir (updated 28 Nov 2026)
+
+- In Palantir the ontology itself is the graph (links, search-arounds) and Vertex visualises cause and effect; semantic search over objects is in [03 § 16](../../general-references/03-palantir-aip.md#16-retrieval-semantic-search-embeddings-documents-and-ontology-augmented-generation).
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
@@ -376,4 +380,3 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.

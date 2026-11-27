@@ -209,5 +209,5 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No other companies and products material in the research yet.
-- No research literature material in the research yet.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

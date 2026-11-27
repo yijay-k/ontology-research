@@ -77,14 +77,42 @@ This is a synthesis of evidence, not an approved ADR. Each point needs a prototy
 
 No technology should be finalised until at least one legal workflow and one finance workflow run end-to-end with: source ingestion, canonical identity, ontology query, policy enforcement, document retrieval, action preview, approval, local commit, external writeback, reconciliation and evaluation.
 
+## Recommended decisions (28 Nov 2026)
+
+> **Status: recommended, awaiting owner sign-off.** Each recommendation is drawn from the evidence already in this repository plus the executable proofs in [`proofs/`](../../proofs/README.md) ([results](../../research-log/proof-results.md)). The original decision gate — one legal and one finance workflow end-to-end — is **not yet met**, so treat these as the working baseline for building that end-to-end slice, not as final.
+
+| # | Hypothesis | Recommendation | Evidence | Proof | What would change it |
+|---|---|---|---|---|---|
+| H1 | Modular monolith first | **Adopt.** One TypeScript service with module-owned tables and explicit interfaces; Docling and (optionally) the MetricFlow sidecar run as side processes. | Research BOM is single-person TypeScript + Postgres ([bill-of-materials](bill-of-materials.md)); CapTrix/openfoundry's 51 services show the cost of the alternative. | — (structural) | A module that needs independent scaling, a different security boundary, or another team. |
+| H2 | PostgreSQL as the first authoritative store | **Adopt.** Definitions, objects, edits, actions, audit, outbox, workflow state (DBOS), vectors (pgvector) and graph tables (LightRAG pattern) all in Postgres. | [object-storage-and-indexing](../03-ontology-engine/object-storage-and-indexing.md), [knowledge-graph-retrieval](../06-knowledge-and-evidence/knowledge-graph-retrieval.md#implementation-starting-points-from-source-code), [durable-execution](../09-workflows/durable-execution.md#implementation-starting-points-from-source-code). | G1–G6, T1–T6, D1 all ran on one Postgres 16. | Sustained write or traversal load that Postgres cannot meet in a benchmark. |
+| H3 | Keep authoritative objects separate from extracted knowledge | **Adopt.** Shared identities, separate tables and write paths; extracted facts carry provenance (`episodes`/`chunk_ids`) and a confidence/status block; only actions change objects. | [temporal-facts-and-memory-store](../06-knowledge-and-evidence/temporal-facts-and-memory-store.md), [provenance-and-answer-transparency](../06-knowledge-and-evidence/provenance-and-answer-transparency.md), UModel `confidence`. | — (design) | None expected; this is a safety property. |
+| H4 | Typed query compiler | **Adopt.** Object-set algebra and metric plans compiled server-side; MetricFlow join matrix and 2-hop cap enforced; text-to-SQL only as a checked fallback. | [object-set-queries](../04-query-and-metrics/object-set-queries.md), [metrics-and-semantic-layer](../04-query-and-metrics/metrics-and-semantic-layer.md#implementation-starting-points-from-source-code). | M1–M5: fan-out bug reproduced and blocked. | — |
+| H5 | Local commit + outbox; workflows for external effects | **Adopt, with three mandatory additions:** idempotency key per invocation, a persisted pending record before writeback, and a recovery pass; run writeback as a DBOS workflow; run invariant-protecting actions SERIALIZABLE (with retry) or lock a shared row. | [action-gate-and-transactions](../05-actions-and-rules/action-gate-and-transactions.md). | G1–G6, D1. G6 shows snapshot isolation is not enough. | A target system that cannot be made idempotent → it needs a reconciliation step instead. |
+| H6 | Multi-layer policy enforcement | **Adopt.** Layer 1 forced RLS per tenant with a non-owner app role and **`security_invoker` on every view**; layer 2 markings and row/column predicates compiled into SQL; layer 3 Cedar-wasm for yes/no action decisions; OpenFGA only when sharing graphs get deep. | [tenancy-and-isolation](../01-security/tenancy-and-isolation.md), [authorization-model](../01-security/authorization-model.md#implementation-starting-points-from-source-code). | T1–T6; T5 found the view bypass. | Evidence that projections (search, vector, cache) can't carry the same predicates. |
+| H7 | Agent configuration is a versioned artifact | **Adopt.** Procedures/skills, tools, guardrails and eval sets versioned together; release = diff → review → eval suite (tau2-style DB-state reward, pass^k) → canary flag (OpenFeature) → snapshot. | [release-pipeline](../10-change-control/release-pipeline.md), [evaluation-and-simulation](../08-agent-platform/evaluation-and-simulation.md); Sierra and Decagon both version agent logic with review. | — (process) | — |
+
+### Recommended technology choices (replacing "not selected")
+
+| Concern | Recommended | Why |
+|---|---|---|
+| Core API | TypeScript (Node 22) | Research BOM; MCP SDK, Cedar-wasm, isolated-vm and DBOS all TypeScript-native. |
+| Primary DB | PostgreSQL 16 + pgvector + pgcrypto | H2; all proofs ran on it. |
+| Graph | Postgres tables (LightRAG `pgtable` pattern) | No graph DB needed at this scale. |
+| Ingestion | Own TypeScript sync engine with dlt cursor rules; Nango Cloud for OAuth | I1–I3; Airbyte and Nango code are ELv2 (read only). |
+| Orchestration | DBOS Transact (MIT core); pg-boss for simple jobs | D1; Temporal needs its own cluster. |
+| Authorization | Forced RLS + SQL marking predicates + Cedar-wasm; OpenFGA later | H6, T1–T6. |
+| Metrics | Own TypeScript planner with MetricFlow's matrix; sidecar as fallback | M1–M5. |
+| Agent runtime | Own model-agnostic loop; `@modelcontextprotocol/server` 2.4.0 for external agents | Multi-model requirement; Claude Agent SDK is commercial-terms. |
+| Observability | OpenTelemetry spans into Postgres; promptfoo in CI | Small footprint; Langfuse self-host is seven services. |
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
-- No other companies and products material in the research yet.
-- No research literature material in the research yet.
+- Palantir: not applicable — this is a project-level or overview component.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Open-source implementations: not applicable — product, onboarding or domain content rather than code.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

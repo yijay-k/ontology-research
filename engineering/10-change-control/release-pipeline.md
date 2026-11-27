@@ -75,6 +75,10 @@ Four test areas recommended: brand/tone, escalation guardrails, knowledge retrie
 
 **Evidence:** Sierra's Agent Studio/release governance and Decagon's AOP approach.
 
+## Palantir (updated 28 Nov 2026)
+
+- **AIP Evals** tests AIP Logic functions, AIP Chatbot functions (after publishing the chatbot as a function) and code-authored functions: test cases, evaluation functions, comparison against previous versions; also callable from AI FDE. **AIP Evolve** (Beta) coordinates AI FDE agents to inspect a workflow, create tests, make candidate changes and evaluate them against a baseline before writing a proposal. Sources: https://palantir.com/docs/foundry/aip-evals , https://palantir.com/docs/foundry/aip-evals/create-suite/ , https://palantir.com/docs/foundry/aip-evolve/overview/
+
 ## Open-source implementations (added 28 Nov 2026)
 
 - promptfoo 0.126.0 (MIT) for prompt/tool regression in CI ([eval-and-observability-tools](../../open-source-references/eval-and-observability-tools.md)); [openfeature](../../open-source-references/openfeature.md) flags for canary and rollback.
@@ -85,6 +89,5 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

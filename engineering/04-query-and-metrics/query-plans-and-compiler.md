@@ -241,6 +241,10 @@ MetricFlow shows a semantic dataflow and SQL plan with explicit join validation,
 
 **Evidence:** MetricFlow's typed dataflow and join validator; UModel's query-plan boundary; Fabric IQ's source-binding model.
 
+## Palantir (updated 28 Nov 2026)
+
+- Ontology SQL shares the Spark SQL parsing layer with Foundry's other SQL engines but uses ontology-specific data providers and planning — see [text-to-sql-fallback-and-repair](text-to-sql-fallback-and-repair.md#palantir-updated-28-nov-2026). Source: https://palantir.com/docs/foundry/sql-warehousing/ontology-sql/
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
@@ -255,7 +259,6 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No other companies and products material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

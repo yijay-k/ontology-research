@@ -52,12 +52,15 @@ Builder lesson: [Inference] numbers should come from either (i) the semantic lay
 
 - [isolated-vm](../../open-source-references/isolated-vm.md) for model-generated arithmetic; KAG runs generated Python outside the model process ([openspg-kag](../../open-source-references/openspg-kag.md)).
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir puts computation in functions and AIP Logic tools rather than in the model — see [functions](functions.md).
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No other companies and products material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.

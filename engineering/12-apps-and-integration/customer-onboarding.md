@@ -172,5 +172,5 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No open-source implementations material in the research yet.
-- No research literature material in the research yet.
+- Open-source implementations: not applicable — product, onboarding or domain content rather than code.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

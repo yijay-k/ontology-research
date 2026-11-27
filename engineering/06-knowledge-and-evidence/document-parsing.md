@@ -138,6 +138,10 @@ Ingest → virus/type validation → parse/OCR where necessary → structural se
 
 Every chunk/fact should retain document ID, version/hash, source location/page/offset, tenant/ACL, extraction model/prompt version, timestamps, confidence and transformation history.
 
+## Palantir (updated 28 Nov 2026)
+
+- **AIP Document Intelligence** is Foundry's entry point for document extraction: run traditional strategies (raw text, OCR, layout) or VLM strategies on a media set, evaluate quality, speed and token cost, then deploy the chosen strategy as a Python transform for batch or (GA 28 Jul 2026) as Python functions that extract one page at a time. VLM extraction works best with OCR preprocessing passed alongside the page image. Prompts are edited in the app, not in the deployed template, to keep results consistent. Sources: https://www.palantir.com/docs/foundry/document-intelligence/overview/ , https://palantir.com/docs/foundry/document-intelligence/core-concepts/ , https://palantir.com/docs/foundry/document-intelligence/deploy-to-python-transforms/ , https://www.palantir.com/docs/foundry/announcements/2026-07
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
@@ -152,5 +156,4 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.

@@ -59,7 +59,7 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
-- No other companies and products material in the research yet.
+- Palantir: not applicable — this is a project-level or overview component.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Open-source implementations: not applicable — product, onboarding or domain content rather than code.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.

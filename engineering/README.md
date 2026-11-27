@@ -53,7 +53,7 @@ The whole system, build order, platform comparison, open hypotheses and vocabula
 | [system-architecture](00-overview/system-architecture.md) | The whole system on one page: the product thesis, the six research maps as one architecture, and the layer boundaries. | 267 | 7 |
 | [build-sequence](00-overview/build-sequence.md) | The order in which layers must be built, and the separate order in which research is done. | 65 | 3 |
 | [platform-comparison](00-overview/platform-comparison.md) | Palantir, Lingyang/AgentOne, Fabric IQ, Glean, Sierra, Decagon and Harvey compared at architecture level. | 358 | 5 |
-| [hypotheses-and-decisions](00-overview/hypotheses-and-decisions.md) | Architecture hypotheses that are proposed but not yet decided, and the gate for deciding them. | 90 | 1 |
+| [hypotheses-and-decisions](00-overview/hypotheses-and-decisions.md) | Architecture hypotheses that are proposed but not yet decided, and the gate for deciding them. | 118 | 1 |
 | [terminology](00-overview/terminology.md) | Shared vocabulary and the research charter that defines scope. | 118 | 2 |
 | [bill-of-materials](00-overview/bill-of-materials.md) | Every recommended building block (depend / copy design / write), licences, and what was re-verified in source on 28 Nov 2026. | 87 | 2 |
 
@@ -68,8 +68,8 @@ Wraps every other layer. Tenant isolation, identity, authorization, markings and
 | [authorization-model](01-security/authorization-model.md) | How allow/deny decisions are made on data, objects, links, actions and functions, and which engine evaluates them. | 302 | 12 |
 | [markings-row-column-object-policies](01-security/markings-row-column-object-policies.md) | Mandatory labels (markings), row and column policies, object and property security, and purpose-based checks. | 225 | 8 |
 | [agent-identity-and-token-scope](01-security/agent-identity-and-token-scope.md) | Agents as their own principals: what an agent may see and do is the intersection of its scope and the user's. | 136 | 4 |
-| [retention-deletion-encryption](01-security/retention-deletion-encryption.md) | Data lifetime, lineage-aware deletion, sensitive-data scanning, encryption, privacy engineering and certifications. | 101 | 5 |
-| [threat-model](01-security/threat-model.md) | Attack scenarios, trust boundaries and the negative-test matrix for tenant and matter isolation. | 101 | 2 |
+| [retention-deletion-encryption](01-security/retention-deletion-encryption.md) | Data lifetime, lineage-aware deletion, sensitive-data scanning, encryption, privacy engineering and certifications. | 104 | 5 |
+| [threat-model](01-security/threat-model.md) | Attack scenarios, trust boundaries and the negative-test matrix for tenant and matter isolation. | 104 | 2 |
 
 ### [02-data-platform](02-data-platform/README.md) — Data platform
 
@@ -82,7 +82,7 @@ Source data becomes trustworthy operational state: connectors, raw/clean layers,
 | [sync-incremental-rebuild](02-data-platform/sync-incremental-rebuild.md) | Keeping clean state current: CDC, streaming, incremental builds, schedules, dataset branching and rebuild semantics. | 274 | 7 |
 | [data-quality](02-data-platform/data-quality.md) | Health checks, expectations and strong/weak quality rules that block or flag bad data. | 85 | 2 |
 | [lineage-and-catalog](02-data-platform/lineage-and-catalog.md) | Where every dataset and object came from, and the catalog that lets people find them. | 93 | 3 |
-| [entity-resolution](02-data-platform/entity-resolution.md) | Deciding that records from different systems are the same customer, matter or invoice. | 89 | 3 |
+| [entity-resolution](02-data-platform/entity-resolution.md) | Deciding that records from different systems are the same customer, matter or invoice. | 92 | 3 |
 | [object-centric-event-log](02-data-platform/object-centric-event-log.md) | An event log keyed to business objects (process mining), and how it differs from the ontology. | 217 | 4 |
 
 ### [03-ontology-engine](03-ontology-engine/README.md) — Ontology engine
@@ -92,11 +92,11 @@ The company model: typed object types, properties, links and interfaces; their s
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
 | [object-type-registry](03-ontology-engine/object-type-registry.md) | The schema of the company model: object types, properties, identity, link types, interfaces, and how they are validated. | 594 | 30 |
-| [semantic-model-format](03-ontology-engine/semantic-model-format.md) | The file format a company model is written in: objects, keys, relationships, metrics, synonyms, mappings (Ossie, UModel, Palantir SDK metadata). | 221 | 6 |
+| [semantic-model-format](03-ontology-engine/semantic-model-format.md) | The file format a company model is written in: objects, keys, relationships, metrics, synonyms, mappings (Ossie, UModel, Palantir SDK metadata). | 224 | 6 |
 | [object-storage-and-indexing](03-ontology-engine/object-storage-and-indexing.md) | Where object instances live and how they are indexed and kept in step with source data (Palantir OSv2/Funnel and equivalents). | 298 | 14 |
 | [edits-and-merge-precedence](03-ontology-engine/edits-and-merge-precedence.md) | How user and agent edits are stored as a layer over source data, and which wins when they conflict. | 97 | 3 |
 | [schema-evolution-and-branching](03-ontology-engine/schema-evolution-and-branching.md) | Changing the model safely: versioning, migrations, branches, proposals and review of ontology changes. | 74 | 4 |
-| [ontology-drafting-and-cold-start](03-ontology-engine/ontology-drafting-and-cold-start.md) | Drafting a first model with LLMs from a company's apps and documents, and its limits. | 178 | 6 |
+| [ontology-drafting-and-cold-start](03-ontology-engine/ontology-drafting-and-cold-start.md) | Drafting a first model with LLMs from a company's apps and documents, and its limits. | 184 | 6 |
 | [sdk-api-and-mcp](03-ontology-engine/sdk-api-and-mcp.md) | How code and agents talk to the ontology: generated SDKs, REST API, developer console and Ontology MCP. | 201 | 6 |
 
 ### [04-query-and-metrics](04-query-and-metrics/README.md) — Query and metrics
@@ -106,10 +106,10 @@ Answering with typed meaning: object-set queries, inspectable query plans, gover
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
 | [object-set-queries](04-query-and-metrics/object-set-queries.md) | Querying typed objects as sets: filters, link traversal, aggregation, pagination and consistency. | 222 | 10 |
-| [query-plans-and-compiler](04-query-and-metrics/query-plans-and-compiler.md) | Turning a question into an inspectable, typed plan, then into executed steps (logical, optimised, physical). | 261 | 8 |
-| [metrics-and-semantic-layer](04-query-and-metrics/metrics-and-semantic-layer.md) | Governed metric definitions: grammar, time windows, safe joins and compilation to SQL. | 600 | 17 |
-| [text-to-sql-fallback-and-repair](04-query-and-metrics/text-to-sql-fallback-and-repair.md) | When no governed metric fits: generated queries as untrusted proposals that are checked and repaired against the ontology. | 127 | 4 |
-| [numeric-reasoning](04-query-and-metrics/numeric-reasoning.md) | Arithmetic done in executed code with a trace, never in the model's head. | 63 | 2 |
+| [query-plans-and-compiler](04-query-and-metrics/query-plans-and-compiler.md) | Turning a question into an inspectable, typed plan, then into executed steps (logical, optimised, physical). | 264 | 8 |
+| [metrics-and-semantic-layer](04-query-and-metrics/metrics-and-semantic-layer.md) | Governed metric definitions: grammar, time windows, safe joins and compilation to SQL. | 603 | 17 |
+| [text-to-sql-fallback-and-repair](04-query-and-metrics/text-to-sql-fallback-and-repair.md) | When no governed metric fits: generated queries as untrusted proposals that are checked and repaired against the ontology. | 130 | 4 |
+| [numeric-reasoning](04-query-and-metrics/numeric-reasoning.md) | Arithmetic done in executed code with a trace, never in the model's head. | 66 | 2 |
 | [functions](04-query-and-metrics/functions.md) | User-written logic attached to the ontology (functions, AIP Logic) that queries and computes over objects. | 113 | 3 |
 
 ### [05-actions-and-rules](05-actions-and-rules/README.md) — Actions and rules
@@ -119,7 +119,7 @@ The only way state changes: typed actions through a gate with transactions, dete
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
 | [action-types](05-actions-and-rules/action-types.md) | The only way state changes: typed, permissioned action definitions with parameters, rules and side effects. | 220 | 5 |
-| [action-gate-and-transactions](05-actions-and-rules/action-gate-and-transactions.md) | Executing an action: checks, dry run, transaction boundary, isolation, outbox and external effects. | 310 | 9 |
+| [action-gate-and-transactions](05-actions-and-rules/action-gate-and-transactions.md) | Executing an action: checks, dry run, transaction boundary, isolation, outbox and external effects. | 313 | 9 |
 | [rules-and-decision-tables](05-actions-and-rules/rules-and-decision-tables.md) | Business rules as governed, versioned objects evaluated by deterministic engines and decision tables. | 345 | 10 |
 | [scenarios-and-dry-runs](05-actions-and-rules/scenarios-and-dry-runs.md) | Trying a change against a copy of state before committing it. | 70 | 2 |
 | [approvals-and-action-marking](05-actions-and-rules/approvals-and-action-marking.md) | Marking each action allowed / needs approval / never allowed, approval flows, and keeping money movement away from the model. | 170 | 6 |
@@ -130,12 +130,12 @@ Evidence that complements the operational model: document parsing, retrieval, kn
 
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
-| [document-parsing](06-knowledge-and-evidence/document-parsing.md) | Turning PDFs, emails and invoices into structured text and fields with layout and provenance. | 156 | 5 |
+| [document-parsing](06-knowledge-and-evidence/document-parsing.md) | Turning PDFs, emails and invoices into structured text and fields with layout and provenance. | 159 | 5 |
 | [retrieval-and-search](06-knowledge-and-evidence/retrieval-and-search.md) | Finding the right passages: chunking, hybrid search, reranking and permission-aware retrieval. | 297 | 12 |
-| [knowledge-graph-retrieval](06-knowledge-and-evidence/knowledge-graph-retrieval.md) | Graph-structured knowledge extracted from text, and when graph retrieval is and is not worth it. | 379 | 12 |
-| [temporal-facts-and-memory-store](06-knowledge-and-evidence/temporal-facts-and-memory-store.md) | Facts with valid-time and record-time, invalidation, two-tier (learned vs certified) knowledge and memory stores. | 390 | 14 |
-| [context-assembly-and-grounding](06-knowledge-and-evidence/context-assembly-and-grounding.md) | What reaches the model: layered context, business terms, synonyms, routing and marking filters. | 327 | 11 |
-| [provenance-and-answer-transparency](06-knowledge-and-evidence/provenance-and-answer-transparency.md) | Showing the business logic, executed query and sources behind every answer. | 59 | 1 |
+| [knowledge-graph-retrieval](06-knowledge-and-evidence/knowledge-graph-retrieval.md) | Graph-structured knowledge extracted from text, and when graph retrieval is and is not worth it. | 382 | 12 |
+| [temporal-facts-and-memory-store](06-knowledge-and-evidence/temporal-facts-and-memory-store.md) | Facts with valid-time and record-time, invalidation, two-tier (learned vs certified) knowledge and memory stores. | 393 | 14 |
+| [context-assembly-and-grounding](06-knowledge-and-evidence/context-assembly-and-grounding.md) | What reaches the model: layered context, business terms, synonyms, routing and marking filters. | 330 | 11 |
+| [provenance-and-answer-transparency](06-knowledge-and-evidence/provenance-and-answer-transparency.md) | Showing the business logic, executed query and sources behind every answer. | 66 | 1 |
 
 ### [07-model-access](07-model-access/README.md) — Model access layer
 
@@ -154,11 +154,11 @@ A governed operator, not a prompt: agent loop and runtime, tools, session state,
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
 | [agent-loop-and-runtime](08-agent-platform/agent-loop-and-runtime.md) | The agent loop and the runtime that hosts it: frameworks, model orchestration and role-packaged agents. | 455 | 20 |
-| [tool-design](08-agent-platform/tool-design.md) | Designing the tools an agent calls: granularity, identities, descriptions and errors. | 150 | 5 |
-| [session-state-and-memory](08-agent-platform/session-state-and-memory.md) | Durable agent sessions, access to the task record, and per-customer memory across interactions. | 249 | 8 |
-| [skills-and-procedures](08-agent-platform/skills-and-procedures.md) | Capturing a company's procedures as versioned skills/journeys/AOPs, and the builder that writes them. | 240 | 10 |
+| [tool-design](08-agent-platform/tool-design.md) | Designing the tools an agent calls: granularity, identities, descriptions and errors. | 153 | 5 |
+| [session-state-and-memory](08-agent-platform/session-state-and-memory.md) | Durable agent sessions, access to the task record, and per-customer memory across interactions. | 253 | 8 |
+| [skills-and-procedures](08-agent-platform/skills-and-procedures.md) | Capturing a company's procedures as versioned skills/journeys/AOPs, and the builder that writes them. | 243 | 10 |
 | [mcp-servers](08-agent-platform/mcp-servers.md) | Exposing and consuming tools over the Model Context Protocol (builder vs consumer servers). | 214 | 7 |
-| [guardrails-and-injection](08-agent-platform/guardrails-and-injection.md) | Runtime defence: supervisors, prompt-injection defences, safe tool defaults and pre-send compliance. | 221 | 8 |
+| [guardrails-and-injection](08-agent-platform/guardrails-and-injection.md) | Runtime defence: supervisors, prompt-injection defences, safe tool defaults and pre-send compliance. | 228 | 8 |
 | [human-in-the-loop-and-handoff](08-agent-platform/human-in-the-loop-and-handoff.md) | When the agent asks, waits for approval, or hands the case to a human. | 122 | 5 |
 | [evaluation-and-simulation](08-agent-platform/evaluation-and-simulation.md) | Golden sets, state-based checks, simulated users, replay of past runs, experiments and always-on monitoring. | 455 | 20 |
 
@@ -168,9 +168,9 @@ Durable execution, automations and triggers, and long-running outcome workflows.
 
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
-| [durable-execution](09-workflows/durable-execution.md) | Workflows that survive crashes: event-history replay vs durable steps, and where exactly-once stops. | 323 | 9 |
+| [durable-execution](09-workflows/durable-execution.md) | Workflows that survive crashes: event-history replay vs durable steps, and where exactly-once stops. | 326 | 9 |
 | [automations-and-triggers](09-workflows/automations-and-triggers.md) | Triggers on object changes, schedules and events that start actions or agents, and their limits. | 426 | 20 |
-| [long-running-outcome-workflows](09-workflows/long-running-outcome-workflows.md) | Work that plans toward an outcome over weeks: cases, suppression windows and audit. | 85 | 2 |
+| [long-running-outcome-workflows](09-workflows/long-running-outcome-workflows.md) | Work that plans toward an outcome over weeks: cases, suppression windows and audit. | 88 | 2 |
 
 ### [10-change-control](10-change-control/README.md) — Change control and release
 
@@ -179,7 +179,7 @@ Branches and proposals, the release pipeline, packaging and upgrades, deployment
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
 | [branches-proposals-review](10-change-control/branches-proposals-review.md) | Branch, propose, review and merge for ontology, rules and agent configuration. | 84 | 1 |
-| [release-pipeline](10-change-control/release-pipeline.md) | Releasing agent and rule changes: diffs, named reviewer, linter, simulation gates, canary, immutable snapshots. | 90 | 3 |
+| [release-pipeline](10-change-control/release-pipeline.md) | Releasing agent and rule changes: diffs, named reviewer, linter, simulation gates, canary, immutable snapshots. | 93 | 3 |
 | [packaging-and-upgrades](10-change-control/packaging-and-upgrades.md) | Packaging a use case as a versioned template and upgrading installed copies. | 111 | 3 |
 | [deployment-and-infra](10-change-control/deployment-and-infra.md) | Where it runs: continuous delivery, deployment options, infrastructure and the bill of materials. | 334 | 10 |
 
@@ -191,7 +191,7 @@ Audit log, tracing and monitoring, and the central control page with a kill swit
 |---|---|---:|---:|
 | [audit-log](11-observability/audit-log.md) | What gets audited, in which categories, and how audit logs are kept. | 95 | 2 |
 | [tracing-and-monitoring](11-observability/tracing-and-monitoring.md) | Traces of every agent step, monitoring and debugging tools. | 118 | 5 |
-| [control-page-and-kill-switch](11-observability/control-page-and-kill-switch.md) | One page to see every agent, its KPI and permissions, with a kill switch. | 69 | 3 |
+| [control-page-and-kill-switch](11-observability/control-page-and-kill-switch.md) | One page to see every agent, its KPI and permissions, with a kill switch. | 72 | 3 |
 
 ### [12-apps-and-integration](12-apps-and-integration/README.md) — Applications and integration
 
@@ -200,8 +200,8 @@ Application surfaces, channels, writeback to external systems, customer onboardi
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
 | [app-surfaces](12-apps-and-integration/app-surfaces.md) | The applications built on the ontology: operational apps, object views, analysis tools and AI app builders. | 263 | 13 |
-| [channels](12-apps-and-integration/channels.md) | Where agents meet people: chat, email, voice, messaging apps. | 88 | 4 |
-| [external-integrations-and-writeback](12-apps-and-integration/external-integrations-and-writeback.md) | Writing results back to source systems, unified APIs and embedded-integration vendors. | 223 | 4 |
+| [channels](12-apps-and-integration/channels.md) | Where agents meet people: chat, email, voice, messaging apps. | 91 | 4 |
+| [external-integrations-and-writeback](12-apps-and-integration/external-integrations-and-writeback.md) | Writing results back to source systems, unified APIs and embedded-integration vendors. | 226 | 4 |
 | [customer-onboarding](12-apps-and-integration/customer-onboarding.md) | Technical onboarding of a new customer: forward-deployed engineering, self-setup flow and time to live. | 176 | 7 |
 
 ### [13-domain-packs](13-domain-packs/README.md) — Domain packs
@@ -210,7 +210,7 @@ The domains the platform is validated against: receivables (original baseline), 
 
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
-| [receivables-baseline](13-domain-packs/receivables-baseline.md) | The original receivables/collections domain model and the evidence behind it. | 189 | 7 |
-| [legal](13-domain-packs/legal.md) | The legal-market pivot: candidate objects and workflows, what must not change, and the law-firm interview guide. | 277 | 6 |
-| [finance](13-domain-packs/finance.md) | Finance domain pack: candidate objects, workflows and deterministic rules. | 80 | 2 |
-| [construction](13-domain-packs/construction.md) | Construction domain pack — a transferability test. | 44 | 1 |
+| [receivables-baseline](13-domain-packs/receivables-baseline.md) | The original receivables/collections domain model and the evidence behind it. | 192 | 7 |
+| [legal](13-domain-packs/legal.md) | The legal-market pivot: candidate objects and workflows, what must not change, and the law-firm interview guide. | 280 | 6 |
+| [finance](13-domain-packs/finance.md) | Finance domain pack: candidate objects, workflows and deterministic rules. | 83 | 2 |
+| [construction](13-domain-packs/construction.md) | Construction domain pack — a transferability test. | 47 | 1 |

@@ -89,13 +89,16 @@ These fields are not interchangeable. A workspace name, document ID, tenant ID s
 
 Matter-level access is usually narrower than firm-wide tenancy. Avoid assuming everyone in a law firm may read every client matter. Support ethical walls, conflict restrictions, external counsel, client-specific workspaces, document-level confidentiality and privilege labels. A legal-domain ontology edge (e.g. `Lawyer assigned_to Matter`) is not sufficient access policy by itself.
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir's security model and privacy-engineering guidance are in [general-references/04](../../general-references/04-palantir-security.md), including [§ 21 PCL guidance](../../general-references/04-palantir-security.md#21-privacy-and-civil-liberties-pcl-engineering-guidance) and [minimum faithful version](../../general-references/04-palantir-security.md#minimum-faithful-version-for-a-small-product).
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No other companies and products material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

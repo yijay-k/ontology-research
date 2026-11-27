@@ -54,6 +54,10 @@
 
 ---
 
+## Palantir (updated 28 Nov 2026)
+
+- **AIP observability:** near real-time success/failure counts and P95 duration for functions, actions and AIP Logic; seven-day execution history; distributed tracing across functions, actions, models, automations and ontology loads; log search and export to a streaming dataset. Agent Manager is the per-agent session view. Sources: https://palantir.com/docs/foundry/aip-observability , https://palantir.com/docs/foundry/agent-manager/overview/
+
 ## Open-source implementations (added 28 Nov 2026)
 
 - [openfeature](../../open-source-references/openfeature.md) kill switches and per-tenant enablement (Apache-2.0). **Note:** the Unleash server is AGPL-3.0 at `aa56458`.
@@ -64,6 +68,5 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

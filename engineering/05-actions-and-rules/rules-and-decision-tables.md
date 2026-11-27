@@ -341,5 +341,5 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No other companies and products material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.

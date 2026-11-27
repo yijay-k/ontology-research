@@ -66,6 +66,10 @@
 
 **Open questions.** Should a customer with several legal entities on the seller's side get one case per entity or one across entities? (Ramp is single-entity, so it gives no guidance.) What the owner assignment rule is when no collector exists (the Chaser "+ Care" segment).
 
+## Palantir (updated 28 Nov 2026)
+
+- Agent Stack sessions are Palantir's long-running unit: they persist indefinitely, pause for human or system input, and resume — see [session-state-and-memory](../08-agent-platform/session-state-and-memory.md#palantir-updated-28-nov-2026). Source: https://palantir.com/docs/foundry/aip/agent-stack/
+
 ## Open-source implementations (added 28 Nov 2026)
 
 - DBOS durable workflows and Temporal (see [durable-execution](durable-execution.md)).
@@ -80,6 +84,5 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

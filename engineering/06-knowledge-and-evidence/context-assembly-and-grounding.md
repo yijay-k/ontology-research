@@ -318,10 +318,13 @@ This section ties sections 3, 4 and 7 to the product thesis.
 
 **Open questions.** Which limit to use for interpretation text: 300 or 3,000 characters (see Contradictions).
 
+## Open-source implementations (added 28 Nov 2026)
+
+- LightRAG query modes (local, global, hybrid, mix) and Graphiti search/rerank recipes as context-retrieval building blocks — [lightrag](../../open-source-references/lightrag.md), [graphiti](../../open-source-references/graphiti.md).
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No open-source implementations material in the research yet.

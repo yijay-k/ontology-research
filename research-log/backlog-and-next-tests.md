@@ -1,5 +1,7 @@
 # Backlog and next tests
 
+> **Status 28 Nov 2026:** the first executable proofs are done — action gate, tenant isolation, metric join safety, incremental cursor, DBOS recovery (21/21 passed). See [proof-results.md](proof-results.md). Items below that those proofs close are marked in that file; the rest stay open.
+
 What is still open: the research backlog by priority, and the acceptance tests that must pass before the architecture is frozen.
 
 ## Research backlog

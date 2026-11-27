@@ -367,3 +367,11 @@ Components whose "Fact-check notes" say no time-sensitive claims were re-checked
 | FC-20 | Agent Skills spec lives in `anthropics/skills` | The repo now points to https://agentskills.io/specification. | open-source-references/anthropic-skills.md |
 
 Re-read in source with no material change: OpenSPG/KAG (OpenSPG still idle since 2025-06-29), Temporal 1.33.0, conjure error taxonomy, OntoForge confirm-preview, mycontext (no commits since 2026-08-31), CapTrix/openfoundry (no commits since 2026-05-20), letta-code, Langfuse 4.88.0, Phoenix 22.1.0, promptfoo 0.126.0.
+
+## New findings from executable proofs, 28 Nov 2026
+
+| ID | Finding | Where noted |
+|---|---|---|
+| PF-01 | A view owned by a privileged role bypasses forced RLS unless created `WITH (security_invoker = true)` (proof T5). Not in the research before. | research-log/proof-results.md, engineering/00-overview/hypotheses-and-decisions.md (H6) |
+| PF-02 | Snapshot isolation (REPEATABLE READ) lets two concurrent actions break a cross-object invariant; SERIALIZABLE aborts one (proof G6). Confirms the Phase 2 isolation note with a running test. | research-log/proof-results.md (H5) |
+| PF-03 | Both naive watermark strategies are wrong (`>` loses, `>=` duplicates); boundary hashes are exact (proofs I1–I3). | research-log/proof-results.md |

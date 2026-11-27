@@ -585,6 +585,10 @@ _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences ch
 - **Compile-only sidecar (code):** [`dbt-labs/metricflow` → `sidecar/mf_ipc_protocol.py`](https://github.com/dbt-labs/metricflow/blob/013590e/sidecar/mf_ipc_protocol.py) — NDJSON "mf-ipc" protocol version 1; ready message reports `metricflow_version`; `explain` params `manifest_path`, `metric_names`, `group_by_names`, `where_constraints`, `order_by_names`, `limit`. Spawn from Node, generate the manifest from our own metric definitions, execute the returned SQL under our own permission filters.
 - **Metric access policy (code):** [`cube-js/cube` → `packages/cubejs-schema-compiler/src/compiler/CubeValidator.ts`](https://github.com/cube-js/cube/blob/47c6d3b/packages/cubejs-schema-compiler/src/compiler/CubeValidator.ts) — `memberLevel` (includes/excludes), `memberMasking` (requires memberLevel), `rowLevel` (exactly one of `filters` / `allowAll`), `conditions`. The validator now warns explicitly that an empty `memberLevel` grants every member. Unattributable member paths are denied by injecting `1 = 0` ([`cube-js/cube` → `packages/cubejs-server-core/src/core/CompilerApi.ts`](https://github.com/cube-js/cube/blob/47c6d3b/packages/cubejs-server-core/src/core/CompilerApi.ts)).
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir has no separate governed metrics layer in the docs reviewed; metric logic lives in aggregations on object sets, derived properties, functions and (Beta) Ontology SQL functions — see [object-set-queries](object-set-queries.md), [functions](functions.md), [text-to-sql-fallback-and-repair](text-to-sql-fallback-and-repair.md#palantir-updated-28-nov-2026). Workshop SQL query variables became GA on 25 Aug 2026 (https://www.palantir.com/docs/foundry/announcements/2026-08).
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
@@ -596,5 +600,4 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No research literature material in the research yet.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

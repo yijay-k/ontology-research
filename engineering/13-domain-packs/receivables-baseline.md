@@ -178,12 +178,15 @@ Map 6 records both the case **for** receivables and the case **against** it, inc
 
 - [frappe-books](../../open-source-references/frappe-books.md) (AGPL, read only) for invoice/payment schema.
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir sells packaged industry solutions rather than public domain models — see [25 A2.9](../../general-references/25-palantir-agentone-offer-catalogue.md#a29-industry-solutions-packaged-offers-not-customer-case-names).
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

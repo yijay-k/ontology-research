@@ -229,6 +229,11 @@ Our agent/session schema should carry:
 - visibility/ACL policy and retention classification;
 - policy decisions and approvals associated with each write.
 
+## Palantir (updated 28 Nov 2026)
+
+- **Agent Stack sessions:** each task is a session with **typed context items** (instructions, assistant/user messages, tool results) and **events with state transitions**; sessions can last indefinitely, waiting for input and resuming when it arrives. Agent Manager finds, starts, monitors and inspects sessions across Workshop, Automate and Agent Manager itself; agents are published as versioned resources with permissions. Sources: https://palantir.com/docs/foundry/agent-stack/overview/ , https://palantir.com/docs/foundry/aip/agent-stack/ , https://palantir.com/docs/foundry/agent-manager/overview/
+- **API surface:** create / list / get / delete sessions, blocking and streaming continue, cancel, get RAG context for a session, session traces. Source: https://palantir.com/docs/foundry/api/aip-agents-v2-resources/sessions/session-basics/
+
 ## Open-source implementations (added 28 Nov 2026)
 
 - Claude Agent SDK `SessionStore` contract with a Postgres reference store ([claude-agent-sdk](../../open-source-references/claude-agent-sdk.md)); Letta git-backed memory ([letta](../../open-source-references/letta.md)).
@@ -245,5 +250,4 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.

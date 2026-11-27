@@ -70,6 +70,10 @@ Builder lesson: [Inference] a cascade. Deterministic keys first (tax ID, registr
 - How Splink estimates m and u (EM plus random sampling) is [Unverified] in document 09.
 - [Inference] Splink is a Python library, while the stack is TypeScript. Either reimplement the scoring (the formulas are simple) or run a Python worker.
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir has no packaged entity-resolution product in the docs; community guidance is Levenshtein-distance expressions in Pipeline Builder advanced joins, or an LLM node choosing the closest match. Palantir holds a patent on ML fuzzy entity matching (US 12,111,839 B1). Sources: https://community.palantir.com/t/entity-resolution-fuzzy-matching/2160/2 , https://patentsgazette.uspto.gov/week41/OG/html/1527-2/US12111839-20241008.html
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
@@ -84,6 +88,5 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No other companies and products material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.

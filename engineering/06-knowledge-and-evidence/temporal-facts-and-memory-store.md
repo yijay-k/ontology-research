@@ -377,6 +377,10 @@ _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences ch
 - **Edge time fields (Graphiti 0.32.1, code):** `valid_at`, `invalid_at` ("soft deadlines are not invalid_at"), `expired_at`, `reference_time` in [`getzep/graphiti` → `graphiti_core/edges.py`](https://github.com/getzep/graphiti/blob/343a7bb/graphiti_core/edges.py); deterministic close-out in `resolve_edge_contradictions` ([`getzep/graphiti` → `graphiti_core/utils/maintenance/edge_operations.py`](https://github.com/getzep/graphiti/blob/343a7bb/graphiti_core/utils/maintenance/edge_operations.py)). Port the four timestamps and the rule into Postgres.
 - **mem0 2.2.1 (code):** `MEM0_TELEMETRY` still defaults to `True` and posts to PostHog ([`mem0ai/mem0` → `mem0/memory/telemetry.py`](https://github.com/mem0ai/mem0/blob/cae3d8c/mem0/memory/telemetry.py)) — set it off if it is ever used.
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir records change over time through the action log and per-type edit history ([02 § 10](../../general-references/02-palantir-ontology.md#10-action-log-edit-history-metrics)) and time-series properties ([02 § 3](../../general-references/02-palantir-ontology.md#3-properties-and-property-types)); it has no bi-temporal fact model.
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
@@ -385,6 +389,5 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No other companies and products material in the research yet.
-- No research literature material in the research yet.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

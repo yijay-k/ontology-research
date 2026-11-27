@@ -167,12 +167,18 @@ Design for a SaaS-only company [Inference, each step tied to a documented patter
 
 **Open questions.** How many customers already keep receivables rules in spreadsheets that should be imported (no data in the documents). Fabric's ontology agent caps conversations at 24 hours and keeps data 2 days [Fact] — what retention should the onboarding agent's conversations have?
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir drafts ontology entities through Pilot (reuses existing entities first) and AIP Architect / Solution Designer — see [05 A14–A15](../../general-references/05-palantir-apps-infra.md#a14-solution-designer-and-aip-architect) and [app-surfaces](../12-apps-and-integration/app-surfaces.md).
+
+## Open-source implementations (added 28 Nov 2026)
+
+- Apache Ossie converters (dbt MetricFlow, Polaris, Snowflake semantic models) to import existing definitions — [apache-ossie](../../open-source-references/apache-ossie.md); UModel `confidence` for drafted definitions — [object-type-registry](object-type-registry.md#implementation-starting-points-from-source-code).
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No open-source implementations material in the research yet.
-- No other companies and products material in the research yet.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.

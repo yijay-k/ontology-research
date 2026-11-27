@@ -296,6 +296,10 @@ _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences ch
 - **Reference gate (code):** [`gura105/operational-ontology` → `src/core.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/core.ts) v0.6.3 — fixed order: parse → load → preconditions → effects → preflight in an always-rolled-back transaction → authority check (source-owned vs ontology-owned state) → writeback before local commit → commit edits + audit together. Still **no idempotency keys and no persisted pending-invocation record** (stated in `docs/IMPLEMENTATION.md`), and calls made inside a caller-opened transaction are refused and not audited. These three gaps are what we must add: idempotency key per invocation, a `pending_invocation` row written before writeback, and a durable workflow for writeback.
 - **Durable writeback:** DBOS step memo table `operation_outputs` — see [09-workflows/durable-execution](../09-workflows/durable-execution.md#implementation-starting-points-from-source-code).
 
+## Palantir (updated 28 Nov 2026)
+
+- Palantir's action consistency model (atomic ontology edits, batched vs staged writes, snapshot vs read-committed isolation, up to 5 retries only for actions without external calls) is in [action-types § 7](../../general-references/02-palantir-ontology.md#7-action-types-in-detail); OSv2's narrower version checks and `ObjectVersionChanged` are in [edits-and-merge-precedence](../03-ontology-engine/edits-and-merge-precedence.md#fact-check-notes). Proof G6 confirms the snapshot-isolation write-skew warning.
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
@@ -304,7 +308,6 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No other companies and products material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
+- Other companies: not covered beyond Palantir, Alibaba and open source in the research for this component.
+- Research literature: not applicable. _No research literature is expected here: this component is platform or operations engineering, and its evidence is vendor documentation, source code and the executable proofs in [`proofs/`](../../proofs/README.md)._

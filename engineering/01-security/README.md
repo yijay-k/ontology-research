@@ -11,5 +11,5 @@ Wraps every other layer. Tenant isolation, identity, authorization, markings and
 | [authorization-model](authorization-model.md) | How allow/deny decisions are made on data, objects, links, actions and functions, and which engine evaluates them. | 302 | 12 |
 | [markings-row-column-object-policies](markings-row-column-object-policies.md) | Mandatory labels (markings), row and column policies, object and property security, and purpose-based checks. | 225 | 8 |
 | [agent-identity-and-token-scope](agent-identity-and-token-scope.md) | Agents as their own principals: what an agent may see and do is the intersection of its scope and the user's. | 136 | 4 |
-| [retention-deletion-encryption](retention-deletion-encryption.md) | Data lifetime, lineage-aware deletion, sensitive-data scanning, encryption, privacy engineering and certifications. | 101 | 5 |
-| [threat-model](threat-model.md) | Attack scenarios, trust boundaries and the negative-test matrix for tenant and matter isolation. | 101 | 2 |
+| [retention-deletion-encryption](retention-deletion-encryption.md) | Data lifetime, lineage-aware deletion, sensitive-data scanning, encryption, privacy engineering and certifications. | 104 | 5 |
+| [threat-model](threat-model.md) | Attack scenarios, trust boundaries and the negative-test matrix for tenant and matter isolation. | 104 | 2 |

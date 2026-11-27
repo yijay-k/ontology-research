@@ -136,6 +136,10 @@ Prebuilt connectors for helpdesk/CRM, knowledge, telephony; MCP; self-serve APIs
 
 `READ` (retrieve/inspect), `QUERY` (structured semantic read), `PROPOSE` (produce a draft edit/action plan), `WRITE` (execute a named action), `EXTERNAL` (invoke an external connector), `APPROVAL` (ask a human). Tools should declare read-only, destructive, idempotent and approval characteristics. No raw database or unrestricted generic mutation tool should be exposed to the model.
 
+## Palantir (updated 28 Nov 2026)
+
+- **Retrieval context vs tools in AIP Chatbot Studio:** retrieval context (Ontology, document, or function-backed) runs deterministically on every user message; a function-backed retrieval returns a `retrievedPrompt` string and can take app variables as inputs — the place to combine keyword and semantic search. Source: https://www.palantir.com/docs/foundry/agent-studio/retrieval-context
+
 ## Open-source implementations (added 28 Nov 2026)
 
 - MCP tool annotations ([`modelcontextprotocol/modelcontextprotocol` → `schema/2026-07-28/schema.ts`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/024d525/schema/2026-07-28/schema.ts)); generated tool surface ([`gura105/operational-ontology` → `src/mcp.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/mcp.ts)).
@@ -146,5 +150,4 @@ _Reviewed 28 Nov 2026: this component's material is design pattern, research lit
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.

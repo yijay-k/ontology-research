@@ -11,5 +11,5 @@ Source data becomes trustworthy operational state: connectors, raw/clean layers,
 | [sync-incremental-rebuild](sync-incremental-rebuild.md) | Keeping clean state current: CDC, streaming, incremental builds, schedules, dataset branching and rebuild semantics. | 274 | 7 |
 | [data-quality](data-quality.md) | Health checks, expectations and strong/weak quality rules that block or flag bad data. | 85 | 2 |
 | [lineage-and-catalog](lineage-and-catalog.md) | Where every dataset and object came from, and the catalog that lets people find them. | 93 | 3 |
-| [entity-resolution](entity-resolution.md) | Deciding that records from different systems are the same customer, matter or invoice. | 89 | 3 |
+| [entity-resolution](entity-resolution.md) | Deciding that records from different systems are the same customer, matter or invoice. | 92 | 3 |
 | [object-centric-event-log](object-centric-event-log.md) | An event log keyed to business objects (process mining), and how it differs from the ontology. | 217 | 4 |

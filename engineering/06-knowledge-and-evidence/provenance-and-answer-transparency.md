@@ -32,6 +32,11 @@
 
 **Open questions.** None beyond section 10.
 
+## Palantir (updated 28 Nov 2026)
+
+- **AIP Chatbot citations:** chatbots with document or Ontology context output citations that link to the source material; citations also appear in a "Sources" dropdown under each message. Function-backed context and tools do not cite by default — the prompt must ask for them, and the chat UI renders citation bubbles only when the model emits them in a specific format. Sources: https://palantir.com/docs/foundry/chatbot-studio/citations/ , https://www.palantir.com/docs/foundry/agent-studio/citations , https://palantir.com/docs/foundry/chatbot-studio/retrieval-context/
+- **Web search with citations** for supported OpenAI models in AIP (3 Nov 2026). Source: https://www.palantir.com/docs/foundry/announcements/
+
 ## New research (28 Nov 2026)
 
 ### Snowflake Cortex Analyst — what an answer carries
@@ -48,12 +53,14 @@
 ### What this adds up to (from the sources above)
 Every answer should return: the natural-language answer, the executed query or object-set plan, the verified query or metric definition used (if any), the source records or chunks behind each claim, and a confidence/status flag — or clarifying suggestions instead of an answer.
 
+## Research literature (added 28 Nov 2026)
+
+- **ALCE** (Gao et al., 2023, arXiv 2305.14627) — benchmark and metrics for LLM answers with citations (fluency, correctness, citation recall/precision). Use its citation-recall/precision idea as the eval for answer provenance. Source: https://arxiv.org/abs/2305.14627
+
 ## Fact-check notes
 
 _Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
-- No research literature material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.

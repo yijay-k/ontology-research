@@ -212,6 +212,10 @@ Three channels into the agent's "company model" [Vendor claim]:
 
 **Open questions.** How much the builder should infer rules from historical decisions vs ask the controller (Ramp captures "messy exceptions" but doc 12 gives no method). Which rented model writes the procedure format reliably (doc 12's DSL warning).
 
+## Palantir (updated 28 Nov 2026)
+
+- **AIP Analyst skills** (Oct 2026): administrators choose which skills are enabled by default per group in Control Panel; users can toggle inherited skills; the analyst loads a skill's full instructions only when relevant. Source: https://www.palantir.com/docs/foundry/announcements/2026-10/
+
 ## Open-source implementations (added 28 Nov 2026)
 
 - [anthropic-skills](../../open-source-references/anthropic-skills.md) — SKILL.md format; spec now at agentskills.io.
@@ -236,5 +240,4 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No palantir material in the research yet.
-- No lingyang, AgentOne and Alibaba material in the research yet.
+- Lingyang/AgentOne/Alibaba: not covered — the Alibaba research (docs 07, 08, 28, 31) concentrates on Dataphin, Quick BI, Bailian, UModel, OpenSPG and AgentOne; Palantir and open-source sources cover this component.
