@@ -1,0 +1,106 @@
+name: Integration Tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+concurrency:
+  group: integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      # The dev confidential OAuth client svc-multipass seeds outside
+      # NODE_ENV=production (services/svc-multipass/src/store/client-store.ts).
+      # Every CI caller - the readiness probe, the seed script and the vitest
+      # suites - resolves its bearer token from these through scripts/lib/auth.*,
+      # so identity-bearing endpoints such as /api/v2/admin/users/getCurrent have
+      # a caller to report. Not a secret: these are this public repository's
+      # published demo credentials, and they exist only in the dev seed.
+      OPENFOUNDRY_CLIENT_ID: admin
+      OPENFOUNDRY_CLIENT_SECRET: admin123
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build workspace packages
+        # Services run from source via tsx, but they import workspace packages
+        # through their published entry points (dist/index.js), so those must be
+        # compiled first or every service dies with ERR_MODULE_NOT_FOUND.
+        run: pnpm run build
+
+      - name: Start services in background
+        env:
+          # Enables POST /api/v2/auth/signup for tests/integration/tenant-isolation.test.ts.
+          # CI-only: the switch stays off by default everywhere else.
+          OPENFOUNDRY_ALLOW_OPEN_SIGNUP: "1"
+        run: |
+          # Start all backend services (skip frontend for CI)
+          SERVICES=(svc-ontology svc-objects svc-multipass svc-admin svc-actions svc-datasets svc-functions svc-aip svc-gateway)
+          for svc in "${SERVICES[@]}"; do
+            pnpm --filter "@openfoundry/${svc}" run dev > "/tmp/${svc}.log" 2>&1 &
+            echo "Starting ${svc}..."
+          done
+
+      - name: Wait for services to be ready
+        run: |
+          echo "Waiting for gateway to be ready..."
+          GATEWAY_URL="http://localhost:8080"
+          # The probe hits a real API route, so it uses the same credentials
+          # every other caller uses. Its token is best-effort: multipass may
+          # not be listening yet when this resolves, and the CI gateway runs
+          # without AUTH_PUBLIC_KEY, so an unauthenticated probe still passes.
+          # Every later step sources auth.sh in its own shell, once multipass
+          # is up, and does get a token.
+          source scripts/lib/auth.sh
+          MAX_ATTEMPTS=60
+          ATTEMPT=0
+          until of_curl -sf "${GATEWAY_URL}/api/v2/ontologies" > /dev/null 2>&1; do
+            ATTEMPT=$((ATTEMPT + 1))
+            if [ $ATTEMPT -ge $MAX_ATTEMPTS ]; then
+              echo "Gateway did not become ready after ${MAX_ATTEMPTS} attempts"
+              echo "--- Service logs ---"
+              for svc in svc-ontology svc-objects svc-multipass svc-admin svc-actions svc-datasets svc-functions svc-aip svc-gateway; do
+                echo "=== ${svc} ==="
+                tail -20 "/tmp/${svc}.log" 2>/dev/null || true
+              done
+              exit 1
+            fi
+            sleep 2
+          done
+          echo "Gateway is ready!"
+
+      - name: Seed test data
+        run: |
+          # Fail loudly if the seed script has moved: a silently skipped seed step
+          # makes the integration tests pass against an empty database.
+          test -f scripts/demo/seed-pest-control.sh
+          bash scripts/demo/seed-pest-control.sh || echo "Seed script had warnings (non-fatal)"
+
+      - name: Run integration tests
+        run: npx vitest run tests/integration/ --reporter=verbose
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-logs
+          path: /tmp/svc-*.log
+          retention-days: 7
