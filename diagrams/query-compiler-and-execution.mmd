@@ -1,0 +1,13 @@
+flowchart TD
+  A[User question or API request] --> B[Intent / query proposal]
+  B --> C[Typed query IR]
+  C --> D[Schema and ontology resolution]
+  D --> E[Policy scope injection]
+  E --> F[Logical plan]
+  F --> G[Validation and optimization]
+  G --> H[Physical plan]
+  H --> I[Backend adapter / query execution]
+  I --> J[Results with provenance]
+  J --> K[Explain + trace + metrics]
+  E --> X[Reject / redact]
+  G --> Y[Capability or validation error]

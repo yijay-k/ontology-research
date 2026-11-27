@@ -1,0 +1,12 @@
+flowchart LR
+  A[Author procedure / journey] --> B[Versioned agent and tool config]
+  B --> C[Static checks and schema validation]
+  C --> D[Simulation and evaluation suite]
+  D --> E{Pass thresholds?}
+  E -- No --> F[Revise + inspect traces]
+  F --> B
+  E -- Yes --> G[Human approval / merge]
+  G --> H[Canary or split traffic]
+  H --> I[Production traces and outcome metrics]
+  I --> J[Regression cases and improvement]
+  J --> B

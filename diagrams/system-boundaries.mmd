@@ -1,0 +1,26 @@
+flowchart TB
+  S[Source systems: ERP / CRM / DMS / SaaS / files] --> C[Connector and ingestion layer]
+  C --> N[Normalize, validate, resolve identity]
+  N --> O[Ontology definition registry]
+  N --> OR[Authoritative object runtime]
+  O --> OR
+  OR --> Q[Typed object-set / semantic query planner]
+  OR --> E[Event outbox]
+  E --> W[Durable workflow runtime]
+  W --> X[External writeback connectors]
+  OR --> P[Projection builders]
+  P --> SI[Search / vector / graph projections]
+  D[Documents and communications] --> K[Document and knowledge pipeline]
+  K --> SI
+  K --> OR
+  Q --> A[Applications and agent context gateway]
+  SI --> A
+  W --> A
+  AU[Identity and policy services] -. enforcement .-> C
+  AU -. enforcement .-> OR
+  AU -. enforcement .-> Q
+  AU -. enforcement .-> SI
+  AU -. enforcement .-> W
+  A --> T[Audit, traces, evaluation and observability]
+  W --> T
+  OR --> T
