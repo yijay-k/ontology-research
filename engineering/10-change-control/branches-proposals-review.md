@@ -58,14 +58,27 @@
 
 ---
 
+## New research (28 Nov 2026)
+
+### Palantir Global Branching — current model
+- An ontology proposal is "analogous to a Pull Request"; on global branches it is created automatically with the Global Branching proposal and carries reviews, name and description. Source: https://palantir.com/docs/foundry/ontologies/review-ontology-proposals/
+- Ontology entities are separate resources in Global Branching but grouped under one ontology proposal; reviewers can be added from the branch taskbar, the proposal page or the ontology proposal page. Source: https://www.palantir.com/docs/foundry/ontologies/branching-ontology
+- Legacy ontology branches are being sunset; with Global Branching enabled they can no longer be created. Source: https://palantir.com/docs/foundry/ontologies/ontology-branches-legacy/
+- Rebase auto-resolves non-conflicting changes; proposals on protected branches need at least one approval; users with approval rights can approve without being listed as reviewers; merge history records per-resource errors; merge checks flag common blockers. Sources: https://www.palantir.com/docs/foundry/global-branching/core-concepts , https://palantir.com/docs/foundry/global-branching/branching-app , https://palantir.com/docs/foundry/ontologies/test-changes-in-ontology
+- Branching spans apps (Code Repositories, Pipeline Builder, Ontology Manager, Workshop, Automate, object views); each branch belongs to one ontology; TypeScript v2 and Python functions branch with a local OSDK. Sources: https://palantir.com/docs/foundry/foundry-branching/branching-lifecycle-usage , https://www.palantir.com/docs/foundry/global-branching/integrations/
+- If both a branch and main contain schema migrations on the same object type, rebase/merge will most likely fail — see [schema-evolution-and-branching](../03-ontology-engine/schema-evolution-and-branching.md#fact-check-notes).
+
+### Open-source references
+- OntoForge (MIT): schema branches as deep copies, name-aligned diffs, merge proposals; instance data not branched — [ontoforge](../../open-source-references/ontoforge.md).
+- Dolt (Apache-2.0): Git-style `dolt_branch` / `dolt_merge` / `dolt_diff` procedures — [dolt](../../open-source-references/dolt.md).
+- **Changed:** lakeFS is now Business Source License 1.1 (not Apache) at `817bbeb` — do not adopt as an open dependency.
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No palantir material in the research yet.
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

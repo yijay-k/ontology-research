@@ -9,6 +9,8 @@
 | **Feeds** | [09-workflows/durable-execution](../engineering/09-workflows/durable-execution.md) |
 | **Evidence level** | Phase 2 repository audit (source inspection, not executed) |
 
+> **Source re-check 28 Nov 2026 (code):** `c2ec24c`: server version 1.33.0, MIT; persistence schemas for Cassandra, MySQL, PostgreSQL, SQLite plus Elasticsearch.
+
 ## Repository audit: Repository audit — Temporal workflow engine
 
 > Source: former `15-repository-audits/temporal.md` (Phase 2 source inspection, not executed).

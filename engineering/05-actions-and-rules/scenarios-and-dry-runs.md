@@ -47,13 +47,24 @@
 
 ---
 
+## New research (28 Nov 2026)
+
+### Palantir Ontology scenarios (Beta) — current model
+- A scenario is a sandbox of edits on top of ontology data, produced by applying one or more actions; Palantir separates it from Global Branching: branching is for builders, scenarios are for users (humans and agents) to try edits and merge them back. Source: https://www.palantir.com/docs/foundry/ontology/overview-ontology-scenario/
+- **Temporary** scenarios live only in the session; **persisted** scenarios are stored as objects of a scenario object type, so they inherit permissions and leave an audit trail. Sources: https://www.palantir.com/docs/foundry/ontology/temporary-scenario , https://www.palantir.com/docs/foundry/ontology/persisted-scenario/
+- OSDK: read and query objects in a scenario, apply actions in it, merge it into main, list edited entities. Batch actions are not supported in a scenario; scenarios cannot be nested or combined with a transaction. Source: https://palantir.com/docs/foundry/ontology/osdk-scenario/
+- Applying a scenario applies its actions transactionally — all or none if any validation fails. Workshop limits: at most 50 actions per scenario; action limits apply inside; a translated docs page gives a 30,000-change cap per scenario. Sources: https://palantir.com/docs/foundry/workshop/scenarios-apply/ , https://www.palantir.com/docs/foundry/workshop/scenarios-concepts/
+
+### Open-source references
+- Dry run inside an always-rolled-back transaction: [`gura105/operational-ontology` → `src/core.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/core.ts) (preflight step).
+- Data branches for heavier what-ifs: [dolt](../../open-source-references/dolt.md).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

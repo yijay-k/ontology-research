@@ -410,6 +410,10 @@
 
 **Open questions.** How many workflow templates ship in version one (reminder sequence, inbound reply, promise evaluation, cash match, daily case rebuild is a minimum [Inference]).
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [trigger-dev](../../open-source-references/trigger-dev.md) durable cron (Apache-2.0); DBOS `workflow_schedules` and pg-boss `schedule` tables ([durable-execution](durable-execution.md#implementation-starting-points-from-source-code)).
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
@@ -419,5 +423,4 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No open-source implementations material in the research yet.
 - No research literature material in the research yet.

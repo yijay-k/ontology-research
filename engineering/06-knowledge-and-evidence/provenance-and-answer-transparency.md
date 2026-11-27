@@ -32,14 +32,28 @@
 
 **Open questions.** None beyond section 10.
 
+## New research (28 Nov 2026)
+
+### Snowflake Cortex Analyst — what an answer carries
+- Response content blocks are typed `text`, `sql` and `suggestions`; suggestions appear only when the question is ambiguous and no SQL could be generated. Source: https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst/rest-api
+- `message.content[].confidence.verified_query_used` names the verified query used to generate the SQL (null if none), so the UI can show "answered from verified query X". Source: same page.
+- A verified query records `name`, `question`, `verified_at`, `verified_by`, `use_as_onboarding_question`, `sql`. Source: https://docs.snowflake.com/user-guide/snowflake-cortex/cortex-analyst/verified-query-repository
+- Evaluations execute the generated SQL and compare results with verified queries; a verified query is either runtime guidance or evaluation ground truth, never both (it is removed from the view during evaluation). Source: https://docs.snowflake.com/user-guide/snowflake-cortex/cortex-analyst-evaluations
+
+### Provenance fields in open-source implementations
+- Graphiti edges carry `episodes[]` — the source units each fact came from ([`getzep/graphiti` → `graphiti_core/edges.py`](https://github.com/getzep/graphiti/blob/343a7bb/graphiti_core/edges.py)).
+- LightRAG entity and relation rows carry `chunk_ids[]` back to source chunks ([`HKUDS/LightRAG` → `lightrag/kg/pgtable_impl.py`](https://github.com/HKUDS/LightRAG/blob/47038cf/lightrag/kg/pgtable_impl.py)).
+- UModel attaches a `confidence` block (score, status, source, basis, reason) to definitions — see [object-type-registry](../03-ontology-engine/object-type-registry.md#implementation-starting-points-from-source-code).
+
+### What this adds up to (from the sources above)
+Every answer should return: the natural-language answer, the executed query or object-set plan, the verified query or metric definition used (if any), the source records or chunks behind each claim, and a confidence/status flag — or clarifying suggestions instead of an answer.
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No palantir material in the research yet.
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
-- No other companies and products material in the research yet.
 - No research literature material in the research yet.

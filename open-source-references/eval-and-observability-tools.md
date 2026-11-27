@@ -13,6 +13,8 @@
 
 > **Source re-check 28 Nov 2026 (code):** [`sierra-research/tau2-bench@768f3d8`](https://github.com/sierra-research/tau2-bench/tree/768f3d8) — structures cited below verified present; no licence change.
 
+> **Source re-check 28 Nov 2026 (code):** Langfuse `8109ce5` 4.88.0 — MIT core, commercial code in `web/src/ee` and `worker/src/ee`; self-host = langfuse-web, langfuse-worker, langfuse-ai-gateway, ClickHouse, MinIO, Redis, Postgres. Phoenix `2676de0` 22.1.0, ELv2. promptfoo `4850744` 0.126.0, MIT.
+
 ## From the open-source code study: 29. Evaluation and observability: tau-bench, tau2-bench, Langfuse, promptfoo, Phoenix
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

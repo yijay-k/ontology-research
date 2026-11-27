@@ -434,6 +434,10 @@ Report answer quality separately from workflow completion and policy compliance.
 - Add a failing production case to the golden set and verify it blocks promotion.
 - Verify rollback moves new sessions to the prior release without mutating historical traces.
 
+## Other companies (updated 28 Nov 2026)
+
+- **Decagon:** automatic optimization and root-cause analysis (Apr 2026); DuetBench-2 measures self-improvement in production (Sep 2026). Sources: https://decagon.ai/blog/automatic-optimization , https://decagon.ai/blog/duetbench-2
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._

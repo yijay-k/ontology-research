@@ -136,12 +136,15 @@ Prebuilt connectors for helpdesk/CRM, knowledge, telephony; MCP; self-serve APIs
 
 `READ` (retrieve/inspect), `QUERY` (structured semantic read), `PROPOSE` (produce a draft edit/action plan), `WRITE` (execute a named action), `EXTERNAL` (invoke an external connector), `APPROVAL` (ask a human). Tools should declare read-only, destructive, idempotent and approval characteristics. No raw database or unrestricted generic mutation tool should be exposed to the model.
 
+## Open-source implementations (added 28 Nov 2026)
+
+- MCP tool annotations ([`modelcontextprotocol/modelcontextprotocol` → `schema/2026-07-28/schema.ts`](https://github.com/modelcontextprotocol/modelcontextprotocol/blob/024d525/schema/2026-07-28/schema.ts)); generated tool surface ([`gura105/operational-ontology` → `src/mcp.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/mcp.ts)).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No palantir material in the research yet.
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.

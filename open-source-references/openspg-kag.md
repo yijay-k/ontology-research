@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** of bilingual labels, concept taxonomies separate from entity types, and *rule-derived relations* (a derived link computed from a pattern). **Ignore** as a dependency (it needs the Java OpenSPG server and a graph store). [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** KAG `e162ce1` (Apache-2.0, active: solver has executor, generator, pipeline, planner, reporter, server); OpenSPG `ceeb3ef` last commit 2025-06-29 — now ~17 months idle.
+
 ## From the open-source code study: 12. KAG and OpenSPG (Ant Group)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

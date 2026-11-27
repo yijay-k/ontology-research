@@ -18,13 +18,24 @@
 - Caveats: regional endpoint use depends on provider restrictions "which may change over time", and certifications apply "unless stated explicitly otherwise" in the contract. [Fact] https://www.palantir.com/docs/foundry/aip/aip-security/
 - Exception: if a builder connects a local IDE (Claude Code, Copilot, Cursor) to Palantir MCP or Ontology MCP, tool outputs go to *that* provider under *that* provider's terms. Palantir MCP for local use is off by default. [Fact] https://www.palantir.com/docs/foundry/palantir-mcp/security/ , https://www.palantir.com/docs/foundry/ontology-mcp/overview/
 
+## New research (28 Nov 2026)
+
+### Provider retention as of late 2026 — this changed a lot this year
+- **Anthropic:** for Mythos-class models (Fable 5, Mythos 5), prompts and outputs are retained for 30 days on every platform where they are offered, effective 9 June 2026; deleted automatically after 30 days except flagged or legally required cases. Some ZDR organisations are told they are eligible for "Enterprise Frontier Safeguards". Sources: https://support.claude.com/en/articles/15425996 , https://www.deeplearning.ai/the-batch/comparing-openai-and-anthropics-data-retention-policies
+- **Anthropic API generally:** inputs and outputs deleted within 30 days; ZDR and HIPAA-ready arrangements available, with a per-feature eligibility table. Source: https://platform.claude.com/docs/en/manage-claude/api-and-data-retention
+- **OpenAI:** reaffirmed ZDR for eligible enterprise and API customers on frontier models (19 Aug 2026) and previewed "Private Safety Processing" to detect misuse across interactions without breaking ZDR. Sources: https://thenextweb.com/news/openai-zero-data-retention-private-safety-processing , https://axios.com/2026/08/19/openai-previews-zero-retention-safety-system-as-anthropic-requires-data-logs
+- **Google (secondary source):** paid Gemini Developer API 55 days by default (configurable to 7, 14 or 28); Vertex AI 30 days. Reported, not checked against Google's own page. Source: https://proton.me/business/blog/what-zero-retention-data-means
+- **Design consequence:** retention is per provider *and per model*, so the model gateway must store a retention profile per model and route sensitive tenants only to models whose profile they accept.
+
+### Open-source gateway options
+- LiteLLM 1.113.0 — MIT except `litellm/enterprise/`: [open-source-references/litellm](../../open-source-references/litellm.md).
+- Portkey Gateway 1.15.2, MIT (last commit May 2026): [open-source-references/portkey-gateway](../../open-source-references/portkey-gateway.md).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
-- No other companies and products material in the research yet.
 - No research literature material in the research yet.

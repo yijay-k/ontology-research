@@ -39,6 +39,24 @@ One file per repository or project. Each file starts with a header table: reposi
 | [splink](splink.md) | moj-analytical-services/splink | Production-grade probabilistic entity resolution (Fellegi–Sunter). | 02-data-platform |
 | [temporal](temporal.md) | temporalio/temporal | The reference durable-workflow engine: event-history replay with deterministic orchestration. | 09-workflows |
 | [typedb](typedb.md) | TypeDB | A strongly typed semantic database: schema declarations, typed query analysis and explicit snapshot concurrency. | 03-ontology-engine |
+| [anthropic-skills](anthropic-skills.md) | anthropics/skills | Reference skills repository; the Agent Skills specification now lives at https://agentskills.io/specification. | 08-agent-platform |
+| [better-auth](better-auth.md) | better-auth/better-auth | TypeScript authentication library (sessions, OAuth/OIDC providers, organisations, plugins) that runs inside our own service on our own Postgres. | 01-security |
+| [dbt-core](dbt-core.md) | dbt-labs/dbt-core | SQL transformation framework with models, tests, sources and lineage. | 02-data-platform, 02-data-platform |
+| [dolt](dolt.md) | dolthub/dolt | SQL database with Git-style branches, diffs and merges as stored procedures (`dolt_branch`, `dolt_merge`, `dolt_diff`). | 10-change-control, 05-actions-and-rules |
+| [frappe-books](frappe-books.md) | frappe/books | Open-source accounting app (invoices, payments, ledgers) — a complete small-business finance schema. | 13-domain-packs, 13-domain-packs |
+| [great-expectations](great-expectations.md) | great-expectations/great_expectations | Data-quality expectations, validation results and data docs (Python). | 02-data-platform |
+| [isolated-vm](isolated-vm.md) | laverdet/isolated-vm | V8 isolates for Node.js — run untrusted JavaScript with memory and time limits. | 04-query-and-metrics, 04-query-and-metrics |
+| [litellm](litellm.md) | BerriAI/litellm | Model gateway/proxy with one OpenAI-compatible API over 100+ providers, budgets, rate limits and spend tracking. | 07-model-access, 07-model-access, 07-model-access |
+| [node-pg-migrate](node-pg-migrate.md) | salsita/node-pg-migrate | PostgreSQL migration runner for Node. | 10-change-control |
+| [ocel-standard](ocel-standard.md) | OCEL 2.0 | OCEL 2.0, the object-centric event log standard (RWTH Aachen): events linked to many objects, object-to-object relations, qualifiers, and evolving object attributes; relational, JSON and XML formats. Spec: https://www.ocel-standard.org/2.0/ocel20_specification.pdf | 02-data-platform |
+| [ontoforge](ontoforge.md) | jachenms/OntoForge | Small Foundry-style ontology workbench with schema branches, merge proposals, JSON action rules and a confirm-preview handshake. | 10-change-control, 05-actions-and-rules |
+| [openfeature](openfeature.md) | open-feature/js-sdk | Vendor-neutral feature-flag API (server, web, React, Nest SDKs) with providers and evaluation hooks. | 11-observability, 10-change-control |
+| [opentelemetry-js](opentelemetry-js.md) | open-telemetry/opentelemetry-js | Reference OpenTelemetry SDK for Node/TypeScript. | 11-observability |
+| [pgaudit](pgaudit.md) | pgaudit/pgaudit | PostgreSQL extension for session and object audit logging (`pgaudit.log = 'write, ddl'`, `pgaudit.log_relation`). | 11-observability |
+| [pgvector](pgvector.md) | pgvector/pgvector | Vector similarity search inside PostgreSQL (HNSW and IVFFlat indexes). | 06-knowledge-and-evidence |
+| [portkey-gateway](portkey-gateway.md) | Portkey-AI/gateway | Lightweight TypeScript AI gateway (routing, retries, fallbacks, guardrail hooks). | 07-model-access |
+| [supa-audit](supa-audit.md) | supabase/supa_audit | Trigger-based table change history for Postgres. | 11-observability, 03-ontology-engine |
+| [trigger-dev](trigger-dev.md) | triggerdotdev/trigger.dev | TypeScript background jobs with durable cron schedules (up to a year), retries and waits. | 09-workflows |
 | [cross-repo-patterns](cross-repo-patterns.md) | Patterns seen across all audited repositories | The 13 patterns every audited codebase agrees on | 00-overview and most layers |
 
 ## Scope of the original code study

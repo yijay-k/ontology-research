@@ -202,6 +202,10 @@ The cap is **10,000** in total, across nested groups. NOT adds no weight. A coll
 
 ---
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [openfoundry](../../open-source-references/openfoundry.md) marking evaluator and `015_user_groups_markings.sql` — see Implementation starting points above.
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
@@ -217,6 +221,5 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

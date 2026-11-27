@@ -73,6 +73,10 @@ Technical detail:
 
 ---
 
+## Open-source implementations (added 28 Nov 2026)
+
+- Overlay table for ontology-owned patches re-applied after source re-index: [`gura105/operational-ontology` → `src/core.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/core.ts) (`overlay(type, pk, patch)`). Row-change capture: [supa-audit](../../open-source-references/supa-audit.md).
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026 against current vendor documentation and project pages. **Confirmed** = the research above still matches. **New** = not in the research above. **Changed** = the research above is now out of date._
@@ -89,6 +93,5 @@ _Checked 28 Nov 2026 against current vendor documentation and project pages. **C
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

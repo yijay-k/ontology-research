@@ -109,11 +109,14 @@ Authors specify in the AOP when to hand off; escalation intents catch high-risk 
 
 **Open questions.** Where the human works the thread (our inbox vs their email client) is a product decision the documents do not settle.
 
+## Open-source implementations (added 28 Nov 2026)
+
+- LangGraph `interrupt()` / resume ([`langchain-ai/langgraphjs`](https://github.com/langchain-ai/langgraphjs/tree/61aad39/)); Letta approval recovery ([letta](../../open-source-references/letta.md)).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.

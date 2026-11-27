@@ -13,6 +13,8 @@
 
 > **Source re-check 28 Nov 2026 (code):** [`dlt-hub/dlt@f85861b`](https://github.com/dlt-hub/dlt/tree/f85861b), [`airbytehq/airbyte-python-cdk@HEAD`](https://github.com/airbytehq/airbyte-python-cdk/tree/HEAD) — dlt 1.32.0. Airbyte now says connectors and public repos except the protocol are ELv2; CDK repo has mixed licence files — get legal review.
 
+> **Source re-check 28 Nov 2026 (code):** Nango `859112e`: still ELv2; `packages/providers/providers.yaml` now has **1,579** top-level provider entries (code study: 1,441).
+
 ## From the open-source code study: 26. Connectors and OAuth: dlt, Airbyte, Nango, Pipedream, mycontext
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

@@ -198,6 +198,10 @@ The query service should choose a provider plan only after validating property i
 
 Our v1 should build a relational/object-set query engine with explicit relationship traversal and semantic plans over PostgreSQL. Keep the graph store as an optional provider/projection until benchmarks and query needs justify it. The user-facing SDK should generate typed object definitions and query contracts from published ontology metadata.
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [`gura105/operational-ontology` → `src/query.ts`](https://github.com/gura105/operational-ontology/blob/cd8dea3/src/query.ts) — set algebra and aggregation reference.
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
@@ -214,6 +218,5 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

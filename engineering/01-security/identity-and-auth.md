@@ -81,13 +81,16 @@
 - **Personal tokens:** expiry is set by the user. A token is shown once and can be disabled or revoked. Holding one "is equivalent to possessing a user's username and password". Personal tokens are not for production. Inactive accounts invalidate them. [Fact] https://www.palantir.com/docs/foundry/platform-security-third-party/user-generated-tokens/
 - **Service accounts guidance:** a named owner, periodic review, IP restriction, credentials held in a privileged-access-management (PAM) tool, rotation, and monitoring. [Fact] https://www.palantir.com/docs/foundry/security/single-sign-on-security/
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [better-auth](../../open-source-references/better-auth.md) — TypeScript authentication with organisations (MIT).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

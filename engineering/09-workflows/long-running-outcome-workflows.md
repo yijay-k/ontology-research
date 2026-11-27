@@ -66,14 +66,20 @@
 
 **Open questions.** Should a customer with several legal entities on the seller's side get one case per entity or one across entities? (Ramp is single-entity, so it gives no guidance.) What the owner assignment rule is when no collector exists (the Chaser "+ Care" segment).
 
+## Open-source implementations (added 28 Nov 2026)
+
+- DBOS durable workflows and Temporal (see [durable-execution](durable-execution.md)).
+
+## Other companies (updated 28 Nov 2026)
+
+- **Decagon Missions** (12 Nov 2026): long-horizon orchestration across systems, personas and days or weeks; every Mission is an AOP. Source: https://unite.ai/decagon-launches-missions-for-long-running-ai-customer-workflows
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No palantir material in the research yet.
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
-- No other companies and products material in the research yet.
 - No research literature material in the research yet.

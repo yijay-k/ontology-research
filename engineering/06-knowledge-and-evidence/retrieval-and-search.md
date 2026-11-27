@@ -284,10 +284,14 @@ Retrieval must filter by tenant and authorization before ranking, then recheck p
 
 Measure recall and precision by question class, retrieval latency, source ACL violations, stale index rate, citation correctness, entity linking accuracy, temporal query correctness and answer grounding. Evaluate multi-hop answers against known source records and graph paths. Maintain adversarial tests for prompt injection hidden in documents.
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [pgvector](../../open-source-references/pgvector.md) (PostgreSQL licence) for vectors beside objects and chunks.
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No open-source implementations material in the research yet.
+- Filled in the 28 Nov 2026 pass; remaining open questions are in the linked sources.

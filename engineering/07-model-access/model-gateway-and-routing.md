@@ -199,12 +199,15 @@
 - OpenAI long-context rates and Gemini context windows are unverified.
 - Anthropic compaction pricing was not read.
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [litellm](../../open-source-references/litellm.md); [portkey-gateway](../../open-source-references/portkey-gateway.md).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

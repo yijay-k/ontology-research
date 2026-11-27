@@ -276,11 +276,14 @@ Here the outbound drafts stand in for collection reminders. Anthropic Nov 2026 l
 
 **Open questions.** The credit cost of one reminder, answer or classification has no source; it must be measured in pilots. Whether to price in MYR, USD or both.
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [litellm](../../open-source-references/litellm.md) per-key budgets, rate limits and spend logs.
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
-- No open-source implementations material in the research yet.
 - No research literature material in the research yet.

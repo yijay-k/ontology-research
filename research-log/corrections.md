@@ -353,3 +353,17 @@ Checked against current Palantir, Microsoft, Apache and Alibaba pages. Details a
 Everything else checked in this pass was **confirmed**: MetricFlow join matrix and sidecar, Cube policy schema, Palantir IR (12 rules / 9 conditions), Przyval RLS and markings, OpenFGA schema, cedar-wasm features, LightRAG pgtable, Cognee identity fields, mem0 telemetry default, MCP spec 2026-07-28 and SDK 2.4.0, tau2 reward basis, AgentScope SOP, Zen node kinds, operational-ontology's stated gaps.
 
 Components whose "Fact-check notes" say no time-sensitive claims were re-checked are mostly business, research-literature or design-pattern material with no version, licence or status claim to verify.
+
+## Fact-check corrections, 28 Nov 2026 (gap-filling pass)
+
+| ID | Claim or assumption | Current state | Where noted |
+|---|---|---|---|
+| FC-14 | lakeFS as an open (Apache) branching option | lakeFS is now Business Source License 1.1. | engineering/10-change-control/branches-proposals-review.md |
+| FC-15 | Soda Core as an Apache data-quality library | Soda Core is now Elastic License 2.0. | engineering/02-data-platform/data-quality.md |
+| FC-16 | Unleash as an open kill-switch server | Unleash server is AGPL-3.0; use OpenFeature (Apache-2.0) as the flag API. | engineering/11-observability/control-page-and-kill-switch.md |
+| FC-17 | Nango has 1,441 provider entries | 1,579 top-level entries; still ELv2. | open-source-references/dlt-airbyte-and-connectors.md |
+| FC-18 | Claude Agent SDK hook list (10 events) | `SessionStart` added; Python wrapper 0.2.189. | open-source-references/claude-agent-sdk.md |
+| FC-19 | Model providers broadly offer zero data retention | Anthropic requires 30-day retention for Mythos-class models from 9 Jun 2026 (Enterprise Frontier Safeguards for some ZDR orgs); OpenAI reaffirmed ZDR on frontier models. Retention must be tracked per model. | engineering/07-model-access/data-retention-and-byom.md |
+| FC-20 | Agent Skills spec lives in `anthropics/skills` | The repo now points to https://agentskills.io/specification. | open-source-references/anthropic-skills.md |
+
+Re-read in source with no material change: OpenSPG/KAG (OpenSPG still idle since 2025-06-29), Temporal 1.33.0, conjure error taxonomy, OntoForge confirm-preview, mycontext (no commits since 2026-08-31), CapTrix/openfoundry (no commits since 2026-05-20), letta-code, Langfuse 4.88.0, Phoenix 22.1.0, promptfoo 0.126.0.

@@ -6,9 +6,9 @@ Evidence that complements the operational model: document parsing, retrieval, kn
 
 | Component | What it is | Lines | Sources |
 |---|---|---:|---:|
-| [document-parsing](document-parsing.md) | Turning PDFs, emails and invoices into structured text and fields with layout and provenance. | 148 | 5 |
-| [retrieval-and-search](retrieval-and-search.md) | Finding the right passages: chunking, hybrid search, reranking and permission-aware retrieval. | 293 | 12 |
-| [knowledge-graph-retrieval](knowledge-graph-retrieval.md) | Graph-structured knowledge extracted from text, and when graph retrieval is and is not worth it. | 369 | 12 |
-| [temporal-facts-and-memory-store](temporal-facts-and-memory-store.md) | Facts with valid-time and record-time, invalidation, two-tier (learned vs certified) knowledge and memory stores. | 381 | 14 |
+| [document-parsing](document-parsing.md) | Turning PDFs, emails and invoices into structured text and fields with layout and provenance. | 156 | 5 |
+| [retrieval-and-search](retrieval-and-search.md) | Finding the right passages: chunking, hybrid search, reranking and permission-aware retrieval. | 297 | 12 |
+| [knowledge-graph-retrieval](knowledge-graph-retrieval.md) | Graph-structured knowledge extracted from text, and when graph retrieval is and is not worth it. | 379 | 12 |
+| [temporal-facts-and-memory-store](temporal-facts-and-memory-store.md) | Facts with valid-time and record-time, invalidation, two-tier (learned vs certified) knowledge and memory stores. | 390 | 14 |
 | [context-assembly-and-grounding](context-assembly-and-grounding.md) | What reaches the model: layered context, business terms, synonyms, routing and marking filters. | 327 | 11 |
-| [provenance-and-answer-transparency](provenance-and-answer-transparency.md) | Showing the business logic, executed query and sources behind every answer. | 45 | 1 |
+| [provenance-and-answer-transparency](provenance-and-answer-transparency.md) | Showing the business logic, executed query and sources behind every answer. | 59 | 1 |

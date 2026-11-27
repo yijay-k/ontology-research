@@ -57,13 +57,24 @@ Invoice ingestion and validation; customer/account matching; cash application; p
 
 The original archive contains deeper competitor and pricing research on Ramp, BILL, Upflow, Stripe and receivables vendors. Keep those business/product findings separate from the technical platform conclusions. Vendor workflow examples are useful design inputs, not universal accounting rules.
 
+## New research (28 Nov 2026)
+
+### Source system: Xero's accounting objects (the most common SMB ledger in the research)
+- Core objects: contacts (customers and suppliers, incl. archived), invoices, credit notes, payments (applied to invoices, credit notes, prepayments and overpayments), prepayments, overpayments, allocations, batch payments, bank transactions, linked transactions, budgets, contact groups. Sources: https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/xero-reference , https://cdn.cdata.com/help/DXM/rcmd/pg_accountingdatamodel.htm
+- **Sync behaviour to design for:** most transactional objects sync incrementally on `UpdatedDateUTC`; budgets, contact groups and branding themes are full-refresh only. Source: https://docs.databricks.com/aws/en/ingestion/lakeflow-connect/xero-reference
+
+### Open-source reference schema
+- Frappe Books (AGPL-3.0, read only): a complete small-business accounting schema — [frappe-books](../../open-source-references/frappe-books.md).
+
+### Candidate objects (from the sources above and the existing brief)
+Contact (customer/supplier), Invoice, Invoice line, Credit note, Payment, Allocation, Prepayment, Overpayment, Bank transaction, Account, Tax rate, Currency. Key links: Payment → Invoice/Credit note via Allocation; Invoice → Contact; Bank transaction ↔ Payment (reconciliation).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No palantir material in the research yet.
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No research literature material in the research yet.

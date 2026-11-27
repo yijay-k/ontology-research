@@ -386,6 +386,10 @@ X-Analytics specifics [Fact, https://help.aliyun.com/zh/dataphin/semimanaged-v4/
 
 **Open questions.** Whether customers need a separate staging copy of data to test a draft metric, or whether running drafts against production data with a "draft" label is enough [Inference].
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [dbt-core](../../open-source-references/dbt-core.md) — raw → staging → marts layering and tests (Apache-2.0).
+
 ## Fact-check notes
 
 _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in the research. **Changed** = research is out of date. Items marked (code) were checked by reading the repository at the pinned commit; others against vendor pages._
@@ -394,6 +398,5 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 ## Gaps
 
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

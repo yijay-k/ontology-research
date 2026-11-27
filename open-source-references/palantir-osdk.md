@@ -13,6 +13,8 @@
 
 > **Source re-check 28 Nov 2026 (code):** [`palantir/osdk-ts@fe6f8e1`](https://github.com/palantir/osdk-ts/tree/fe6f8e1), [`palantir/foundry-platform-python@cb2bd92`](https://github.com/palantir/foundry-platform-python/tree/cb2bd92) — IR still 12 logic-rule and 9 condition variants.
 
+> **Source re-check 28 Nov 2026 (code):** Conjure `f50f0ce`: error codes unchanged (PERMISSION_DENIED, INVALID_ARGUMENT, NOT_FOUND, CONFLICT, REQUEST_ENTITY_TOO_LARGE, FAILED_PRECONDITION, INTERNAL, TIMEOUT, CUSTOM_CLIENT, CUSTOM_SERVER).
+
 ## From the open-source code study: 2. Palantir's public SDKs: osdk-ts, foundry-platform-python, conjure
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

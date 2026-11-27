@@ -70,13 +70,16 @@
 
 **Open questions.** Freshness threshold per connector (for example 26 hours for a nightly sync) has no source; set per tenant [Inference].
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [great-expectations](../../open-source-references/great-expectations.md) (Apache-2.0); [dbt-core](../../open-source-references/dbt-core.md) generic tests and source freshness. **Changed:** Soda Core is now Elastic License 2.0 (read only).
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.
 - No other companies and products material in the research yet.
 - No research literature material in the research yet.

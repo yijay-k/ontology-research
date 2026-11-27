@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** of a versioned memory store (every memory change is a diff with history), but in Postgres rows rather than git. **Ignore** as a dependency. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** letta-code `4d5928b` 0.34.71, Apache-2.0: git-backed memory (`src/agent/memory-git*.ts`), memory constraints and audit, conflict repair, and approval recovery (`src/agent/approval-recovery.ts`).
+
 ## From the open-source code study: 15. Letta (letta-ai/letta and letta-code)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

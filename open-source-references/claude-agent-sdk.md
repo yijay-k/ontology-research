@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** (the hook taxonomy, allow/deny-with-rewrite, the session-store contract). **Do not build the core agent loop on it**, because the product must run GPT and Qwen as well. [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** TS `e774912` still "all rights reserved" (Commercial Terms); Python `6c1b03f` 0.2.189, MIT wrapper. Hook events now include **SessionStart** in addition to the ten listed below.
+
 ## From the open-source code study: 21. Claude Agent SDK (TypeScript and Python)
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

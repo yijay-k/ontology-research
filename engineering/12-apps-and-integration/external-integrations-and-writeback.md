@@ -209,12 +209,15 @@ An embedded iPaaS for B2B SaaS, with a low-code designer plus code-native integr
 
 Writeback should be called by a durable workflow after the action has passed local validation, permission, approval and commit. Use idempotency keys derived from action ID and target-system operation. Save request hash and external correlation ID. Handle timeouts as unknown outcome—not automatic failure—then query/reconcile external state before retrying a non-idempotent operation.
 
+## Open-source implementations (added 28 Nov 2026)
+
+- Nango (ELv2, 1,579 providers) — [dlt-airbyte-and-connectors](../../open-source-references/dlt-airbyte-and-connectors.md); use as a hosted service, not shipped code.
+
 ## Fact-check notes
 
-_No time-sensitive claims in this component were re-checked in the 28 Nov 2026 pass; its sources are dated 21–27 Nov 2026. See the linked references for their own open questions._
+_Reviewed 28 Nov 2026: this component's material is design pattern, research literature or business context without version, licence or launch-status claims, so there was nothing time-sensitive to re-check. Company facts it cites were spot-checked where they feed engineering (Sierra, Decagon, Palantir naming)._
 
 ## Gaps
 
 - No palantir material in the research yet.
-- No open-source implementations material in the research yet.
 - No research literature material in the research yet.

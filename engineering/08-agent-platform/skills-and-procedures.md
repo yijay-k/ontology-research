@@ -212,6 +212,15 @@ Three channels into the agent's "company model" [Vendor claim]:
 
 **Open questions.** How much the builder should infer rules from historical decisions vs ask the controller (Ramp captures "messy exceptions" but doc 12 gives no method). Which rented model writes the procedure format reliably (doc 12's DSL warning).
 
+## Open-source implementations (added 28 Nov 2026)
+
+- [anthropic-skills](../../open-source-references/anthropic-skills.md) — SKILL.md format; spec now at agentskills.io.
+
+## Other companies (updated 28 Nov 2026)
+
+- **Sierra:** Agent Studio was redesigned around Ghostwriter on 2 Nov 2026 — investigation, journey editing and testing in one conversation, with evidence, changes and test results kept together for review before go-live; Ghostwriter launched 25 Mar 2026 and became a proactive Slack/Teams teammate on 28 Sep 2026. Source: https://sierra.ai/jp/blog/redesigning-agent-studio-around-ghostwriter
+- **Decagon:** Duet now writes more than 70% of the AOPs running on the platform (Oct 2026); AOPs are natural-language procedures that compile into validated workflows, versioned with Git. Sources: https://decagon.ai/blog/duet-apprentice , https://decagon.ai/product/aop
+
 ## Implementation starting points (from source code)
 
 _Repositories read on 28 Nov 2026 at the pinned commit in each link. Licences checked at that commit._
@@ -229,4 +238,3 @@ _Checked 28 Nov 2026. **Confirmed** = research still matches. **New** = not in t
 
 - No palantir material in the research yet.
 - No lingyang, AgentOne and Alibaba material in the research yet.
-- No open-source implementations material in the research yet.

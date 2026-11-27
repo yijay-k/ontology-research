@@ -13,6 +13,8 @@
 
 > **Source re-check 28 Nov 2026 (code):** [`Przyval/openfoundry@96ff1de`](https://github.com/Przyval/openfoundry/tree/96ff1de) — structures cited below verified present; no licence change.
 
+> **Source re-check 28 Nov 2026 (code):** CapTrix `090e3f1` still AGPL-3.0, last commit 2026-05-20 (six months idle). OntoForge `e747c5e` (MIT) confirm-preview handshake still present — now has its own file [ontoforge](ontoforge.md).
+
 ## From the open-source code study: 3. The "open Foundry" family
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.

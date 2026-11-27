@@ -11,6 +11,8 @@
 
 **Verdict from the code study:** **copy the design** (two-phase ingestion, LLM results cached by content hash, dedup on the source-unit key). **Do not copy code** (ELv2). [Inference]
 
+> **Source re-check 28 Nov 2026 (code):** `23c6f60`: still ELv2; no commits since 2026-08-31.
+
 ## From the open-source code study: 16. openTrinity/mycontext
 
 > Source: original research doc 14 (`14-open-source-code-study.md`), read from source on 21 Nov 2026 at depth 1, no code executed.
