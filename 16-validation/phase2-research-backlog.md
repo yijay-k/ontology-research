@@ -1,45 +1,49 @@
 # Phase 2 research backlog — from original architecture to implementation proof
 
-Phase 1 establishes the original six-map build reference and a broad evidence base. Phase 2 deepens correctness-critical implementation seams. The work below distinguishes completed source inspection from tests and product validation that remain open.
+Phase 1 establishes the original six-map build reference and a broad evidence base. Phase 2 now has deeper documentation and selected source inspection for data/build semantics, object querying, metrics, action correctness and agent lifecycle. Runtime tests and broader source audits remain open.
 
-## Priority 0 — restore research traceability and source integrity
+## Priority 0 — restore traceability and original source integrity
 
-1. Use [Original research architecture and build blueprint](../01-reference-architecture/original-research-architecture.md) as the controlling synthesis of maps 30–35. Do not replace their detailed v1/v2 checklists with a generic module decomposition.
-2. Restore sources/archive-original/30-map-palantir-platform.md and 31-map-lingyang-alibaba-offers.md byte-for-byte from the Phase 1 ZIP. The current Git blob hashes differ despite matching file sizes. Then verify all 82 Phase 1 files by Git blob hash.
-3. Keep original receivables assumptions distinct from the later legal pivot. Record the decision and evidence that changes the first vertical; do not silently rewrite history.
-4. Keep all publication-status records consistent with the actual main branch.
+1. Keep [Original research architecture and build blueprint](../01-reference-architecture/original-research-architecture.md) as the controlling synthesis of maps 30–35.
+2. Restore `sources/archive-original/30-map-palantir-platform.md` and `31-map-lingyang-alibaba-offers.md` byte-for-byte from the Phase 1 ZIP and verify all 82 original Phase 1 file blobs.
+3. Keep the original receivables assumptions distinct from the later legal pivot. Record the product decision only after workflow and buyer evidence.
+4. Keep publishing-status records consistent with the actual main branch.
 
-## Priority 1 — finish correctness-critical implementation audits
+## Priority 1 — correctness-critical tests
 
-1. **OpenFoundry:** trace route registration and startup wiring for object CRUD, outbox, event publication, Cedar, tenant identity and query filters; inspect schema migrations, replay, delete/link cascade and tests. Prove store-specific transaction scope and partial-failure recovery. Review AGPL-3.0-only reuse constraints separately.
-2. **UModel:** run all GraphStore contract tests on Ladybug, Neo4j and Gremlin; finish model validation and pack atomicity, search-index lifecycle, workspace scoping and entity-write idempotency.
-3. **Action guarantees:** specify canonical database atomicity separately from external API effects, projections and notifications. Design object state + audit + outbox commit, then durable dispatch/saga/reconciliation.
-4. **Tenant and matter enforcement:** threat model identity → gateway → service → DB RLS → graph/vector/search → caches → logs → workflow state → agent tools. Run negative tests for missing, forged, cross-tenant and ethical-wall context.
-5. **Workflow runtime:** execute the Temporal-vs-DBOS bake-off for process crash, replay, timers, retries, concurrency, approval waits, schema evolution and external-effect reconciliation.
+1. **Data lifecycle:** connector replay, cursor atomicity, update/delete handling, schema drift, build partial failure, projection freshness and lineage.
+2. **Ontology/query:** schema version publication, stable identity, snapshot pagination, relation traversal fan-out, derived property cost, query token binding and provider contract tests.
+3. **Actions/invariants:** snapshot write skew, concurrent writes, idempotency, action version pinning, transaction/outbox boundary, transient retry and external acceptance timeout.
+4. **Tenant/matter authorization:** missing/forged tenant, cross-tenant/matter read, ethical wall, document/chunk/vector/search/cache leakage, revocation while a session/workflow is paused.
+5. **Agent lifecycle:** durable session resume, duplicate/out-of-order event, release pinning, per-session authorization, repeated evaluation and rollback.
+6. **Workflow runtime:** same Temporal-vs-DBOS bake-off under process crash, replay, timers, approval waits, code migration and external effect reconciliation.
 
-## Priority 2 — broaden engineering evidence from the original 60+ catalogue
+## Priority 2 — complete implementation evidence
 
-- Complete OpenFGA evaluator/datastore/revocation tests; compare OpenFGA with OPA/Cedar as complementary policy components.
-- Inspect Neo4j GraphRAG and TypeDB query plans against OpenSPG Lube and the target ontology query requirements.
-- Inspect LangGraph/PydanticAI and MCP tool lifecycle, cancellation, identity propagation, approval and observability.
-- Inspect Airbyte/dlt test fixtures for checkpoint correctness and source schema drift.
-- Inspect DataHub ingestion source lifecycle, metadata aspect versioning and lineage end-to-end.
-- Benchmark Postgres, graph and vector choices on the same representative legal/finance workloads with permission filters.
+- Finish OpenFoundry route registration/startup, object CRUD/read authorization, schema migration, delete/link cascade, outbox/event publication and failure-injection tests.
+- Run UModel GraphStore contract tests on Ladybug, Neo4j and Gremlin; finish pack atomicity, workspace isolation, search indexing and durable entity idempotency.
+- Complete OpenFGA datastore/consistency/revocation tests and OPA/Cedar policy bundle lifecycle.
+- Inspect Neo4j GraphRAG, TypeDB and OpenSPG/KAG query plans against required ontology query semantics.
+- Inspect LangGraph/PydanticAI and MCP lifecycle for identity, cancellation, state, approval and observability.
+- Run Airbyte/dlt tests for checkpoint correctness and source schema drift; inspect DataHub lineage/version end-to-end.
 
-## Priority 3 — reconcile product/domain direction with evidence
+## Priority 3 — broaden the original market and domain evidence
 
-- Complete law-firm workflow interviews; capture one real anonymised matter workflow, users, systems, frequency, cycle time, failure cost, approval and buying authority.
-- Revisit original company entries 18–28 with current product documentation and customer/problem-fit sources. Keep vendor claims distinct from independent evidence.
-- Keep finance/receivables as the original structured reference domain; compare it against the legal workflow evidence rather than deleting it from the plan.
-- Derive legal/finance/construction domain packs from actual workflows and public or synthetic sample documents.
-- Choose a legal workflow only after comparing value, access, risk and willingness to pay; candidate workflows include evidence-linked matter Q&A and obligation/deadline extraction.
+- Revisit original company entries 18–28 with current product documentation and customer/problem-fit evidence.
+- Complete law-firm workflow interviews; measure frequency, cycle time, error/risk cost, systems, approver and buyer.
+- Keep finance/receivables as the original structured reference domain; compare it with law-firm interview evidence instead of deleting it.
+- Build domain packs from real or carefully synthetic workflows and documents.
 
 ## Priority 4 — executable proof
 
-- Build a minimal vertical slice: Postgres-backed schema registry, typed object/relationship runtime, one source connector, object-set/semantic query, policy context, evidence-linked retrieval, action preview, transactional commit/outbox and durable workflow.
-- Run schema migration, concurrent update, idempotency, tenant/matter isolation, policy revocation, retrieval ACL, replay and external-writeback failure tests.
-- Record exact source commit, test command, environment, logs and result. A test file is not a passing test.
+Build a vertical slice following the original build sequence:
+1. Tenant identity and policy context.
+2. One source connection with replay-safe staged ingestion.
+3. Versioned ontology definitions, keys and runtime objects.
+4. Typed object-set and metric query with snapshot paging.
+5. Governed action with invariant enforcement and atomic outbox.
+6. Evidence-linked retrieval.
+7. Durable agent session and workflow.
+8. Eval suite, release pinning, audit and rollback.
 
-## Exit criteria for architecture freeze
-
-Do not freeze the graph store, workflow runtime, authorization engine or primary system of record until the original architecture's critical path has code evidence, at least one runnable vertical slice, failure/security tests, clear source-of-truth ownership, data/API contracts and explicit alternatives/trade-offs.
+Record commit, environment, command, logs and observed results. A source-code inspection or a test file is not a passing test.

@@ -8,32 +8,28 @@ This repository studies how to build a governed company operating model for soft
 
 ## Start here — read in this order
 
-1. [Original research architecture and build blueprint](01-reference-architecture/original-research-architecture.md) — reconstructs the intended architecture from the six original reference maps, preserving the original receivables baseline and explicitly documenting the later legal pivot.
-2. [Research charter](00-foundation/research-charter.md) — scope, original assumptions, current direction and research phases.
-3. [Map 1 — Palantir platform](sources/archive-original/30-map-palantir-platform.md) — original Foundry/Ontology/AIP/security/apps build reference.
-4. [Map 2 — Lingyang and Alibaba](sources/archive-original/31-map-lingyang-alibaba-offers.md) — original ontology, semantics, metrics and agent-product comparison.
-5. [Maps 3–6](sources/archive-original/) — research/cost, context/code/integration, agent companies, and market/competitors.
-6. [Company platform comparison](01-reference-architecture/company-platform-comparison.md) — current cross-vendor distinction and architecture boundaries.
-7. [Repository audit index](15-repository-audits/README.md) — source-level audits and their limits.
-8. [Phase 1/2 reconciliation](16-validation/phase1-phase2-reconciliation.md) — what was included in GitHub and remaining integrity exceptions.
-9. [Phase 2 findings and next tests](16-validation/phase2-findings-and-next-tests.md) — correctness findings and prototype acceptance suite.
-10. [Architecture hypotheses](17-decisions-and-tradeoffs/architecture-hypotheses.md) — provisional choices, not approved ADRs.
+1. [Original research architecture and build blueprint](01-reference-architecture/original-research-architecture.md) — architecture reconstructed from the six original reference maps.
+2. [Research charter](00-foundation/research-charter.md) — original assumptions, current direction and research phases.
+3. [Map 1 — Palantir platform](sources/archive-original/30-map-palantir-platform.md) and [Map 2 — Lingyang/Alibaba](sources/archive-original/31-map-lingyang-alibaba-offers.md).
+4. [Maps 3–6](sources/archive-original/) — research/cost, context/code/integration, agent companies, and market/competitors.
+5. [Company platform comparison](01-reference-architecture/company-platform-comparison.md) — product and platform boundaries.
+6. [Repository audit index](15-repository-audits/README.md) — source-level implementation audits and limits.
+7. [Phase 2 source register](research-method/phase2-source-register.md) — pinned source snapshots and official documentation.
+8. [Phase 2 findings and next tests](16-validation/phase2-findings-and-next-tests.md) — findings and acceptance criteria.
+9. [Phase 1/2 reconciliation](16-validation/phase1-phase2-reconciliation.md) — package manifest and known integrity exceptions.
+10. [Architecture hypotheses](17-decisions-and-tradeoffs/architecture-hypotheses.md) — proposals, not approved ADRs.
 
 ## What is included
 
-- The complete 82-file Phase 1 bundle, extracted into the repository structure. All 82 Phase 1 paths are present on main.
-- The 32 original research documents, including Palantir Foundry's data layer, Ontology, AIP, security, applications/infrastructure and business model; Lingyang/AgentOne and Alibaba; research papers; context products; agent companies; cost; integrations; finance/receivables; and six consolidated reference maps.
-- Nine additional Phase 2 files: deeper OpenFoundry, UModel, OpenFGA and workflow audits; legal matter security threat model; law-firm interview guide; Phase 2 findings; Phase 2 source register; and publication handoff.
-- Architecture synthesis, repository coverage ledger, evidence/research methods, decision hypotheses and Mermaid diagrams.
+- The 82-path Phase 1 bundle and 32 original research Markdown documents, including the full Palantir Foundry/Ontology/AIP/security/apps/business research, Lingyang/AgentOne and Alibaba stack, literature, cost, competitors and six consolidated build maps.
+- Phase 2 correctness research and source-level audits for OpenFoundry, UModel, OpenFGA and Temporal/DBOS.
+- New Phase 2 deep dives on source sync/build semantics, ontology object/query contracts, Dataphin/Quick BI metric semantics, action isolation/invariants, agent sessions/evaluation and the Palantir TypeScript OSDK client contract.
+- Research protocol, coverage ledger, evidence register, architecture synthesis and Mermaid system diagrams.
 
 ## Research status and limitations
 
-Phase 1 is **published**, not an assertion that all research was freshly revalidated. Phase 2 is selective: source code and test sources were inspected in high-value areas, but no repository builds or tests were run. The original 60+ repository study is preserved; it has not all been independently re-audited. Company/market claims in the original notes retain their original evidence labels and dates. Read the coverage ledger and reconciliation before using claims to make a build or commercial decision.
-
-The Phase 1 SHA reconciliation found all 82 paths on main. Seventy-five files match the supplied Phase 1 Git blob exactly; five working documents were subsequently revised; two original reference-map copies (maps 30 and 31) have same-size but different blob hashes and remain an archive-integrity repair item. Do not treat those two copies as byte-identical until restored and rechecked.
-
-No local builds, tests, benchmarks, security tests or production runtime validation were executed in this research pass. OpenFoundry is AGPL-3.0-only; do not copy its code into a proprietary product without legal review. Verify all current upstream licences before reuse.
+Phase 1 paths are present on main. The Phase 1/2 reconciliation documents the 75 exact blob matches, five revised working documents and two original map blob mismatches that still require restoration. The original 60+ repository study is preserved, but not every repository has been newly audited. Phase 2 source inspections and official docs are evidence, not proof of runtime behaviour. No local builds, upstream test suites, benchmarks, security tests or production workflow runs were executed in this pass.
 
 ## Important architecture rule
 
-Do not build the product as “RAG + a graph database + agents”. Follow the original sequence: tenant/security floor → source data lifecycle → versioned ontology/object runtime → object-set and semantic query → deterministic rules and governed actions → evidence/context → agent runtime → durable workflow and controlled release → application/integration surfaces. The detailed map and v1/v2 decisions remain in the six original reference maps.
+Do not build the product as “RAG + a graph database + agents”. Follow the original sequence: tenant/security floor → source data lifecycle → versioned ontology/object runtime → object-set and semantic query → deterministic rules and governed actions → evidence/context → agent runtime → durable workflow and controlled release → application/integration surfaces. The detailed design remains anchored in the six original maps.
