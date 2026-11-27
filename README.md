@@ -1,7 +1,7 @@
 # Enterprise Ontology Research
 
 **Research snapshot:** 27 November 2026  
-**Repository status:** Phase 1 source archive and maps are present; Phase 2 source-level deep dives are partial. A claim-level correction register and current Palantir OSv2 erratum are now published.
+**Repository status:** Phase 1 source archive and maps are present; Phase 2 source-level deep dives are partial. A claim-level correction register and current Palantir OSv2 erratum are published.
 
 This repository studies how to build a governed company operating model for software and AI agents. The product thesis is larger than RAG: connect company data to typed business objects and relationships; answer through semantic queries and deterministic computation; retrieve evidence with provenance; and execute permitted business actions through controlled workflows.
 
@@ -18,6 +18,7 @@ This repository studies how to build a governed company operating model for soft
 9. [Phase 2 source register](research-method/phase2-source-register.md).
 10. [Phase 2 findings and next tests](16-validation/phase2-findings-and-next-tests.md).
 11. [Phase 1/2 reconciliation](16-validation/phase1-phase2-reconciliation.md).
+12. [File manifest](16-validation/file-manifest.md) — recursive tree inventory and post-Phase-1 additions.
 
 ## What is included
 
@@ -29,7 +30,7 @@ This repository studies how to build a governed company operating model for soft
 
 The original archive is substantial but not uniformly verified. The 21 November verification report checked a sample of 27 claims (20 fully supported, six partly supported and none contradicted in that sample); it did not verify every claim in all 32 documents. Several prior-knowledge/secondary-source sections remain open.
 
-The current tree contains 102 file blobs; all 82 Phase 1 paths are present and 20 additional paths have been added beyond the Phase 1 package. The blob comparison still has two unresolved historical source mismatches in original maps 30 and 31. The reconciliation document contains the current path inventory and hashes.
+The current tree contains **103 file blobs**; all 82 Phase 1 paths are present and 21 additional paths have been added. The blob comparison still has two unresolved historical source mismatches in original maps 30 and 31. The reconciliation document contains the current path inventory and hashes.
 
 Phase 2 source inspections are not runtime proof. No upstream test suites, local product builds, benchmarks, security tests or production workflow runs were executed in this research pass. Do not treat a file's existence as evidence that its architecture has been validated.
 
