@@ -6,7 +6,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Build sharp edges
 
-`pnpm run build` is green (50/50), as is `typecheck` (46/46). Keep it that way.
+`pnpm run build` is green (51/51), as is `typecheck` (48/48). Keep it that way.
 Run `npx turbo run build --continue` to see every failure at once; plain `build` stops at the first.
 
 `pnpm run lint` is a real check now: it runs `eslint .` directly over all 632 `.ts`/`.tsx`/`.mts`
@@ -39,7 +39,7 @@ Because turbo runs `build` as a dependency of the other tasks, one such gap fail
 
 ## Tests
 
-`pnpm run test` (turbo `test`) is green (99/99).
+`pnpm run test` (turbo `test`) is green (101/101).
 A package running `vitest run` inherits the root `vitest.config.ts`, whose `include` globs are
 resolved against the run's root - the package directory, not the repo root.
 Keep those globs relative (`**/tests/**/*.test.ts`); a root-anchored `packages/**` glob matches
@@ -118,6 +118,9 @@ A bad source (repeated key, unconvertible value, missing column) fails the whole
 `check_answerable` is lexical (question terms against type, property and action names) and blind to synonyms; `query_objects` requires `select` and caps pages at 100.
 Object and action types may carry `agentDescription` (column in `db/migrations/020`), shown to agents in place of `description`.
 `/api/v2/ontologies/:rid/ossie` (svc-ontology, not a Foundry endpoint) exports object and link types as Apache Ossie (JSON, or YAML with `?format=yaml`) and imports an Ossie model as EXPERIMENTAL drafts (`?dryRun=true` plans only); composite keys, metrics and non-key joins are reported in `skipped`.
+`POST /api/v2/ontologies/:rid/drafts/fromDatasets` (svc-ontology, reads files from `DATASETS_SERVICE_URL`) profiles each dataset's CSVs with `packages/ontology-drafting` (keys need a complete, exactly-unique column in up to 1,000 sampled rows; a link needs 95% of a column's distinct values in another table's keys, plus a name match or enough string values) and answers a proposal; `?apply=true` creates EXPERIMENTAL dataset-backed types. The CSV parser lives in that package; svc-objects imports it from there.
+Object sets also take `asType`, `asBaseObjectTypes`, `withProperties` (selection aggregates over up to three `searchAround` hops from `methodInput`) and `nearestNeighbors` (vector query only, cosine, at most 500); `reference` is still refused, as there are no saved object sets.
+A `where` clause of any type outside `WHERE_TYPES` (`packages/object-set`) is a 400: the evaluator used to treat an unknown type as matching every object.
 `loadObjects` refuses `pageSize` outside 1-10,000, an object set over 100,000 objects (`ObjectsExceededLimit`, after in-memory resolution), and a page token issued for a different query (tokens carry a `queryHash`).
 
 ## Serving both API versions

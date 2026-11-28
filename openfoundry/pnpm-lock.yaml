@@ -352,6 +352,18 @@ importers:
 
   packages/object-set: {}
 
+  packages/ontology-drafting:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.14.0
+        version: 20.19.37
+      typescript:
+        specifier: ~5.5.4
+        version: 5.5.4
+      vitest:
+        specifier: ^3.2.0
+        version: 3.2.4(@types/node@20.19.37)(tsx@4.21.0)(yaml@2.8.2)
+
   packages/ontology-generator:
     dependencies:
       '@openfoundry/ontology-ir':
@@ -1110,6 +1122,9 @@ importers:
       '@openfoundry/object-set':
         specifier: workspace:*
         version: link:../../packages/object-set
+      '@openfoundry/ontology-drafting':
+        specifier: workspace:*
+        version: link:../../packages/ontology-drafting
       '@openfoundry/ontology-schema':
         specifier: workspace:*
         version: link:../../packages/ontology-schema
@@ -1159,6 +1174,9 @@ importers:
       '@openfoundry/errors':
         specifier: workspace:*
         version: link:../../packages/errors
+      '@openfoundry/ontology-drafting':
+        specifier: workspace:*
+        version: link:../../packages/ontology-drafting
       '@openfoundry/ontology-schema':
         specifier: workspace:*
         version: link:../../packages/ontology-schema

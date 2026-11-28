@@ -12,6 +12,7 @@ import { OntologyStore, type StoredOntology } from "./store/ontology-store.js";
 import { PgOntologyStore } from "./store/pg-ontology-store.js";
 import { healthRoutes } from "./routes/health.js";
 import { v2Routes } from "./routes/v2/index.js";
+import { draftRoutes, httpDatasetReader, type DatasetReader } from "./routes/v2/drafts.js";
 import { v1Routes } from "./routes/v1/index.js";
 
 // ---------------------------------------------------------------------------
@@ -25,6 +26,8 @@ export interface CreateServerOptions {
   config?: OntologyServiceConfig;
   /** Inject an existing store (useful for tests). */
   store?: OntologyStore | PgOntologyStore;
+  /** Where cold-start drafting reads datasets; defaults to svc-datasets over HTTP. */
+  datasets?: DatasetReader;
 }
 
 /**
@@ -133,6 +136,11 @@ export async function createServer(
 
   await app.register(healthRoutes);
   await app.register(v2Routes, { prefix: "/api/v2", store: store as OntologyStore });
+  await app.register(draftRoutes, {
+    prefix: "/api/v2",
+    store: store as OntologyStore,
+    datasets: options.datasets ?? httpDatasetReader(config.datasetsServiceUrl ?? "http://localhost:8085"),
+  });
   await app.register(v1Routes, { prefix: "/api/v1", store: store as OntologyStore });
 
   return app;

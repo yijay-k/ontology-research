@@ -29,6 +29,21 @@ export interface WhereClause {
   property?: string;
 }
 
+/**
+ * The `where` clause types `evaluateWhere` understands, lower-cased. Foundry's
+ * SearchJsonQueryV2 names (`foundry_sdk/v2/ontologies/models.py`) plus the
+ * snake_case aliases older callers send. Anything else must be refused by the
+ * caller: an unknown filter that matched everything would answer silently wrong.
+ */
+export const WHERE_TYPES: ReadonlySet<string> = new Set([
+  "eq", "neq", "gt", "gte", "lt", "lte", "contains", "startswith", "starts_with",
+  "endswith", "ends_with", "isnull", "is_null", "in", "and", "or", "not",
+  "containsanyterm", "containsallterms", "containsalltermsinorder", "containsalltermsinorderprefixlastterm",
+]);
+
+/** Whitespace-separated, lower-cased terms, as Foundry's term queries tokenise. */
+const termsOf = (value: unknown) => String(value ?? "").toLowerCase().split(/\s+/).filter(Boolean);
+
 export interface AggregationDef {
   type: string;
   field?: string;
@@ -206,8 +221,30 @@ export class ObjectSetQueryEngine {
       }
 
       case "isnull":
-      case "is_null":
-        return props[field!] === null || props[field!] === undefined;
+      case "is_null": {
+        // Foundry's isNull carries `value`: true asks for null, false for not null.
+        const isNull = props[field!] === null || props[field!] === undefined;
+        return where.value === false ? !isNull : isNull;
+      }
+
+      case "containsanyterm":
+      case "containsallterms": {
+        const have = new Set(termsOf(props[field!]));
+        const want = termsOf(where.value);
+        return t === "containsanyterm" ? want.some((w) => have.has(w)) : want.every((w) => have.has(w));
+      }
+
+      case "containsalltermsinorder":
+      case "containsalltermsinorderprefixlastterm": {
+        const have = termsOf(props[field!]);
+        const want = termsOf(where.value);
+        if (want.length === 0) return true;
+        const prefixLast = t === "containsalltermsinorderprefixlastterm";
+        for (let i = 0; i + want.length <= have.length; i++) {
+          if (want.every((w, j) => (prefixLast && j === want.length - 1 ? have[i + j].startsWith(w) : have[i + j] === w))) return true;
+        }
+        return false;
+      }
 
       case "in": {
         const val = props[field!];
@@ -234,7 +271,7 @@ export class ObjectSetQueryEngine {
       }
 
       default:
-        return true;
+        throw new Error(`Unsupported where clause type: ${where.type}`);
     }
   }
 

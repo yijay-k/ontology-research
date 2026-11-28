@@ -13,7 +13,7 @@
 
 import type { FastifyInstance } from "fastify";
 import { requirePermission } from "@openfoundry/permissions";
-import { parseCSV } from "../../sync/csv.js";
+import { parseCSV } from "@openfoundry/ontology-drafting";
 
 interface ImportRouteOptions {
   objectStore: {

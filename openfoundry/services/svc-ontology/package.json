@@ -15,6 +15,7 @@
     "@fastify/cors": "^11.0.0",
     "@openfoundry/db": "workspace:*",
     "@openfoundry/errors": "workspace:*",
+    "@openfoundry/ontology-drafting": "workspace:*",
     "@openfoundry/ontology-schema": "workspace:*",
     "@openfoundry/pagination": "workspace:*",
     "@openfoundry/permissions": "workspace:*",

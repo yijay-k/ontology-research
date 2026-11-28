@@ -16,6 +16,9 @@ export interface OntologyServiceConfig {
 
   /** PostgreSQL connection string.  When set, the PG store is used instead of in-memory. */
   readonly databaseUrl?: string;
+
+  /** svc-datasets, where cold-start drafting reads dataset files. */
+  readonly datasetsServiceUrl?: string;
 }
 
 function env(key: string, fallback: string): string {
@@ -41,5 +44,6 @@ export function loadConfig(): OntologyServiceConfig {
     logLevel: env("LOG_LEVEL", "info"),
     nodeEnv: env("NODE_ENV", "development"),
     databaseUrl: process.env.DATABASE_URL || undefined,
+    datasetsServiceUrl: process.env.DATASETS_SERVICE_URL || undefined,
   };
 }

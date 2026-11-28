@@ -91,6 +91,7 @@ export {
 // Query engine
 export {
   ObjectSetQueryEngine,
+  WHERE_TYPES,
   type ObjectSetDefinition,
   type WhereClause,
   type AggregationDef,

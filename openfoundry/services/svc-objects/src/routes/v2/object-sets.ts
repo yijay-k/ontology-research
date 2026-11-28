@@ -3,6 +3,7 @@ import type { InterfaceSource } from "../../sync/http-sources.js";
 import type { ObjectSet, Aggregation } from "@openfoundry/object-set";
 import {
   ObjectSetQueryEngine,
+  WHERE_TYPES,
   type WhereClause,
   type AggregationDef,
   type GroupByDef,
@@ -147,6 +148,96 @@ async function resolveObjectSet(
  * lowercase type names ("base", "filter") and "where" clauses in addition
  * to the internal canonical format.
  */
+/** Refuse any `where` clause type the evaluator does not know, before evaluating. */
+function assertWhere(where: unknown, path = "where"): void {
+  if (typeof where !== "object" || where === null) throw invalidArgument(path, "must be a filter object");
+  const w = where as { type?: unknown; value?: unknown; filter?: unknown };
+  const type = String(w.type ?? "").toLowerCase();
+  if (!WHERE_TYPES.has(type)) throw invalidArgument(`${path}.type`, `${String(w.type)} is not a supported filter type`);
+  if (type === "and" || type === "or") {
+    if (!Array.isArray(w.value)) throw invalidArgument(`${path}.value`, "must be an array of filters");
+    w.value.forEach((inner, i) => assertWhere(inner, `${path}.value[${i}]`));
+  }
+  if (type === "not") assertWhere(w.filter ?? w.value, `${path}.value`);
+}
+
+const MAX_DERIVED_HOPS = 3;
+const MAX_NEIGHBORS = 500;
+
+/**
+ * Follow a `searchAround` chain rooted at `methodInput` from one object: the
+ * objects a derived property aggregates over. At most three hops, as Foundry
+ * caps derived-property link traversal.
+ */
+async function linkedFrom(
+  source: StoredObject,
+  chain: Record<string, unknown>,
+  ontologyRid: string,
+  store: ObjectReadWriteStore,
+  linkStore: LinkReadWriteStore,
+): Promise<StoredObject[]> {
+  const links: string[] = [];
+  let node: Record<string, unknown> | undefined = chain;
+  while (node && String(node.type ?? "").toLowerCase() === "searcharound") {
+    links.unshift(String(node.link ?? ""));
+    node = node.objectSet as Record<string, unknown> | undefined;
+  }
+  if (!node || String(node.type ?? "").toLowerCase() !== "methodinput" || links.length === 0) {
+    throw invalidArgument("derivedProperties", "objectSet must be searchAround links rooted at methodInput");
+  }
+  if (links.length > MAX_DERIVED_HOPS) {
+    throw invalidArgument("derivedProperties", `at most ${MAX_DERIVED_HOPS} link hops`);
+  }
+  let frontier = [source];
+  for (const link of links) {
+    const next = new Map<string, StoredObject>();
+    for (const obj of frontier) {
+      for (const t of await linkStore.getLinkedObjects(ontologyRid, obj.objectType, obj.primaryKey, link)) {
+        try {
+          const target = await store.getObject(ontologyRid, t.targetObjectType, t.targetPrimaryKey);
+          next.set(target.rid, target);
+        } catch {
+          // a link to an object that no longer exists contributes nothing
+        }
+      }
+    }
+    frontier = [...next.values()];
+  }
+  return frontier;
+}
+
+/** Foundry's `SelectedPropertyOperation` over the linked objects. */
+function aggregateSelection(objects: StoredObject[], operation: Record<string, unknown>): unknown {
+  const op = String(operation.type ?? "").toLowerCase();
+  if (op === "count") return objects.length;
+  const property = String(operation.selectedPropertyApiName ?? "");
+  const values = objects.map((o) => o.properties[property]).filter((v) => v !== undefined && v !== null);
+  if (op === "approximatedistinct") return new Set(values.map((v) => JSON.stringify(v))).size;
+  const numbers = values.filter((v): v is number => typeof v === "number");
+  switch (op) {
+    case "sum":
+      return numbers.reduce((a, b) => a + b, 0);
+    case "avg":
+      return numbers.length ? numbers.reduce((a, b) => a + b, 0) / numbers.length : null;
+    case "min":
+      return numbers.length ? Math.min(...numbers) : null;
+    case "max":
+      return numbers.length ? Math.max(...numbers) : null;
+    default:
+      throw invalidArgument("derivedProperties", `${String(operation.type)} is not a supported operation`);
+  }
+}
+
+const cosine = (a: number[], b: number[]) => {
+  let dot = 0, na = 0, nb = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    na += a[i] * a[i];
+    nb += b[i] * b[i];
+  }
+  return na === 0 || nb === 0 ? 0 : dot / Math.sqrt(na * nb);
+};
+
 async function resolveApiObjectSet(
   objectSetDef: Record<string, unknown>,
   ontologyRid: string,
@@ -169,6 +260,7 @@ async function resolveApiObjectSet(
 
     // Support "where" clause (API wire format)
     if (objectSetDef.where) {
+      assertWhere(objectSetDef.where);
       const where = objectSetDef.where as WhereClause;
       return source.filter((obj) =>
         queryEngine.evaluateWhere(obj as unknown as Record<string, unknown>, where),
@@ -255,6 +347,73 @@ async function resolveApiObjectSet(
       }
     }
     return result;
+  }
+
+  // Foundry's `asType`: the objects of the set that are of one type.
+  if (type === "ASTYPE") {
+    const inner = objectSetDef.objectSet as Record<string, unknown> | undefined;
+    const entityType = String(objectSetDef.entityType ?? objectSetDef.objectType ?? "");
+    if (!inner || !entityType) throw invalidArgument("objectSet", "asType needs objectSet and entityType");
+    return (await resolveApiObjectSet(inner, ontologyRid, store, linkStore, interfaces)).filter((o) => o.objectType === entityType);
+  }
+
+  // Foundry's `asBaseObjectTypes`: objects here are always of their base types.
+  if (type === "ASBASEOBJECTTYPES") {
+    const inner = objectSetDef.objectSet as Record<string, unknown> | undefined;
+    if (!inner) throw invalidArgument("objectSet", "asBaseObjectTypes needs objectSet");
+    return resolveApiObjectSet(inner, ontologyRid, store, linkStore, interfaces);
+  }
+
+  // Foundry's `withProperties`: each object gains derived properties, each an
+  // aggregate (count, sum, avg, min, max, approximateDistinct) over objects
+  // reached by up to three links. Later filters and ordering can use them.
+  if (type === "WITHPROPERTIES") {
+    const inner = objectSetDef.objectSet as Record<string, unknown> | undefined;
+    const derived = objectSetDef.derivedProperties as Record<string, Record<string, unknown>> | undefined;
+    if (!inner || !derived || typeof derived !== "object") {
+      throw invalidArgument("objectSet", "withProperties needs objectSet and derivedProperties");
+    }
+    for (const [name, def] of Object.entries(derived)) {
+      if (String(def?.type ?? "").toLowerCase() !== "selection") {
+        throw invalidArgument(`derivedProperties.${name}`, "only selection derived properties are supported");
+      }
+    }
+    const objects = await resolveApiObjectSet(inner, ontologyRid, store, linkStore, interfaces);
+    return Promise.all(
+      objects.map(async (obj) => {
+        const extra: Record<string, unknown> = {};
+        for (const [name, def] of Object.entries(derived)) {
+          const linked = await linkedFrom(obj, def.objectSet as Record<string, unknown>, ontologyRid, store, linkStore);
+          extra[name] = aggregateSelection(linked, (def.operation ?? {}) as Record<string, unknown>);
+        }
+        return { ...obj, properties: { ...obj.properties, ...extra } };
+      }),
+    );
+  }
+
+  // Foundry's `nearestNeighbors` over a vector property. Only a vector query:
+  // a text query needs an embedding model this service does not have.
+  if (type === "NEARESTNEIGHBORS") {
+    const inner = objectSetDef.objectSet as Record<string, unknown> | undefined;
+    const identifier = objectSetDef.propertyIdentifier as { apiName?: string } | string | undefined;
+    const property = typeof identifier === "string" ? identifier : identifier?.apiName;
+    const k = Number(objectSetDef.numNeighbors);
+    const query = objectSetDef.query as { type?: string; value?: unknown } | undefined;
+    if (!inner || !property) throw invalidArgument("objectSet", "nearestNeighbors needs objectSet and propertyIdentifier");
+    if (!Number.isInteger(k) || k < 1 || k > MAX_NEIGHBORS) {
+      throw invalidArgument("numNeighbors", `must be an integer from 1 to ${MAX_NEIGHBORS}`);
+    }
+    if (String(query?.type ?? "").toLowerCase() !== "vector" || !Array.isArray(query?.value) || !query.value.every((x) => typeof x === "number")) {
+      throw invalidArgument("query", "must be { type: \"vector\", value: number[] }; text queries need an embedding model");
+    }
+    const target = query.value as number[];
+    return (await resolveApiObjectSet(inner, ontologyRid, store, linkStore, interfaces))
+      .map((obj) => ({ obj, v: obj.properties[property] }))
+      .filter((x): x is { obj: StoredObject; v: number[] } => Array.isArray(x.v) && x.v.length === target.length)
+      .map(({ obj, v }) => ({ obj, score: cosine(v, target) }))
+      .sort((a, b) => b.score - a.score)
+      .slice(0, k)
+      .map(({ obj }) => obj);
   }
 
   // Foundry's `interfaceBase`: every object of every type implementing the

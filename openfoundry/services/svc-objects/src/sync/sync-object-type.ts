@@ -1,7 +1,7 @@
 import type { ObjectTypeDefinition } from "@openfoundry/ontology-schema";
 import { ErrorCode, OpenFoundryApiError, invalidArgument, notFound } from "@openfoundry/errors";
 import type { ObjectReadWriteStore, SourceRow, SyncResult } from "../store/object-store.js";
-import { parseCSV } from "./csv.js";
+import { parseCSV } from "@openfoundry/ontology-drafting";
 
 /** Where a sync reads definitions and source data from. */
 export interface SyncSources {
