@@ -1,11 +1,33 @@
 # Gaps: what the openfoundry repo is doing now, and what is pending
 
-**Snapshot 28 Nov 2026**, branch `feat/actions-edit-plans` (not yet merged). Every item below is justified against [00-BUILD-BRIEF.md](00-BUILD-BRIEF.md):
+**Snapshot 28 Nov 2026 (second pass)**, branch `feat/actions-edit-plans` at `91d45d9` plus uncommitted console work. Re-checked against the restructured research (H1–H7 recommendations, 21 executable proofs) and NVIDIA Auto Ontology. Every item below is justified against [00-BUILD-BRIEF.md](00-BUILD-BRIEF.md):
 - **L**n is a layer in the brief's §2 table.
 - **R**n is a rule in the brief's §3.
 - **§4** is the per-layer to-do list.
+- **H**n is a research decision in the brief's §2a; **G/T/I/M**n is a proof; **NV** is the NVIDIA review in §2b.
 
 Status: ✅ done on the branch · 🔜 next · ⏳ pending · ⏸ deferred on purpose.
+
+---
+
+## 0. Review: what we did right, what we did wrong
+
+**Right.**
+1. **Writes go only through actions that return an edit plan** (R1, R2). This is the part NVIDIA Auto Ontology does not have at all (NV): its ontology only reads. It is the product's differentiator.
+2. **Optimistic concurrency with Foundry's `ObjectChanged` and bounded retries** (R4, R5). This matches Palantir's documented behaviour and the research's action-gate proof for objects an action writes.
+3. **Source sync fails whole on a bad source, and user edits survive it** (R6, R7). This is the same "edits are kept across recompiles" principle NVIDIA uses for certified definitions.
+4. **The permission model.** The research tells other builders to copy our RLS, resource-grant and marking migrations (`open-source-references/openfoundry.md`). The model is right; only the switch is off.
+5. **Typed object sets as the read API, with no query strings** (R10, H4). This is the direction both the research and NVIDIA's deterministic query checks support.
+6. **We built layers L2–L7 before agents and metrics**, the order the research prescribes.
+
+**Wrong, or not yet right.**
+1. **Postgres is optional, not authoritative** (H2). The demo runs on in-memory stores and JSON files, the two schema sources drift, links are in memory even in Postgres mode, and the Postgres store picks the wrong primary key. Every later layer inherits this. *Fix first.*
+2. **No idempotency, no outbox, no pending record** (H5; G1, G2, G5). The research's proofs make these three **mandatory**. Today a client retry can apply an action twice.
+3. **Invariant isolation is partial** (G6). Version checks cover written objects only. On Postgres, actions that guard a cross-object invariant need SERIALIZABLE with retry or a locked anchor row.
+4. **The security floor is off while higher layers grow** (H6; T1–T6). The research puts tenancy first in the build order, and its T5 proof found a silent RLS bypass through views. Deferral was the owner's call; it must end before customer data.
+5. **The service split works against H1 and H5.** An action's commit crosses HTTP from svc-actions to svc-objects, and audit lives elsewhere. Either keep edits, audit and outbox inside svc-objects' one transaction, or consolidate the write path into one process.
+6. **The console "Ontology Mind" page runs ahead of the backend.** Its answers, metrics and cascade are scripted. The research warns that a chat-first experience "produces a demo, not the operational platform". Keep it labelled as a demo until the MCP and metric layers exist.
+7. **Our local research copy uses the old flat layout,** so links to the research repo's `16-validation/...` and similar paths are dead. The brief's §7 now maps the new layout.
 
 ---
 
@@ -31,46 +53,52 @@ The research's core claim is that an ontology is only real once writes are gover
 
 The order follows the brief's build sequence (§2) and its stated next steps: finish the layers already started before opening new ones. Size: S = hours, M = 1–2 days, L = several days.
 
-### P0: finish the write path (L3, L4, L7)
+### P0: make the write path correct (L3, L4, L7; H2, H5)
 
-These close holes in what is already built. Without them the write path is unsafe for real customer data.
+These close holes in what is already built. Without them the write path is unsafe for real customer data. Order changed in this pass: the research's proofs moved idempotency and the store above editability.
 
-| Gap | Why now (brief) | Size | Depends on |
+| Gap | Why now | Size | Depends on |
 |---|---|---|---|
-| 🔜 **Per-property editability.** Mark source-owned properties non-editable and keep edit-only properties for action facts. Actions that edit a source-owned property are refused. | §4 L3/L4 ("ERP-owned fields not editable"). Without it, an edit permanently hides later source corrections (R6 turned against us). | S | — |
-| ⏳ **Outbox and idempotency keys.** Commit the edits and an outbox row in one transaction; deliver side effects with idempotency keys; an idempotency key per action request. | R3. Needed before any writeback, notification or index projection. A client retry can apply an action twice today. | M | — |
-| ⏳ **Declarative submission criteria and parameter constraints.** A criteria tree with a failure message per node; one-of, range and regex constraints on parameters. | §4 L7. Agents need to read *why* an action is refused, and constraints become tool schemas (R14). | M | — |
-| ⏳ **Value types.** Enum, range and regex wrappers, enforced on sync and on actions. | §4 L3. Same rules guard both write paths (R1, R7). | M | Editability |
-| ⏳ **Action limits and a fuller log.** 10,000 objects per action, 1,000 per batch; the log records edited keys, action type version, actor kind and session. | §4 L7. Unbounded today; the log can't yet support audit or agent traces. | S | — |
+| 🔜 **Postgres as the one authoritative store.** Persist links; fix the primary-key default; make `db/migrations` the only schema source (Compose loads the same); run the in-memory store only in tests. | H2; defects in §4. Everything else is built on this. | M | — |
+| 🔜 **Idempotency key, pending record and outbox.** Every action call takes an idempotency key. Edits, the action log row and an outbox row commit in one svc-objects transaction. Side effects are delivered from the outbox, and a recovery pass completes pending ones. | H5, R3, R19; proofs G1, G2, G5. Today a retried request applies twice. | M | Postgres store |
+| ⏳ **Invariant isolation.** Postgres `applyEdits` runs SERIALIZABLE with retry, or the action declares an anchor object that is locked. | R20; proof G6 | S | Postgres store |
+| ⏳ **Per-property editability.** Source-owned properties are not editable; edit-only properties hold action facts. Actions that edit a source-owned property are refused. | §4 L3/L4. Without it an edit permanently hides later source corrections. | S | — |
+| ⏳ **Declarative submission criteria and parameter constraints.** A criteria tree with a failure message per node; one-of, range and regex constraints. | §4 L7. They become tool schemas for agents (R14). | M | — |
+| ⏳ **Value types.** Enum, range and regex, enforced on sync and on actions. | §4 L3 | M | Editability |
+| ⏳ **Action limits and a fuller log.** 10,000 objects per action, 1,000 per batch; the log records edited keys, action type version, actor kind and session. | §4 L7 | S | Outbox (same table work) |
 
-### P1: make it usable by agents (L5, L10)
+### P1: make it usable by agents (L5, L10; NV)
 
-| Gap | Why (brief) | Size | Depends on |
+| Gap | Why | Size | Depends on |
 |---|---|---|---|
-| ⏳ **MCP tool surface.** One tool per action type, read tools over object sets, write tools off by default, refusals returned verbatim. | R14, brief "next" item 4. This is what the product is for (§1). | M | P0 criteria (tool schemas) |
-| ⏳ **Query hardening.** Size limits with `QueryTooLarge`, default page size 1,000, mandatory `select` for agents, page tokens tied to the query, snapshot paging that handles deletes. | R10, R11, §4 L5. Agents will issue unbounded queries otherwise. | M | — |
+| ⏳ **Read-only MCP tools with an answerability check.** `check_readiness`, `search_types`, `get_type`, `check_answerable`, `query_objects`; budgets on calls and rows; a refusal when the budget is spent. Action tools follow, off by default, with refusals returned verbatim. | R14, R24; NVIDIA's MCP surface is a working reference. This is what the product is for. | M | Query hardening |
+| ⏳ **Query hardening.** Size limits with `QueryTooLarge`, default page size 1,000, mandatory `select` for agents, page tokens tied to the query, snapshot paging. | R10, R11 | M | — |
+| ⏳ **Ossie export and import.** Object types, links and metrics as Apache Ossie YAML, with `ai_context` for descriptions and synonyms. Imported types arrive as EXPERIMENTAL. | NV; research `open-source-references/apache-ossie.md`. Lets NVIDIA's drafting, dbt or Power BI models seed our ontology. | M | — |
+| ⏳ **Dataset profiling for cold start.** Infer keys from distinct ratio, propose object types and data-confirmed links from uploaded datasets. | R25; NV `semantic_fk.py`; research cold start §4 and §9 | M | — |
 | ⏳ **Missing object-set types and filters.** `reference`, `nearestNeighbors`, `withProperties`, `asType`; regex, wildcard, interval, relative date. | §4 L5 | M | — |
 | ⏳ **Agents see only ACTIVE types; `agentDescription` field.** | §4 L3 | S | — |
 
 ### P2: governance of change (L3, L4, L7)
 
-| Gap | Why (brief) | Size |
+| Gap | Why | Size |
 |---|---|---|
 | ⏳ Schema migrations (drop, move, cast, backfill) so ACTIVE types can change safely | §4 L4; today breaking changes are only refused | M |
 | ⏳ Definition history (a model version per change) | §4 L3 | M |
 | ⏳ Proposals and approval: staged edits a human accepts, re-checked for staleness | §4 L7, R13 | M |
 | ⏳ Revert, edit history, "most recent wins", "drop all edits" | §4 L4/L7 | M |
 | ⏳ Derived properties, structs, modelling lint | §4 L3 | M |
+| ⏳ Decide H1: consolidate svc-actions, svc-objects and svc-ontology's write path into one process, or document the single-transaction rule as permanent | H1, H5 | M |
 
 ### P3: new layers, after P0–P1
 
-| Gap | Why (brief) | Size |
+| Gap | Why | Size |
 |---|---|---|
-| ⏳ Ingestion beyond CSV: connectors with cursors, incremental APPEND, deletion column, data-quality expectations | L2, §4 L2 | L |
-| ⏳ Metric layer (measure + filter + period + grain, safe joins) | L8, R15 | L |
-| ⏳ Evidence/knowledge with provenance and validity times | L9, R16 | L |
-| ⏳ Agent sessions and evals | L10, R17 | L |
-| ⏳ Durable workflows and automations | L11 | L |
+| ⏳ Ingestion beyond CSV: connectors with cursors (`>=` plus boundary hashes), incremental APPEND, deletion column, data-quality expectations | L2, R22; proofs I1–I3 | L |
+| ⏳ Metric layer: measure + filter + period + grain, compiled with the join matrix and 2-hop cap; checked text-to-SQL only for exploration | L8, R15, R23, R24; proofs M1–M5; NV | L |
+| ⏳ Evidence/knowledge with provenance and validity times | L9, R16, H3 | L |
+| ⏳ Agent sessions, evals (≥3 runs per case, end-state scoring) and versioned agent releases | L10, R17, H7 | L |
+| ⏳ Durable workflows and automations (DBOS recommended; proof D1) | L11 | L |
+| ⏳ One finance workflow end to end (receivables: sync → query → action → approval → writeback → reconcile → eval). This is the research's decision gate for freezing H1–H7. | Research decision gate | L |
 
 ---
 
@@ -78,8 +106,8 @@ These close holes in what is already built. Without them the write path is unsaf
 
 | Item | Why deferred |
 |---|---|
-| ⏸ Security floor: fail-closed tenancy, cross-tenant test suite (L1, R12, R13) | Explicitly deferred by the owner. The pieces exist (RLS, roles on resources, markings), but anonymous requests pass unless `ENFORCE_PERMISSIONS=true`. **Must be done before any real customer data.** |
-| ⏸ Moving to a modular monolith (brief §1) | The research recommends one, but the repo is microservices and works. The cost is a client per cross-service call; not worth a rewrite now. |
+| ⏸ Security floor: fail-closed tenancy, forced RLS with a non-owner app role, `security_invoker` lint on views, cross-tenant test suite (L1, R12, R13, R21; H6; proofs T1–T6) | Explicitly deferred by the owner. The research now ranks it first in build order, and its T5 proof found a silent RLS bypass through owner-created views. The pieces exist, but anonymous requests pass unless `ENFORCE_PERMISSIONS=true`. **Must be done before any real customer data; re-raise at every merge.** |
+| ⏸ Moving to a modular monolith (brief §1, H1) | The research now recommends adopting it. Not worth a rewrite yet, provided the P0 outbox work keeps every commit inside svc-objects' one transaction. Revisit at the P2 H1 decision. |
 | ⏸ Ordering-column indexing (brief §5 corrections) | The research's own erratum withdrew it. Full-snapshot sync needs no ordering; decide the contract when incremental ingestion (P3) arrives. |
 | ⏸ Multiple datasources per type, branch-scoped files | Foundry features with no current use case; noted in the code. |
 | ⏸ Legal vs receivables domain choice | Nothing in L2–L7 depends on the domain (brief §1). |

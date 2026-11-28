@@ -10,6 +10,7 @@ const PLATFORM_ITEMS = [
   { path: "/", label: "Dashboard", icon: "dashboard" as const },
   { path: "/sanocare", label: "Sanocare (Live)", icon: "pulse" as const },
   { path: "/aip", label: "AIP Chat", icon: "chat" as const },
+  { path: "/mind", label: "Ontology Mind", icon: "predictive-analysis" as const },
   { path: "/compass", label: "Compass", icon: "folder-open" as const },
   { path: "/notifications", label: "Notifications", icon: "notifications" as const },
 ];

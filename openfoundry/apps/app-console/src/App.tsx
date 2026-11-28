@@ -30,7 +30,8 @@ function AppShell() {
 
   // The login screen stands alone: the navigation around it leads only to
   // pages that would send a signed-out visitor straight back here.
-  if (pathname === "/login") {
+  // Ontology Mind is an immersive full-screen showcase with its own chrome.
+  if (pathname === "/login" || pathname === "/mind") {
     return (
       <div className={dark ? "bp5-dark" : undefined}>
         <ErrorBoundary>{routeElement}</ErrorBoundary>

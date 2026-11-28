@@ -1,6 +1,11 @@
 # Build brief: the only research page you need
 
-**Updated 28 Nov 2026.** This page condenses the 32 research documents in this folder (about 17,500 lines) and the ~60 Phase 2 files in [yijay-k/ontology-research](https://github.com/yijay-k/ontology-research) into what matters for building the product. Read this first. Open a source document only through the index at the bottom, and only for the section it names. Line numbers (`L123`) point into this folder's files.
+**Updated 28 Nov 2026 (second pass).** This page condenses the 32 research documents in this folder (about 17,500 lines) and [yijay-k/ontology-research](https://github.com/yijay-k/ontology-research) into what matters for building the product. Read this first. Open a source document only through the index at the bottom, and only for the section it names. Line numbers (`L123`) point into this folder's files.
+
+**What changed in this pass.**
+- The research repo was restructured (`restructure-engineering`, merged to `main` as #2): 72 engineering component files under `engineering/`, 36 open-source reference files, executable proofs (21/21 passed on Postgres 16), and recommended decisions for H1–H7. See §2a.
+- NVIDIA's [Auto Ontology](https://github.com/NVIDIA/auto-ontology) (Apache-2.0, released Nov 2026, #1 on BIRD-Interact and BEAVER) was reviewed against our build. See §2b.
+- The local files in this folder are the old flat layout. They still exist and the line numbers below still point into them; the new layout is mapped in §7.
 
 ---
 
@@ -14,7 +19,7 @@ A **company model that AI agents work through**:
 
 It is "Palantir's Ontology, sized for a 100–1,000 person company". It is **not** "RAG + a graph database + agents". The first target domain is receivables and collections. A legal-market pivot is open, and nothing built so far depends on the domain.
 
-**Stack:** TypeScript, PostgreSQL (row-level security, JSONB), and models rented through APIs. The research recommends a modular monolith; the openfoundry repo is microservices, which works but means every feature needs cross-service clients.
+**Stack:** TypeScript (Node 22), PostgreSQL 16 (row-level security, JSONB, pgvector), and models rented through APIs. The research now **recommends adopting** a modular monolith (H1, awaiting owner sign-off); the openfoundry repo is 13 services. That is workable only if every write's edits, audit row and outbox row commit inside one service's one transaction (§2a, H5).
 
 ---
 
@@ -39,11 +44,59 @@ The research's own rule is to build each layer on the one before it.
 
 For the detailed done / pending / deferred list with reasons, see [00-GAPS.md](00-GAPS.md).
 
-**Next, in order:**
-1. Per-property editability: which fields actions may change (§3 and §4 below).
-2. Outbox for side effects (§7 below).
-3. Value types and parameter constraints.
-4. MCP tool surface.
+**Next, in order** (revised for §2a and §2b):
+1. Idempotency key per action call, plus edits, audit and outbox committed in one Postgres transaction (H5; proofs G1, G2, G5).
+2. Postgres as the one authoritative store: links persisted, one schema source, the primary-key bug fixed (H2).
+3. Per-property editability: which fields actions may change (§4 below).
+4. Read-only MCP tools with an answerability check, then action tools that are off by default (R14, §2b).
+5. Ossie export and import of the ontology, so an NVIDIA-drafted or dbt semantic model can seed our object types (§2b).
+6. Security floor turned on before any real customer data (H6; proofs T1–T6). It is first in the research's build order and still deferred here.
+
+---
+
+## 2a. Research decisions H1–H7 and where we stand
+
+The research recommends all seven for adoption, pending owner sign-off. Its decision gate (one legal and one finance workflow running end to end) is **not met** by the research or by us. Source: `engineering/00-overview/hypotheses-and-decisions.md` in the research repo.
+
+| # | Recommendation | Our build | Verdict |
+|---|---|---|---|
+| H1 | Modular monolith: one TypeScript service, module-owned tables | 13 services; an action's commit crosses HTTP from svc-actions to svc-objects | ⚠️ Diverges. Acceptable only while each commit stays inside svc-objects' transaction |
+| H2 | Postgres for definitions, objects, edits, actions, audit, outbox, workflow state, vectors | Demo default is in-memory/JSON files; Postgres optional; two drifting schema sources; links in memory even in Postgres mode | ❌ Wrong default. Fix before anything is built on top |
+| H3 | Extracted knowledge kept apart from authoritative objects; only actions change objects | Actions are the only governed write path; no extraction yet | ✅ On track |
+| H4 | Typed query compiler; MetricFlow join matrix and 2-hop cap; text-to-SQL only as a checked fallback | Object sets are a typed JSON tree; no metrics | ✅ Direction right; metrics not started |
+| H5 | Local commit + outbox; **idempotency key, persisted pending record and recovery pass are mandatory**; SERIALIZABLE or a locked anchor row for invariants | Version checks + 5 attempts; no idempotency key, no outbox, no pending record | ⚠️ Half done. A client retry can apply an action twice |
+| H6 | Forced RLS per tenant with a non-owner app role; `security_invoker` on every view; markings as SQL predicates; Cedar for action yes/no | RLS migrations, roles on resources, markings exist; enforcement off by default; markings checked in app code | ⚠️ Pieces right (the research tells others to copy our migrations); floor not on |
+| H7 | Agent configuration versioned and released through review, evals and canary | Not started | — |
+
+Proof results that change the build (`research-log/proof-results.md`):
+- **G6:** snapshot isolation let two concurrent actions break a cross-object invariant; SERIALIZABLE stopped it. Our version check only covers objects an action writes.
+- **T5:** a view owned by a privileged role silently bypasses RLS unless created `WITH (security_invoker = true)`. Add a migration lint.
+- **I1–I3:** both naive watermark strategies lose or duplicate boundary rows; dlt's `>=` plus boundary hashes is exact. Use it when sync becomes incremental.
+- **M1–M5:** summing across a one-to-many join inflated revenue 420 vs 220; MetricFlow's join matrix refuses that path. It is a correctness gate for the metric layer.
+
+## 2b. NVIDIA Auto Ontology: what it shows
+
+**What it is.** A Python library and app (Apache-2.0) that drafts a semantic layer from database metadata and lets experts certify it. It produces terms with synonyms, column attributes, reviewed SQL "attributes" (metrics), and foreign keys confirmed against the data. A ReAct agent answers questions as text-to-SQL over it. It also serves a read-only MCP server and imports and exports Apache Ossie YAML. It runs on Postgres + pgvector and ranks #1 on the BIRD-Interact and BEAVER text-to-SQL benchmarks.
+
+**What it is not.** It has no object instances, no edits layer, no actions, no write governance and no row-level permissions on business data. Its ontology is a map for *reading* warehouses. Ours is the model agents *act* through. The two are complementary, not competing.
+
+**Where it confirms our direction.**
+- Postgres + pgvector as the single store (H2).
+- The agent's read path is grounded in typed definitions, and every answer returns its query and steps (provenance, H4).
+- MCP is read-only by default (R14).
+- Drafts are certified by people. Edits survive recompilation, because a recompile only touches tables with no term yet (research's "human confirms every link").
+- The backend trusts a user-id header forwarded by the gateway on a private network, which is the same trusted-hop pattern as our `x-user-*` headers. The same rule applies: service ports must never be public.
+
+**What to take** (Apache-2.0, so code can be ported with attribution):
+1. **`check_answerable`.** Score how much of a question the ontology covers before answering, and refuse or ask instead of guessing. It is the research's "typed refusal" and "sufficiency gate" in a shippable form.
+2. **Deterministic guards around a model.** Every query's names are checked against the catalog and against what retrieval showed; failures go back to the model. There are tool budgets (24 calls, 10 SQL runs), result caps (100 rows, 8,000 characters), and a refusal when the budget is spent. This is the "checked fallback" H4 asks for.
+3. **Data-confirmed link inference.** A key is unique when at least 95% of sampled values are distinct. An inferred foreign key is kept only if value overlap and an actual join confirm it, and only one default join is chosen per group of alternatives. This applies directly to our dataset-backed object types.
+4. **Term families.** Copies of one schema told apart by a prefix (`OLD_`/`NEW_`) are grouped so later steps don't confuse them.
+5. **Ossie interchange.** An Ossie export/import lets NVIDIA's drafting, or a dbt or Power BI model, seed our object types as EXPERIMENTAL drafts.
+
+**Where it disagrees with the research, and how to reconcile it.** The research says to build a metric compiler first and treat text-to-SQL as a fallback (H4). NVIDIA wins benchmarks with grounded text-to-SQL. Both hold. Benchmarks measure read accuracy on messy warehouses, while our actions need exact, governed numbers. So: metrics through the compiler, exploration through NVIDIA-style checked text-to-SQL (or object-set generation), and never a write from either.
+
+**What not to copy.** Its ingestion service has no authentication. Its compile step depends on query history, which the research notes a 100–1,000 person SaaS-only company doesn't have (cold-start §9). The answering agent asks no clarifying questions; only the MCP path does.
 
 ---
 
@@ -68,7 +121,14 @@ These are the load-bearing decisions. Each is backed by a primary source unless 
 15. **A metric is measure + filter + period + grain.** It is not a named SQL string. *(Phase 2 research: Dataphin)* [33 §11 L392](33-map-context-code-integration.md)
 16. **Extracted knowledge is not business state.** LLM-derived facts keep provenance and validity times, and are reviewed before they change objects. [33 §7–8 L251](33-map-context-code-integration.md)
 17. **Agent evals measure end state and policy compliance,** not answer quality. Run each case ≥3 times. [03 §13 L274](03-palantir-aip.md), [14 §29 L393](14-open-source-code-study.md)
-18. **Prefer Postgres for everything first.** Graph, vector and search stores are rebuildable projections. *(our choice, research H2)*
+18. **Prefer Postgres for everything first.** Graph, vector and search stores are rebuildable projections. *(research H2, now recommended)*
+19. **Every action call carries an idempotency key.** A repeat returns the first outcome. A side effect is recorded as pending before it is sent, and a recovery pass completes it. *(H5; proofs G1, G2, G5)*
+20. **Invariants across objects need SERIALIZABLE with retry, or a locked anchor row.** A version check on the written objects is not enough. *(proof G6)*
+21. **Every database view is `security_invoker = true`,** enforced by a migration lint. *(proof T5)*
+22. **Incremental cursors use `>=` plus boundary-row hashes.** Plain `>` loses rows and plain `>=` duplicates them. *(proofs I1–I3, dlt)*
+23. **A metric join must pass the join matrix:** no aggregation across a one-to-many fan-out, at most 2 hops. *(proofs M1–M5, MetricFlow)*
+24. **Model-written queries pass deterministic checks before they run:** names exist in the catalog, tables were surfaced by retrieval, there is a tool and row budget, and the answer is a refusal when the budget runs out. Out-of-scope questions are refused after an answerability check. *(NVIDIA Auto Ontology; research map 32 items 5–7)*
+25. **Drafted definitions are proposals.** An inferred link is kept only when the data confirms it, and stays EXPERIMENTAL until a person certifies it. *(research cold start §4; NVIDIA semantic FK)*
 
 ---
 
@@ -102,7 +162,13 @@ Only the items still open. Each points at the full spec.
 **Data (layer 2).** [30 §2 L66–118](30-map-palantir-platform.md)
 - Source records and connectors with cursors; incremental APPEND mode; a declared deletion column; data-quality expectations. Connector choices: [33 §5 L159](33-map-context-code-integration.md).
 
+**Cold start (layer 3, new).** Research: `engineering/03-ontology-engine/ontology-drafting-and-cold-start.md`.
+- Profile each uploaded dataset: key candidates by distinct ratio (≥95%), low-cardinality value lists, date formats. Propose an EXPERIMENTAL object type with its `propertyMapping`.
+- Propose links between datasets only when value overlap and a real join confirm them. Port NVIDIA's `semantic_fk.py` logic.
+- Ossie YAML export and import of object types, links and metrics (`ai_context` for descriptions and synonyms).
+
 **Agents (layer 10).**
+- MCP read tools first, modelled on NVIDIA's: `check_readiness`, `search_types`, `get_type`, `check_answerable`, `query_objects`. Then one tool per action type, off by default.
 - MCP server design: [33 §16 L520](33-map-context-code-integration.md), [30 §18 L826](30-map-palantir-platform.md).
 - Sessions: [30 §16 L754](30-map-palantir-platform.md).
 - Evals: [30 §17 L795](30-map-palantir-platform.md).
@@ -181,4 +247,15 @@ From the verification report [36](36-verification-report.md) and the Phase 2 cor
 - Palantir ontology-as-code IR: `github.com/palantir/osdk-ts` → `packages/maker/src/api/`, `packages/api/src/objectSet/ObjectSet.ts`
 - Action gate reference (MIT): `github.com/gura105/operational-ontology` → `src/core.ts`, `docs/IMPLEMENTATION.md`
 - Palantir docs most used: [action consistency](https://www.palantir.com/docs/foundry/action-types/consistency-guarantees/) · [how edits are applied](https://www.palantir.com/docs/foundry/object-edits/how-edits-applied/) · [object backend / OSv2](https://www.palantir.com/docs/foundry/object-backend/overview) · [metadata statuses](https://www.palantir.com/docs/foundry/object-link-types/metadata-statuses/) · [schema migrations](https://www.palantir.com/docs/foundry/object-edits/schema-migrations/) · [OSS limits](https://www.palantir.com/docs/foundry/ontologies/oss-limitations/)
-- Phase 2 research (requirements and acceptance tests): `github.com/yijay-k/ontology-research` → `16-validation/phase2-findings-and-next-tests.md` (acceptance tests per layer), `06-action-and-execution-engine/phase2-action-isolation-and-invariants.md`, `03-ontology-engine/phase2-schema-language-and-relationships.md`, `09-security-and-governance/tenant-isolation-threat-model.md`
+- Research repo, new layout (`main` after #2), on `github.com/yijay-k/ontology-research`:
+  - `engineering/00-overview/hypotheses-and-decisions.md`: H1–H7 and the recommended stack.
+  - `engineering/00-overview/build-sequence.md` and `bill-of-materials.md`.
+  - `engineering/05-actions-and-rules/action-gate-and-transactions.md`: idempotency, pending record, recovery.
+  - `engineering/01-security/tenancy-and-isolation.md`: forced RLS and `security_invoker`.
+  - `engineering/04-query-and-metrics/metrics-and-semantic-layer.md`: join matrix.
+  - `engineering/03-ontology-engine/ontology-drafting-and-cold-start.md`: drafting and its limits.
+  - `research-log/proof-results.md` (21 proofs) and `research-log/backlog-and-next-tests.md` (acceptance tests per layer).
+  - `proofs/src/action-gate.ts`: runnable reference for rules 19–20.
+  - `open-source-references/openfoundry.md`: the research's verdict on this repo ("copy the RLS, resource-grant and marking migrations; ignore the services").
+  - The old flat files in this folder now live under `general-references/` with the same numbers.
+- NVIDIA Auto Ontology: `github.com/NVIDIA/auto-ontology` → `docs/architecture.md` (every compile and answer step, model vs deterministic), `auto_ontology/semantic/semantic_fk.py` (data-confirmed links), `auto_ontology/semantic/term_families.py`, `mcp/` (read-only tool set).

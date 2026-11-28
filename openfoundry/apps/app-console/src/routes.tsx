@@ -32,6 +32,7 @@ const DataLineage = React.lazy(() => import("./pages/DataLineage"));
 const CodeWorkbook = React.lazy(() => import("./pages/CodeWorkbook"));
 const Scenarios = React.lazy(() => import("./pages/Scenarios"));
 const AIPChat = React.lazy(() => import("./pages/AIPChat"));
+const OntologyMind = React.lazy(() => import("./pages/OntologyMind"));
 const DataHealth = React.lazy(() => import("./pages/DataHealth"));
 const SanocareDashboard = React.lazy(() => import("./pages/SanocareDashboard"));
 const WorkshopEditor = React.lazy(() => import("./pages/WorkshopEditor"));
@@ -92,6 +93,7 @@ const routes: RouteObject[] = [
   { path: "workbook", element: lazyProtect(CodeWorkbook) },
   { path: "scenarios", element: lazyProtect(Scenarios) },
   { path: "aip", element: lazyProtect(AIPChat) },
+  { path: "mind", element: lazyProtect(OntologyMind) },
   { path: "data-health", element: lazyProtect(DataHealth) },
   { path: "sanocare", element: lazyProtect(SanocareDashboard) },
   { path: "workshop/edit", element: lazyProtect(WorkshopEditor) },
