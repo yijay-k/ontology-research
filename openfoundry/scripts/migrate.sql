@@ -984,3 +984,29 @@ INSERT INTO _migrations (name) VALUES
 ON CONFLICT (name) DO NOTHING;
 
 COMMIT;
+
+-- ============================================================================
+-- ACTION COMMITS AND OUTBOX (db/migrations/019, without the tenant column)
+-- ============================================================================
+CREATE TABLE IF NOT EXISTS action_commits (
+    id              SERIAL PRIMARY KEY,
+    commit_id       TEXT NOT NULL UNIQUE,
+    ontology_rid    TEXT NOT NULL,
+    idempotency_key TEXT,
+    action_type     TEXT,
+    actor           TEXT,
+    edits           JSONB NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE UNIQUE INDEX IF NOT EXISTS uq_action_commits_key
+    ON action_commits (ontology_rid, idempotency_key) WHERE idempotency_key IS NOT NULL;
+
+CREATE TABLE IF NOT EXISTS outbox (
+    id           SERIAL PRIMARY KEY,
+    ontology_rid TEXT NOT NULL,
+    topic        TEXT NOT NULL,
+    payload      JSONB NOT NULL,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    delivered_at TIMESTAMPTZ
+);
+CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox (id) WHERE delivered_at IS NULL;

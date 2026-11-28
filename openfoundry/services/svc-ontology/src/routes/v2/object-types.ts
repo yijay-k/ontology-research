@@ -34,6 +34,12 @@ function normalize(def: ObjectTypeDefinition): ObjectTypeDefinition {
     throw invalidArgument("datasources", errors.map((e) => `${e.field} ${e.message}`).join("; "));
   }
   const status = statusOf(def);
+  // Seeds and older clients name the key `primaryKey`; the stores read
+  // `primaryKeyApiName`, and the Postgres one defaults a missing name to "id".
+  const alias = (def as { primaryKey?: unknown }).primaryKey;
+  if (def.primaryKeyApiName === undefined && typeof alias === "string") {
+    def = { ...def, primaryKeyApiName: alias };
+  }
   if (!def.datasources) return { ...def, status };
   return {
     ...def,

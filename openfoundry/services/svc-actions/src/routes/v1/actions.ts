@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { invalidArgument } from "@openfoundry/errors";
 import { requirePermission } from "@openfoundry/permissions";
 import type { ActionExecutionLog } from "../../store/action-log.js";
+import { callContext } from "../v2/actions.js";
 import {
   actionValidationFailed,
   applyAction,
@@ -38,6 +39,7 @@ export async function actionRoutesV1(
       ontologyRid,
       definition,
       request.body?.parameters ?? {},
+      callContext(request.headers),
     );
     if (!edits) actionValidationFailed(actionType);
     return {};
@@ -59,6 +61,7 @@ export async function actionRoutesV1(
       ontologyRid,
       definition,
       requests.map((r) => r?.parameters ?? {}),
+      callContext(request.headers),
     );
     return {};
   });

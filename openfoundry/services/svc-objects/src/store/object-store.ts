@@ -141,8 +141,19 @@ export interface ObjectReadWriteStore {
     objectType: string,
     primaryKey: string,
   ): void | Promise<void>;
-  /** Apply every edit or none of them, recording each in the object's edit layer. */
-  applyEdits(ontologyRid: string, edits: ObjectEdit[]): void | Promise<void>;
+  /**
+   * Apply every edit or none of them, recording each in the object's edit
+   * layer. In the same transaction the commit is logged and an `action.committed`
+   * event is queued in the outbox; a repeated idempotency key returns the first
+   * commit without applying anything.
+   */
+  applyEdits(ontologyRid: string, edits: ObjectEdit[], options?: CommitOptions): CommitResult | Promise<CommitResult>;
+  /** The commit an idempotency key produced, if any. */
+  getCommit(ontologyRid: string, idempotencyKey: string): StoredCommit | undefined | Promise<StoredCommit | undefined>;
+  /** Undelivered outbox events, oldest first. */
+  pendingOutbox(limit: number): OutboxEvent[] | Promise<OutboxEvent[]>;
+  /** Mark outbox events delivered, so they are not handed out again. */
+  markDelivered(ids: number[]): void | Promise<void>;
   /**
    * Replace an object type's source-backed state with `rows`, reapplying the
    * edit layer over it, all or nothing.
@@ -170,6 +181,67 @@ export type ObjectEdit =
       expectedVersion?: number;
     }
   | { type: "deleteObject"; objectType: string; primaryKey: string; expectedVersion?: number };
+
+/** An object an action only read, at the version it read it. */
+export interface ReadVersion {
+  objectType: string;
+  primaryKey: string;
+  version: number;
+}
+
+/** What is committed beside an edit plan, in its transaction. */
+export interface CommitOptions {
+  /** One per action call: a repeat returns the first commit instead of applying again. */
+  idempotencyKey?: string;
+  /**
+   * Objects the plan was computed from but does not write. If any changed, the
+   * plan is refused with `ObjectChanged`: without this, two actions that each
+   * read both of two objects and write one could both commit and together
+   * break an invariant over the pair (write skew).
+   */
+  reads?: ReadVersion[];
+  actionType?: string;
+  actor?: string;
+}
+
+export interface CommitResult {
+  commitId: string;
+  /** True when the idempotency key had already committed and nothing was applied. */
+  replayed: boolean;
+}
+
+/** The commit log: one row per committed plan, written with its edits. */
+export interface StoredCommit {
+  commitId: string;
+  idempotencyKey?: string;
+  actionType?: string;
+  actor?: string;
+  edits: ObjectEdit[];
+  createdAt: string;
+}
+
+/**
+ * A side effect to deliver after commit. Written in the commit's transaction,
+ * so an event exists exactly when its edits do; delivery is at-least-once and
+ * receivers deduplicate on `payload.commitId`.
+ */
+export interface OutboxEvent {
+  id: number;
+  ontologyRid: string;
+  topic: string;
+  payload: Record<string, unknown>;
+  createdAt: string;
+}
+
+/** The payload of the `action.committed` outbox event. */
+export function committedEvent(commitId: string, edits: ObjectEdit[], options: CommitOptions): Record<string, unknown> {
+  return {
+    commitId,
+    actionType: options.actionType ?? null,
+    actor: options.actor ?? null,
+    edits: edits.map(({ type, objectType, primaryKey }) => ({ type, objectType, primaryKey })),
+  };
+}
 
 /**
  * Foundry's `ObjectChanged` (409): an object used by an action was changed by
@@ -360,6 +432,11 @@ export class ObjectStore {
   private readonly edits = new Map<string, Map<string, Map<string, ObjectEditRecord>>>();
   private readonly DATA_FILE: string | null;
   private readonly EDITS_FILE: string | null;
+  // ponytail: commits and outbox are not persisted to disk; the file store is
+  // the demo mode, and a restart forgetting idempotency keys is acceptable there.
+  private readonly commits = new Map<string, Map<string, StoredCommit>>();
+  private outbox: OutboxEvent[] = [];
+  private outboxSeq = 0;
 
   /**
    * @param dataFile Where the store persists between restarts. Pass `null` for
@@ -550,7 +627,16 @@ export class ObjectStore {
    * the writes below would fail on is made before any of them runs, and the
    * store is synchronous, so nothing interleaves: all edits land or none do.
    */
-  applyEdits(ontologyRid: string, edits: ObjectEdit[]): void {
+  applyEdits(ontologyRid: string, edits: ObjectEdit[], options: CommitOptions = {}): CommitResult {
+    const key = options.idempotencyKey;
+    const prior = key === undefined ? undefined : this.commits.get(ontologyRid)?.get(key);
+    if (prior) return { commitId: prior.commitId, replayed: true };
+
+    for (const read of options.reads ?? []) {
+      const stored = this.findTypeMap(ontologyRid, read.objectType)?.get(read.primaryKey);
+      if (stored?.version !== read.version) throw objectChanged(read.objectType, read.primaryKey);
+    }
+
     const present = new Map<string, boolean>();
     for (const edit of edits) {
       const key = `${edit.objectType}\u0000${edit.primaryKey}`;
@@ -585,6 +671,35 @@ export class ObjectStore {
       records.set(edit.primaryKey, recordEdit(records.get(edit.primaryKey), edit));
     }
     this.saveEdits();
+
+    const commitId = generateRid("actions", "commit").toString();
+    const createdAt = new Date().toISOString();
+    if (key !== undefined) {
+      let byKey = this.commits.get(ontologyRid);
+      if (!byKey) this.commits.set(ontologyRid, (byKey = new Map()));
+      byKey.set(key, { commitId, idempotencyKey: key, actionType: options.actionType, actor: options.actor, edits, createdAt });
+    }
+    this.outbox.push({
+      id: ++this.outboxSeq,
+      ontologyRid,
+      topic: "action.committed",
+      payload: committedEvent(commitId, edits, options),
+      createdAt,
+    });
+    return { commitId, replayed: false };
+  }
+
+  getCommit(ontologyRid: string, idempotencyKey: string): StoredCommit | undefined {
+    return this.commits.get(ontologyRid)?.get(idempotencyKey);
+  }
+
+  pendingOutbox(limit: number): OutboxEvent[] {
+    return this.outbox.slice(0, limit);
+  }
+
+  markDelivered(ids: number[]): void {
+    const done = new Set(ids);
+    this.outbox = this.outbox.filter((e) => !done.has(e.id));
   }
 
   /** Computes the whole plan before writing; synchronous, so nothing interleaves. */

@@ -15,7 +15,7 @@ import {
   evaluateFilter,
   evaluateAggregation,
 } from "../../store/object-store.js";
-import type { LinkStore } from "../../store/link-store.js";
+import type { LinkReadWriteStore } from "../../store/link-store.js";
 import { encodePageToken, decodePageToken, type PageToken } from "@openfoundry/pagination";
 import { requirePermission } from "@openfoundry/permissions";
 import { invalidArgument, notFound, rejectUnsupportedOntologyScoping } from "@openfoundry/errors";
@@ -40,7 +40,7 @@ async function resolveObjectSet(
   objectSetDef: ObjectSet,
   ontologyRid: string,
   store: ObjectReadWriteStore,
-  linkStore: LinkStore,
+  linkStore: LinkReadWriteStore,
 ): Promise<StoredObject[]> {
   switch (objectSetDef.type) {
     case "BASE":
@@ -101,7 +101,7 @@ async function resolveObjectSet(
       const result: StoredObject[] = [];
       const seen = new Set<string>();
       for (const source of sourceObjects) {
-        const targets = linkStore.getLinkedObjects(
+        const targets = await linkStore.getLinkedObjects(
           ontologyRid,
           source.objectType,
           source.primaryKey,
@@ -143,7 +143,7 @@ async function resolveApiObjectSet(
   objectSetDef: Record<string, unknown>,
   ontologyRid: string,
   store: ObjectReadWriteStore,
-  linkStore: LinkStore,
+  linkStore: LinkReadWriteStore,
   interfaces: InterfaceSource,
 ): Promise<StoredObject[]> {
   const type = String(objectSetDef.type ?? "").toUpperCase();
@@ -228,7 +228,7 @@ async function resolveApiObjectSet(
     const result: StoredObject[] = [];
     const seen = new Set<string>();
     for (const source of sourceObjects) {
-      const targets = linkStore.getLinkedObjects(
+      const targets = await linkStore.getLinkedObjects(
         ontologyRid,
         source.objectType,
         source.primaryKey,
@@ -343,7 +343,7 @@ export async function objectSetRoutes(
   app: FastifyInstance,
   opts: {
     store: ObjectReadWriteStore;
-    linkStore: LinkStore;
+    linkStore: LinkReadWriteStore;
     objectTypeSchema?: ObjectTypeSchemaSource;
     interfaces: InterfaceSource;
   },

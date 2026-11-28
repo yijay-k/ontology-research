@@ -1,14 +1,14 @@
 import type pg from "pg";
 
 import { generateRid } from "@openfoundry/rid";
-import { notFound, conflict } from "@openfoundry/errors";
+import { notFound, conflict, ErrorCode, OpenFoundryApiError } from "@openfoundry/errors";
 import type { Filter } from "@openfoundry/object-set";
 import {
   decodePageToken,
   encodePageToken,
   type PageToken,
 } from "@openfoundry/pagination";
-import { objectChanged } from "./object-store.js";
+import { committedEvent, objectChanged } from "./object-store.js";
 import {
   planSync,
   recordEdit,
@@ -18,12 +18,34 @@ import {
   type SyncResult,
 } from "./source-sync.js";
 import type {
+  CommitOptions,
+  CommitResult,
   ListOptions,
   ListResult,
   ObjectEdit,
+  OutboxEvent,
+  StoredCommit,
   StoredObject,
   OrderByClause,
 } from "./object-store.js";
+
+/**
+ * Postgres aborts one side of a deadlock (40P01) or a serialization failure
+ * (40001). Both mean a concurrent action touched the same objects, so they
+ * surface as Foundry's `ObjectChanged`, which svc-actions retries.
+ */
+function isConcurrencyAbort(err: unknown): boolean {
+  const code = (err as { code?: string } | null)?.code;
+  return code === "40P01" || code === "40001";
+}
+
+const concurrentAction = () =>
+  new OpenFoundryApiError({
+    errorCode: ErrorCode.CONFLICT,
+    errorName: "ObjectChanged",
+    message: "a concurrent action changed objects this plan reads or writes",
+    parameters: {},
+  });
 
 // ---------------------------------------------------------------------------
 // Row shape from the database
@@ -455,16 +477,47 @@ export class PgObjectStore {
   }
 
   /** Apply every edit in one transaction: any failure rolls all of them back. */
-  async applyEdits(ontologyRid: string, edits: ObjectEdit[]): Promise<void> {
+  async applyEdits(ontologyRid: string, edits: ObjectEdit[], options: CommitOptions = {}): Promise<CommitResult> {
+    const reads = options.reads ?? [];
     const typeRids = new Map<string, string>();
-    for (const edit of edits) {
-      if (!typeRids.has(edit.objectType)) {
-        typeRids.set(edit.objectType, await this.resolveObjectTypeRid(ontologyRid, edit.objectType));
+    for (const { objectType } of [...edits, ...reads]) {
+      if (!typeRids.has(objectType)) {
+        typeRids.set(objectType, await this.resolveObjectTypeRid(ontologyRid, objectType));
       }
     }
 
     try {
-      await this.withTenant(async (client) => {
+      return await this.withTenant(async (client) => {
+        // The commit row first: a repeated idempotency key stops here, waiting
+        // on the unique index for a concurrent commit of the same key to finish.
+        const commitId = generateRid("actions", "commit").toString();
+        const commit = this.tenantColumns(
+          ["commit_id", "ontology_rid", "idempotency_key", "action_type", "actor", "edits"],
+          [commitId, ontologyRid, options.idempotencyKey ?? null, options.actionType ?? null, options.actor ?? null, JSON.stringify(edits)],
+        );
+        const inserted = await client.query({
+          text: `INSERT INTO action_commits (${commit.columns}) VALUES (${commit.placeholders})
+                 ON CONFLICT (ontology_rid, idempotency_key) WHERE idempotency_key IS NOT NULL DO NOTHING`,
+          values: commit.values,
+        });
+        if (inserted.rowCount === 0) {
+          const { rows } = await client.query<{ commit_id: string }>({
+            text: `SELECT commit_id FROM action_commits WHERE ontology_rid = $1 AND idempotency_key = $2`,
+            values: [ontologyRid, options.idempotencyKey],
+          });
+          return { commitId: rows[0].commit_id, replayed: true };
+        }
+
+        // Objects the plan only read are share-locked at the version read, so
+        // no concurrent action can write them before this one commits.
+        for (const read of reads) {
+          const { rows } = await client.query<{ version: number }>({
+            text: `SELECT version FROM objects WHERE object_type_rid = $1 AND primary_key = $2 FOR SHARE`,
+            values: [typeRids.get(read.objectType), read.primaryKey],
+          });
+          if (rows[0]?.version !== read.version) throw objectChanged(read.objectType, read.primaryKey);
+        }
+
         for (const edit of edits) {
           const objectTypeRid = typeRids.get(edit.objectType)!;
           if (edit.type === "addObject") {
@@ -506,13 +559,81 @@ export class PgObjectStore {
           }
           await this.recordEditRow(client, objectTypeRid, edit);
         }
+
+        const event = this.tenantColumns(
+          ["ontology_rid", "topic", "payload"],
+          [ontologyRid, "action.committed", JSON.stringify(committedEvent(commitId, edits, options))],
+        );
+        await client.query({
+          text: `INSERT INTO outbox (${event.columns}) VALUES (${event.placeholders})`,
+          values: event.values,
+        });
+        return { commitId, replayed: false };
       });
     } catch (err: unknown) {
+      if (isConcurrencyAbort(err)) throw concurrentAction();
       if (isPgUniqueViolation(err)) {
         throw conflict("ObjectEdits", "an added object's primary key already exists");
       }
       throw err;
     }
+  }
+
+  async getCommit(ontologyRid: string, idempotencyKey: string): Promise<StoredCommit | undefined> {
+    return this.withTenant(async (client) => {
+      const { rows } = await client.query<{
+        commit_id: string; idempotency_key: string; action_type: string | null; actor: string | null;
+        edits: ObjectEdit[]; created_at: Date | string;
+      }>({
+        text: `SELECT * FROM action_commits WHERE ontology_rid = $1 AND idempotency_key = $2`,
+        values: [ontologyRid, idempotencyKey],
+      });
+      const row = rows[0];
+      if (!row) return undefined;
+      return {
+        commitId: row.commit_id,
+        idempotencyKey: row.idempotency_key,
+        actionType: row.action_type ?? undefined,
+        actor: row.actor ?? undefined,
+        edits: row.edits,
+        createdAt: new Date(row.created_at).toISOString(),
+      };
+    });
+  }
+
+  async pendingOutbox(limit: number): Promise<OutboxEvent[]> {
+    return this.withTenant(async (client) => {
+      const { rows } = await client.query<{
+        id: number; ontology_rid: string; topic: string; payload: Record<string, unknown>; created_at: Date | string;
+      }>({
+        text: `SELECT id, ontology_rid, topic, payload, created_at FROM outbox
+               WHERE delivered_at IS NULL ORDER BY id LIMIT $1`,
+        values: [limit],
+      });
+      return rows.map((r) => ({
+        id: r.id,
+        ontologyRid: r.ontology_rid,
+        topic: r.topic,
+        payload: r.payload,
+        createdAt: new Date(r.created_at).toISOString(),
+      }));
+    });
+  }
+
+  async markDelivered(ids: number[]): Promise<void> {
+    if (ids.length === 0) return;
+    await this.withTenant((client) =>
+      client.query({ text: `UPDATE outbox SET delivered_at = NOW() WHERE id = ANY($1::int[])`, values: [ids] }),
+    );
+  }
+
+  /** Columns and placeholders for an insert, naming `org_rid` only with an organization. */
+  private tenantColumns(columns: string[], values: unknown[]): { columns: string; placeholders: string; values: unknown[] } {
+    if (this.orgRid) {
+      columns = [...columns, "org_rid"];
+      values = [...values, this.orgRid];
+    }
+    return { columns: columns.join(", "), placeholders: values.map((_, i) => `$${i + 1}`).join(", "), values };
   }
 
   /** Fold one applied edit into `object_edits`, inside the edit's transaction. */

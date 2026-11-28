@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
 import { ErrorCode, OpenFoundryApiError, invalidArgument } from "@openfoundry/errors";
 import type { LinkTypeSource } from "../../sync/http-sources.js";
-import type { LinkStore } from "../../store/link-store.js";
+import type { LinkReadWriteStore } from "../../store/link-store.js";
 import type {
   ObjectReadWriteStore,
   ObjectTypeSchemaSource,
@@ -68,7 +68,7 @@ function decodeLinkPageToken(pageToken: string | undefined): PageCursor {
 export async function linkRoutes(
   app: FastifyInstance,
   opts: {
-    linkStore: LinkStore;
+    linkStore: LinkReadWriteStore;
     objectStore: ObjectReadWriteStore;
     objectTypeSchema?: ObjectTypeSchemaSource;
     linkTypes: LinkTypeSource;
@@ -137,7 +137,7 @@ export async function linkRoutes(
       // property of the linked object is only meaningful over the whole set,
       // and cutting the page first would also under-fill it whenever a link
       // points at an object that has since been deleted.
-      const allLinks = linkStore.getAllLinks(ontologyRid, objectType, primaryKey, linkType);
+      const allLinks = await linkStore.getAllLinks(ontologyRid, objectType, primaryKey, linkType);
       const snapshotSize = resolveSnapshotSize(
         snapshot,
         cursor.snapshotSize,
@@ -257,7 +257,7 @@ export async function linkRoutes(
         });
       }
 
-      const link = linkStore.createLink(
+      const link = await linkStore.createLink(
         ontologyRid,
         objectType,
         primaryKey,
@@ -279,7 +279,7 @@ export async function linkRoutes(
     async (request, reply) => {
       const { ontologyRid, objectType, primaryKey, linkType, targetPrimaryKey } =
         request.params;
-      linkStore.deleteLink(ontologyRid, objectType, primaryKey, linkType, targetPrimaryKey);
+      await linkStore.deleteLink(ontologyRid, objectType, primaryKey, linkType, targetPrimaryKey);
       return reply.status(204).send();
     },
   );

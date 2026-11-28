@@ -3,7 +3,7 @@ import type {
   ObjectTypeDefinition,
 } from "@openfoundry/ontology-schema";
 import { ErrorCode, OpenFoundryApiError } from "@openfoundry/errors";
-import type { ObjectEdit, ObjectsGateway, OntologySource } from "../src/clients.js";
+import type { CommitOptions, ObjectEdit, ObjectsGateway, OntologySource } from "../src/clients.js";
 
 export const ONTOLOGY_RID = "ri.ontology.main.ontology.pest";
 export const OTHER_ONTOLOGY_RID = "ri.ontology.main.ontology.other";
@@ -101,6 +101,10 @@ export interface FakeObjects extends ObjectsGateway {
   commits: number;
   /** Every plan handed to `applyEdits`, committed or not. */
   readonly plans: ObjectEdit[][];
+  /** Committed plans by idempotency key, as svc-objects' commit log keeps them. */
+  readonly keyed: Map<string, ObjectEdit[]>;
+  /** The options handed to each `applyEdits` call. */
+  readonly commitOptions: CommitOptions[];
   /** Make the next commit fail, as if svc-objects refused it. */
   failNextCommit: boolean;
   /** Runs just before each commit: a concurrent writer can change rows here. */
@@ -123,6 +127,8 @@ export function fakeObjects(seed: Record<string, Record<string, unknown>> = {}):
     versions,
     commits: 0,
     plans: [],
+    keyed: new Map(),
+    commitOptions: [],
     failNextCommit: false,
     write(type, pk, properties) {
       const k = key(type, pk);
@@ -134,8 +140,16 @@ export function fakeObjects(seed: Record<string, Record<string, unknown>> = {}):
       const row = rows.get(k);
       return row ? { properties: { ...row }, version: versions.get(k)! } : undefined;
     },
-    applyEdits: async (_rid, edits: ObjectEdit[]) => {
+    getCommit: async (_rid, idempotencyKey) => {
+      const edits = fake.keyed.get(idempotencyKey);
+      return edits ? { commitId: `commit-${idempotencyKey}`, edits } : undefined;
+    },
+    applyEdits: async (_rid, edits: ObjectEdit[], options: CommitOptions = {}) => {
       fake.plans.push(edits);
+      fake.commitOptions.push(options);
+      if (options.idempotencyKey && fake.keyed.has(options.idempotencyKey)) {
+        return { commitId: `commit-${options.idempotencyKey}`, replayed: true };
+      }
       fake.beforeCommit?.();
       if (fake.failNextCommit) {
         fake.failNextCommit = false;
@@ -168,6 +182,8 @@ export function fakeObjects(seed: Record<string, Record<string, unknown>> = {}):
       rows.clear();
       for (const [k, v] of next) rows.set(k, v);
       fake.commits++;
+      if (options.idempotencyKey) fake.keyed.set(options.idempotencyKey, edits);
+      return { commitId: `commit-${fake.commits}`, replayed: false };
     },
   };
   return fake;

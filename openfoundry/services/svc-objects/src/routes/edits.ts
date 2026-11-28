@@ -1,7 +1,7 @@
 import type { FastifyInstance } from "fastify";
-import { invalidArgument } from "@openfoundry/errors";
+import { invalidArgument, notFound } from "@openfoundry/errors";
 import { requirePermission } from "@openfoundry/permissions";
-import type { ObjectEdit, ObjectReadWriteStore } from "../store/object-store.js";
+import type { CommitOptions, ObjectEdit, ObjectReadWriteStore, ReadVersion } from "../store/object-store.js";
 
 const EDIT_TYPES = new Set(["addObject", "modifyObject", "deleteObject"]);
 
@@ -26,6 +26,30 @@ function parseEdits(body: unknown): ObjectEdit[] {
     }
   });
   return edits as ObjectEdit[];
+}
+
+function parseCommitOptions(body: unknown): CommitOptions {
+  const b = isRecord(body) ? body : {};
+  const optionalString = (field: string) => {
+    const value = b[field];
+    if (value !== undefined && (typeof value !== "string" || value === "")) {
+      throw invalidArgument(field, "must be a non-empty string");
+    }
+    return value as string | undefined;
+  };
+  const reads = b.reads ?? [];
+  if (!Array.isArray(reads)) throw invalidArgument("reads", "must be an array");
+  reads.forEach((r, i) => {
+    if (!isRecord(r) || typeof r.objectType !== "string" || typeof r.primaryKey !== "string" || !Number.isInteger(r.version)) {
+      throw invalidArgument(`reads[${i}]`, "must be { objectType, primaryKey, version }");
+    }
+  });
+  return {
+    idempotencyKey: optionalString("idempotencyKey"),
+    actionType: optionalString("actionType"),
+    actor: optionalString("actor"),
+    reads: reads as ReadVersion[],
+  };
 }
 
 /**
@@ -57,8 +81,45 @@ export async function editRoutes(
   app.post<{ Params: { ontologyRid: string }; Body: unknown }>(
     "/ontologies/:ontologyRid/edits",
     { preHandler: requirePermission("objects:write") },
+    async (request) => {
+      return opts.store.applyEdits(
+        request.params.ontologyRid,
+        parseEdits(request.body),
+        parseCommitOptions(request.body),
+      );
+    },
+  );
+
+  // The commit an idempotency key produced: svc-actions checks this before it
+  // re-evaluates a repeated call, so the repeat answers with the first result.
+  app.get<{ Params: { ontologyRid: string; idempotencyKey: string } }>(
+    "/ontologies/:ontologyRid/commits/:idempotencyKey",
+    { preHandler: requirePermission("objects:read") },
+    async (request) => {
+      const commit = await opts.store.getCommit(request.params.ontologyRid, request.params.idempotencyKey);
+      if (!commit) throw notFound("Commit", request.params.idempotencyKey);
+      return commit;
+    },
+  );
+
+  // The outbox, for a delivery worker: read undelivered events, then
+  // acknowledge the ones it delivered. Delivery is at-least-once.
+  app.get<{ Querystring: { limit?: string } }>(
+    "/outbox",
+    { preHandler: requirePermission("objects:read") },
+    async (request) => {
+      const limit = Math.min(Math.max(parseInt(request.query.limit ?? "100", 10) || 100, 1), 1000);
+      return { data: await opts.store.pendingOutbox(limit) };
+    },
+  );
+
+  app.post<{ Body: unknown }>(
+    "/outbox/ack",
+    { preHandler: requirePermission("objects:write") },
     async (request, reply) => {
-      await opts.store.applyEdits(request.params.ontologyRid, parseEdits(request.body));
+      const ids = isRecord(request.body) ? request.body.ids : undefined;
+      if (!Array.isArray(ids) || !ids.every(Number.isInteger)) throw invalidArgument("ids", "must be an array of integers");
+      await opts.store.markDelivered(ids as number[]);
       return reply.status(204).send();
     },
   );

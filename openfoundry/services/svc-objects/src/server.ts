@@ -11,7 +11,8 @@ import {
 import { type ObjectsConfig, loadConfig } from "./config.js";
 import { ObjectStore, type ObjectTypeSchemaSource } from "./store/object-store.js";
 import { PgObjectStore } from "./store/pg-object-store.js";
-import { LinkStore } from "./store/link-store.js";
+import { LinkStore, type LinkReadWriteStore } from "./store/link-store.js";
+import { PgLinkStore } from "./store/pg-link-store.js";
 import { healthRoutes } from "./routes/health.js";
 import { objectRoutes } from "./routes/v2/objects.js";
 import { objectSetRoutes } from "./routes/v2/object-sets.js";
@@ -39,7 +40,7 @@ export interface CreateServerOptions {
   authorizationStore?: AuthorizationStore;
   config?: ObjectsConfig;
   store?: ObjectStore | PgObjectStore;
-  linkStore?: LinkStore;
+  linkStore?: LinkReadWriteStore;
   /**
    * Where the object routes read declared property names from. Defaults to the
    * store, which only the Postgres backend can answer; the in-memory store
@@ -76,7 +77,10 @@ export async function createServer(
     store = new ObjectStore();
   }
 
-  const linkStore = options.linkStore ?? new LinkStore();
+  // Links live wherever objects live: in Postgres mode a link written before a
+  // restart must still be there after it.
+  const linkStore: LinkReadWriteStore =
+    options.linkStore ?? (pgPool ? new PgLinkStore(pgPool) : new LinkStore());
 
   const app = Fastify({
     logger: {

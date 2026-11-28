@@ -3,7 +3,7 @@ import type {
   ObjectReadWriteStore,
   ObjectTypeSchemaSource,
 } from "../../store/object-store.js";
-import type { LinkStore } from "../../store/link-store.js";
+import type { LinkReadWriteStore } from "../../store/link-store.js";
 import { objectRoutesV1 } from "./objects.js";
 
 /**
@@ -17,7 +17,7 @@ export async function v1Routes(
   app: FastifyInstance,
   opts: {
     store: ObjectReadWriteStore;
-    linkStore: LinkStore;
+    linkStore: LinkReadWriteStore;
     objectTypeSchema?: ObjectTypeSchemaSource;
   },
 ): Promise<void> {

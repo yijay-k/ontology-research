@@ -3,7 +3,7 @@ import type {
   ObjectTypeDefinition,
 } from "@openfoundry/ontology-schema";
 import { ErrorCode, OpenFoundryApiError, notFound, safeArg } from "@openfoundry/errors";
-import type { ObjectEdit, ObjectsGateway, OntologySource } from "./clients.js";
+import type { ObjectEdit, ObjectsGateway, OntologySource, ReadVersion } from "./clients.js";
 import type { ActionLogic } from "./logic.js";
 import type { ActionExecutionLog } from "./store/action-log.js";
 import { validateActionParameters } from "./validation.js";
@@ -42,6 +42,16 @@ export interface Evaluation {
   validation: ValidateActionResponseV2;
   /** The edit plan; present only when the validation is VALID. */
   edits?: ObjectEdit[];
+  /** Objects the logic read but the plan does not write, checked at commit. */
+  reads?: ReadVersion[];
+  /** True when an earlier call with the same idempotency key already committed. */
+  replayed?: boolean;
+}
+
+/** Per-call context for a commit: the caller's idempotency key and identity. */
+export interface CallContext {
+  idempotencyKey?: string;
+  actor?: string;
 }
 
 /** A Foundry `BadRequestError`: `INVALID_ARGUMENT`, 400, naming the action type. */
@@ -126,6 +136,7 @@ export async function evaluate(
   return {
     validation: { result: "VALID", submissionCriteria: [], parameters },
     edits: withExpectedVersions(outcome.edits, versions),
+    reads: readOnly(outcome.edits, versions),
   };
 }
 
@@ -195,6 +206,30 @@ function withExpectedVersions(edits: ObjectEdit[], versions: Map<string, number>
   });
 }
 
+/**
+ * Objects the logic read but the plan does not write. Their versions go to the
+ * commit, which refuses the plan if any changed: an invariant computed over
+ * several objects then cannot be broken by two actions that each write one.
+ */
+function readOnly(edits: ObjectEdit[], versions: Map<string, number>): ReadVersion[] {
+  const written = new Set(edits.map((e) => `${e.objectType}/${e.primaryKey}`));
+  return [...versions]
+    .filter(([key]) => !written.has(key))
+    .map(([key, version]) => {
+      const slash = key.indexOf("/");
+      return { objectType: key.slice(0, slash), primaryKey: key.slice(slash + 1), version };
+    });
+}
+
+/** A VALID validation with every declared parameter VALID, for a replayed call. */
+function replayedValidation(actionType: ActionTypeDefinition): ValidateActionResponseV2 {
+  const parameters: ValidateActionResponseV2["parameters"] = {};
+  for (const [id, def] of Object.entries(actionType.parameters ?? {})) {
+    parameters[id] = { result: "VALID", evaluatedConstraints: [], required: def.required };
+  }
+  return { result: "VALID", submissionCriteria: [], parameters };
+}
+
 /** Foundry's `ObjectEdits` summary of a committed plan. */
 export function toObjectEdits(edits: ObjectEdit[]): ObjectEditsResult {
   const countOf = (type: ObjectEdit["type"]) => edits.filter((e) => e.type === type).length;
@@ -253,7 +288,15 @@ export async function applyAction(
   ontologyRid: string,
   actionType: ActionTypeDefinition,
   params: Record<string, unknown>,
+  call: CallContext = {},
 ): Promise<Evaluation> {
+  // A repeat of a committed call answers with the first commit. Checked before
+  // evaluating: the logic would otherwise run against the state the first call
+  // produced, and might refuse what already succeeded.
+  if (call.idempotencyKey) {
+    const prior = await deps.objects.getCommit(ontologyRid, call.idempotencyKey);
+    if (prior) return { validation: replayedValidation(actionType), edits: prior.edits, replayed: true };
+  }
   const execution = await log.logStart(actionType.apiName, params);
   try {
     for (let attempt = 1; ; attempt++) {
@@ -262,11 +305,24 @@ export async function applyAction(
         await log.logFailure(execution.rid, describeRefusal(evaluation.validation));
         return evaluation;
       }
+      let commit;
       try {
-        await deps.objects.applyEdits(ontologyRid, evaluation.edits);
+        commit = await deps.objects.applyEdits(ontologyRid, evaluation.edits, {
+          idempotencyKey: call.idempotencyKey,
+          actor: call.actor,
+          actionType: actionType.apiName,
+          reads: evaluation.reads,
+        });
       } catch (err) {
         if (isObjectChanged(err) && attempt < MAX_ATTEMPTS) continue;
         throw err;
+      }
+      if (commit.replayed && call.idempotencyKey) {
+        // A concurrent call with the same key committed between the check above
+        // and this commit; answer with what that call committed.
+        const prior = await deps.objects.getCommit(ontologyRid, call.idempotencyKey);
+        await log.logComplete(execution.rid, toObjectEdits(prior?.edits ?? []));
+        return { validation: evaluation.validation, edits: prior?.edits ?? [], replayed: true };
       }
       await log.logComplete(execution.rid, toObjectEdits(evaluation.edits));
       return evaluation;
@@ -288,7 +344,12 @@ export async function applyActionBatch(
   ontologyRid: string,
   actionType: ActionTypeDefinition,
   paramSets: Array<Record<string, unknown>>,
+  call: CallContext = {},
 ): Promise<ObjectEdit[]> {
+  if (call.idempotencyKey) {
+    const prior = await deps.objects.getCommit(ontologyRid, call.idempotencyKey);
+    if (prior) return prior.edits;
+  }
   const evaluations: Evaluation[] = [];
   for (const params of paramSets) {
     evaluations.push(await evaluate(deps, ontologyRid, actionType, params));
@@ -305,8 +366,25 @@ export async function applyActionBatch(
   }
 
   const edits = evaluations.flatMap((e) => e.edits ?? []);
+  const written = new Set(edits.map((e) => `${e.objectType}/${e.primaryKey}`));
+  const reads = new Map<string, ReadVersion>();
+  for (const read of evaluations.flatMap((e) => e.reads ?? [])) {
+    const key = `${read.objectType}/${read.primaryKey}`;
+    if (!written.has(key)) reads.set(key, read);
+  }
   try {
-    await deps.objects.applyEdits(ontologyRid, edits);
+    const commit = await deps.objects.applyEdits(ontologyRid, edits, {
+      idempotencyKey: call.idempotencyKey,
+      actor: call.actor,
+      actionType: actionType.apiName,
+      reads: [...reads.values()],
+    });
+    if (commit.replayed && call.idempotencyKey) {
+      const prior = await deps.objects.getCommit(ontologyRid, call.idempotencyKey);
+      const replayedEdits = prior?.edits ?? [];
+      await Promise.all(executions.map((e) => log.logComplete(e.rid, toObjectEdits(replayedEdits))));
+      return replayedEdits;
+    }
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     await Promise.all(executions.map((e) => log.logFailure(e.rid, message)));

@@ -158,7 +158,7 @@ describe("Dataset-backed object types", () => {
       url: `/internal/ontologies/${ontologyRid}/edits`,
       payload: { edits: [{ type: "modifyObject", objectType: "Customer", primaryKey: "c1", properties: { name: "Ann (VIP)" } }] },
     });
-    expect(edit.statusCode).toBe(204);
+    expect(edit.statusCode).toBe(200);
 
     await upload("customer_id,name,balance\nc1,Ann,90\n");
     await eventually(async () =>

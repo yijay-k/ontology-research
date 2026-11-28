@@ -17,6 +17,77 @@ export interface StoredLink {
   createdAt: string;
 }
 
+type MaybePromise<T> = T | Promise<T>;
+
+/**
+ * What the link routes need from a link store. The in-memory store answers
+ * synchronously, the Postgres one asynchronously; routes await every call, so
+ * both satisfy this interface (same arrangement as `ObjectReadWriteStore`).
+ */
+export interface LinkReadWriteStore {
+  createLink(
+    ontologyRid: string,
+    sourceObjectType: string,
+    sourcePrimaryKey: string,
+    linkType: string,
+    targetObjectType: string,
+    targetPrimaryKey: string,
+    options?: { cardinality?: "ONE" | "MANY" },
+  ): MaybePromise<StoredLink>;
+  getLinks(
+    ontologyRid: string,
+    objectType: string,
+    primaryKey: string,
+    linkType: string,
+    pageSize?: number,
+    pageToken?: string,
+  ): MaybePromise<{ data: StoredLink[]; nextPageToken?: string; totalCount: number }>;
+  getAllLinks(ontologyRid: string, objectType: string, primaryKey: string, linkType: string): MaybePromise<StoredLink[]>;
+  deleteLink(
+    ontologyRid: string,
+    objectType: string,
+    primaryKey: string,
+    linkType: string,
+    targetPrimaryKey: string,
+  ): MaybePromise<void>;
+  getLinkedObjects(
+    ontologyRid: string,
+    objectType: string,
+    primaryKey: string,
+    linkType: string,
+  ): MaybePromise<Array<{ targetObjectType: string; targetPrimaryKey: string }>>;
+}
+
+export function linkAlreadyExists(
+  sourceObjectType: string,
+  sourcePrimaryKey: string,
+  linkType: string,
+  targetPrimaryKey: string,
+): OpenFoundryApiError {
+  return new OpenFoundryApiError({
+    errorCode: ErrorCode.CONFLICT,
+    errorName: "LinkAlreadyExists",
+    message: `${sourceObjectType}:${sourcePrimaryKey} is already linked to ${targetPrimaryKey} by ${linkType}`,
+    parameters: {},
+  });
+}
+
+export function linkCardinalityExceeded(
+  sourceObjectType: string,
+  linkType: string,
+  existingTargetPrimaryKey: string,
+): OpenFoundryApiError {
+  return new OpenFoundryApiError({
+    errorCode: ErrorCode.CONFLICT,
+    errorName: "LinkCardinalityExceeded",
+    message: `${linkType} links each ${sourceObjectType} to at most one object; unlink ${existingTargetPrimaryKey} first`,
+    parameters: { linkType, objectType: sourceObjectType },
+  });
+}
+
+export const linkNotFound = (objectType: string, primaryKey: string, linkType: string, targetPrimaryKey: string) =>
+  notFound("Link", `${objectType}:${primaryKey}:${linkType}:${targetPrimaryKey}`);
+
 // ---------------------------------------------------------------------------
 // LinkStore
 // ---------------------------------------------------------------------------
@@ -30,7 +101,7 @@ export interface StoredLink {
  * declare an object type of the same name, and a link between one ontology's
  * objects says nothing about the other's.
  */
-export class LinkStore {
+export class LinkStore implements LinkReadWriteStore {
   /** Map<ontologyRid, Map<compositeKey, StoredLink[]>> */
   private readonly links = new Map<string, Map<string, StoredLink[]>>();
   private readonly DATA_FILE: string | null;
@@ -110,20 +181,10 @@ export class LinkStore {
     // Checked here, synchronously with the write, so two concurrent requests
     // cannot both pass a check made earlier and both land.
     if (duplicate) {
-      throw new OpenFoundryApiError({
-        errorCode: ErrorCode.CONFLICT,
-        errorName: "LinkAlreadyExists",
-        message: `${sourceObjectType}:${sourcePrimaryKey} is already linked to ${targetPrimaryKey} by ${linkType}`,
-        parameters: {},
-      });
+      throw linkAlreadyExists(sourceObjectType, sourcePrimaryKey, linkType, targetPrimaryKey);
     }
     if (options.cardinality === "ONE" && existing.length > 0) {
-      throw new OpenFoundryApiError({
-        errorCode: ErrorCode.CONFLICT,
-        errorName: "LinkCardinalityExceeded",
-        message: `${linkType} links each ${sourceObjectType} to at most one object; unlink ${existing[0].targetPrimaryKey} first`,
-        parameters: { linkType, objectType: sourceObjectType },
-      });
+      throw linkCardinalityExceeded(sourceObjectType, linkType, existing[0].targetPrimaryKey);
     }
 
     const link: StoredLink = {
@@ -196,12 +257,12 @@ export class LinkStore {
     const k = this.key(objectType, primaryKey, linkType);
     const existing = byKey?.get(k);
     if (!byKey || !existing) {
-      throw notFound("Link", `${objectType}:${primaryKey}:${linkType}:${targetPrimaryKey}`);
+      throw linkNotFound(objectType, primaryKey, linkType, targetPrimaryKey);
     }
 
     const idx = existing.findIndex((l) => l.targetPrimaryKey === targetPrimaryKey);
     if (idx === -1) {
-      throw notFound("Link", `${objectType}:${primaryKey}:${linkType}:${targetPrimaryKey}`);
+      throw linkNotFound(objectType, primaryKey, linkType, targetPrimaryKey);
     }
 
     existing.splice(idx, 1);

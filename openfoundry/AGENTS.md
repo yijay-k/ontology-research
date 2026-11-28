@@ -74,6 +74,11 @@ Order by position instead: the in-memory stores are `Map`s and arrays in inserti
 `PgObjectStore` is fully async where `ObjectStore` is synchronous. Both satisfy `ObjectReadWriteStore`, whose methods return `T | Promise<T>`, and every route in `svc-objects/src/server.ts` is registered against that interface with no cast.
 Await every store call in a handler: an unawaited read passes every in-memory test and serves a pending promise as a 200 against Postgres.
 
+Links follow objects: with `DATABASE_URL` set svc-objects uses `PgLinkStore` over the `links` table (`scripts/migrate.sql`, and `db/migrations/018_links.sql` with `org_rid` under forced RLS), behind the same `LinkReadWriteStore` contract as the in-memory store; `tests/link-rules.test.ts` runs every link rule against memory and both schema sources.
+Cardinality ONE is serialised with `pg_advisory_xact_lock` per source object and link type. PGlite is single-session, so that test cannot prove the lock under real parallel connections.
+The seeds name an object type's key `primaryKey`; `normalize` in svc-ontology's `object-types.ts` maps it to `primaryKeyApiName`, without which the Postgres store silently defaults the key to `"id"`.
+Both schema sources stay, deliberately: switching `start.sh` onto `db/migrations` would switch on its forced RLS (009), which is the deferred tenancy decision. Every view must be `WITH (security_invoker = true)` (`packages/db/tests/schema-lint.test.ts`), or RLS is bypassed through it.
+
 Object and link data are scoped by the ontology in the request path: every `ObjectReadWriteStore` and `LinkStore` method takes `ontologyRid` first, because an object type's API name is unique only within one ontology.
 The in-memory stores persist as `{ formatVersion: 2, ontologies: {...} }`; an older file records no ontology, so it is moved aside to `*.unscoped-<ms>` at load and `start.sh` re-seeds.
 
@@ -88,7 +93,10 @@ svc-actions checks the plan against the action type's `modifiedEntities` and the
 An action type with no logic is a 400 `ApplyActionFailed`, never a reported success.
 A refusal or invalid parameter is a 200 whose `validation.result` is `INVALID` (Foundry's `SyncApplyActionResponseV2` contract) - check the body, not the status. v2 has no `/validate` route: send `options.mode = VALIDATE_ONLY`.
 Every stored object has a `version` bumped on each write; svc-actions reads through `GET /internal/ontologies/:rid/objects/:type/:pk`, stamps the read version on the first edit to each object as `expectedVersion`, and a stale one fails the whole commit with Foundry's `ObjectChanged` (409). The action then reruns on fresh reads, up to 5 attempts in all.
-That is conflict detection on objects an action both reads and writes; like Foundry's snapshot isolation it does not stop write skew across objects it only reads - guard such an invariant by writing a shared anchor object.
+Objects the logic reads but does not write go to the commit as `reads` (type, key, version); the Postgres store share-locks them and refuses the plan with `ObjectChanged` if any moved, which closes the write-skew hole snapshot checks leave (research proof G6). A deadlock or serialization abort (`40P01`/`40001`) is also reported as `ObjectChanged`, so the retry loop handles it.
+The commit is `POST /internal/ontologies/:rid/edits` with `{ edits, reads?, idempotencyKey?, actionType?, actor? }`, answering 200 `{ commitId, replayed }`; in one transaction it writes an `action_commits` row, the edits and an `action.committed` row in `outbox` (`db/migrations/019`, mirrored in `scripts/migrate.sql`).
+Callers pass `Idempotency-Key` as a header on apply and applyBatch (Foundry's bodies have no key). svc-actions looks the key up (`GET /internal/ontologies/:rid/commits/:key`) before re-evaluating, because the logic run against the state the first call produced may refuse what already succeeded; the unique index catches two concurrent calls with one key.
+The outbox is read and acknowledged at `GET /internal/outbox` and `POST /internal/outbox/ack`; nothing delivers it yet, and the in-memory store keeps commits and outbox in memory only.
 
 ## Ontology definition and link rules
 

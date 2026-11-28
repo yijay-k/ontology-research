@@ -264,6 +264,62 @@ describe("concurrent writes", () => {
   });
 });
 
+describe("idempotency and read-only objects", () => {
+  const complete = (key?: string) =>
+    app.inject({
+      method: "POST",
+      url: url("complete-service-job", "apply"),
+      headers: key === undefined ? {} : { "idempotency-key": key },
+      payload: {
+        parameters: { jobId: "JOB-1", treatmentUsed: "gel", technicianNotes: "ok", customerRating: 5 },
+        options: { returnEdits: "ALL" },
+      },
+    });
+  const invoices = () => [...objects.rows.keys()].filter((k) => k.startsWith("Invoice/"));
+
+  it("commits a repeated Idempotency-Key once and answers the repeat with the first result", async () => {
+    const first = await complete("call-1");
+    // Re-evaluated now, the job is already completed and the logic would refuse.
+    const again = await complete("call-1");
+    expect(first.json().validation.result).toBe("VALID");
+    expect(again.json().validation.result).toBe("VALID");
+    expect(again.json().edits).toEqual(first.json().edits);
+    expect(objects.commits).toBe(1);
+    expect(invoices()).toHaveLength(1);
+    expect(objects.commitOptions[0]).toMatchObject({ idempotencyKey: "call-1", actionType: "complete-service-job" });
+  });
+
+  it("does not deduplicate calls without a key", async () => {
+    await complete();
+    const again = await complete();
+    expect(again.json().validation.result).toBe("INVALID");
+    expect(objects.commits).toBe(1);
+  });
+
+  it("refuses an empty Idempotency-Key", async () => {
+    const res = await complete("");
+    expect(res.statusCode).toBe(400);
+    expect(objects.commits).toBe(0);
+  });
+
+  it("sends objects the logic read but did not write to the commit", async () => {
+    await start({
+      "reorder-product": async (_params, ctx) => {
+        await ctx.get("Technician", "TECH-1"); // read, not written
+        const product = await ctx.get("TreatmentProduct", "PROD-1");
+        return {
+          edits: [{
+            type: "modifyObject", objectType: "TreatmentProduct", primaryKey: "PROD-1",
+            properties: { stockQty: Number(product?.stockQty) + 1 },
+          }],
+        };
+      },
+    });
+    await apply("reorder-product", { parameters: { productId: "PROD-1", quantity: 1 } });
+    expect(objects.commitOptions[0].reads).toEqual([{ objectType: "Technician", primaryKey: "TECH-1", version: 1 }]);
+  });
+});
+
 describe("applyBatch", () => {
   const batch = (requests: unknown[], returnEdits?: string) =>
     app.inject({

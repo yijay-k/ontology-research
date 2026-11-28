@@ -25,6 +25,33 @@ export interface ReadObject {
   version: number;
 }
 
+/** An object the logic read but the plan does not write, at the version read. */
+export interface ReadVersion {
+  objectType: string;
+  primaryKey: string;
+  version: number;
+}
+
+/** What is committed beside the edits, in svc-objects' one transaction. */
+export interface CommitOptions {
+  idempotencyKey?: string;
+  reads?: ReadVersion[];
+  actionType?: string;
+  actor?: string;
+}
+
+export interface CommitResult {
+  commitId: string;
+  /** The idempotency key had already committed; nothing was applied. */
+  replayed: boolean;
+}
+
+/** A committed plan, found by its idempotency key. */
+export interface StoredCommit {
+  commitId: string;
+  edits: ObjectEdit[];
+}
+
 /** Where action and object type definitions are read from: svc-ontology. */
 export interface OntologySource {
   getActionType(ontologyRid: string, apiName: string): Promise<ActionTypeDefinition | undefined>;
@@ -35,8 +62,13 @@ export interface OntologySource {
 export interface ObjectsGateway {
   /** An object's properties and version, or `undefined` when it does not exist. */
   getObject(ontologyRid: string, objectType: string, primaryKey: string): Promise<ReadObject | undefined>;
-  /** Commit every edit or none; a stale `expectedVersion` fails with `ObjectChanged`. */
-  applyEdits(ontologyRid: string, edits: ObjectEdit[]): Promise<void>;
+  /**
+   * Commit every edit or none, with the commit log row and outbox event; a
+   * stale `expectedVersion` or changed read fails with `ObjectChanged`.
+   */
+  applyEdits(ontologyRid: string, edits: ObjectEdit[], options?: CommitOptions): Promise<CommitResult>;
+  /** The commit an idempotency key produced, or `undefined`. */
+  getCommit(ontologyRid: string, idempotencyKey: string): Promise<StoredCommit | undefined>;
 }
 
 async function getJson<T>(url: string): Promise<T | undefined> {
@@ -64,12 +96,14 @@ export function httpObjectsGateway(baseUrl: string): ObjectsGateway {
       getJson<ReadObject>(
         `${baseUrl}/internal/ontologies/${segment(rid)}/objects/${segment(objectType)}/${segment(primaryKey)}`,
       ),
-    async applyEdits(rid, edits) {
+    getCommit: (rid, idempotencyKey) =>
+      getJson<StoredCommit>(`${baseUrl}/internal/ontologies/${segment(rid)}/commits/${segment(idempotencyKey)}`),
+    async applyEdits(rid, edits, options = {}) {
       const url = `${baseUrl}/internal/ontologies/${segment(rid)}/edits`;
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ edits }),
+        body: JSON.stringify({ edits, ...options }),
         signal: AbortSignal.timeout(10_000),
       });
       if (!res.ok) {
@@ -78,6 +112,7 @@ export function httpObjectsGateway(baseUrl: string): ObjectsGateway {
         const body = (await res.json().catch(() => undefined)) as ErrorResponse["body"];
         throw OpenFoundryApiError.fromResponse({ status: res.status, body });
       }
+      return (await res.json()) as CommitResult;
     },
   };
 }

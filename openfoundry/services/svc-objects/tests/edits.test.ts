@@ -46,13 +46,14 @@ describe("the edits route on the in-memory store", () => {
 
   const stock = () => store.getObject(ONTOLOGY_RID, "Product", "p-1").properties.stock;
 
-  it("applies every edit and answers 204", async () => {
+  it("applies every edit and answers with the commit", async () => {
     const res = await app.inject({
       method: "POST",
       url: URL,
       payload: { edits: [modify("p-1", { stock: 4 }), add("p-2"), { type: "deleteObject", objectType: "Product", primaryKey: "p-2" }] },
     });
-    expect(res.statusCode).toBe(204);
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ replayed: false, commitId: expect.any(String) });
     expect(stock()).toBe(4);
     expect(store.allObjects(ONTOLOGY_RID, "Product").map((o) => o.primaryKey)).toEqual(["p-1"]);
   });
@@ -112,7 +113,7 @@ describe("the edits route on the in-memory store", () => {
       url: URL,
       payload: { edits: [{ ...modify("p-1", { stock: 1 }), expectedVersion: 1 }] },
     });
-    expect(res.statusCode).toBe(204);
+    expect(res.statusCode).toBe(200);
     expect(stock()).toBe(1);
   });
 

@@ -309,13 +309,15 @@ describe("Full platform flow: compass, ontology, objects, actions, sentinel, dat
       objects: {
         getObject: (rid, type, pk) =>
           getJson(objectsApp, `/internal/ontologies/${rid}/objects/${type}/${pk}`),
-        applyEdits: async (rid, edits) => {
+        getCommit: (rid, key) => getJson(objectsApp, `/internal/ontologies/${rid}/commits/${key}`),
+        applyEdits: async (rid, edits, options = {}) => {
           const res = await objectsApp.inject({
             method: "POST",
             url: `/internal/ontologies/${rid}/edits`,
-            payload: { edits },
+            payload: { edits, ...options },
           });
-          if (res.statusCode !== 204) throw new Error(`edits refused: ${res.statusCode}`);
+          if (res.statusCode !== 200) throw new Error(`edits refused: ${res.statusCode}`);
+          return res.json();
         },
       },
       logic: {

@@ -1,6 +1,6 @@
 import type { FastifyInstance } from "fastify";
 import { invalidArgument, rejectUnsupportedOntologyScoping } from "@openfoundry/errors";
-import { requirePermission } from "@openfoundry/permissions";
+import { identityFromHeaders, requirePermission } from "@openfoundry/permissions";
 import type { ActionExecutionLog } from "../../store/action-log.js";
 import {
   applyAction,
@@ -9,6 +9,7 @@ import {
   requireActionType,
   toObjectEdits,
   type ActionDeps,
+  type CallContext,
   type ObjectEditsResult,
 } from "../../apply.js";
 import type { ObjectEdit } from "../../clients.js";
@@ -20,6 +21,20 @@ interface ScopingQuery {
   branch?: string;
   scenarioRid?: string;
   transactionId?: string;
+}
+
+/**
+ * The caller's `Idempotency-Key` header (IETF draft-ietf-httpapi-idempotency-key)
+ * and the identity the gateway verified. Foundry's request bodies carry no key,
+ * so the header is the extension point; without it a call is not deduplicated.
+ */
+export function callContext(headers: Record<string, string | string[] | undefined>): CallContext {
+  const raw = headers["idempotency-key"];
+  const key = (Array.isArray(raw) ? raw[0] : raw)?.trim();
+  if (key !== undefined && (key === "" || key.length > 255)) {
+    throw invalidArgument("Idempotency-Key", "must be 1 to 255 characters");
+  }
+  return { idempotencyKey: key, actor: identityFromHeaders(headers)?.userId };
 }
 
 /** `ReturnEditsMode`: `ALL` omits deletions, `ALL_V2_WITH_DELETIONS` keeps them, `NONE` (the default) returns nothing. */
@@ -63,7 +78,9 @@ export async function actionRoutes(
         return { validation };
       }
 
-      const { validation, edits } = await applyAction(deps, deps.log, ontologyRid, actionType, parameters);
+      const { validation, edits } = await applyAction(
+        deps, deps.log, ontologyRid, actionType, parameters, callContext(request.headers),
+      );
       const result = edits ? editsFor(options.returnEdits, edits) : undefined;
       return { validation, ...(result ? { edits: result } : {}) };
     },
@@ -92,6 +109,7 @@ export async function actionRoutes(
         ontologyRid,
         actionType,
         requests.map((r) => r?.parameters ?? {}),
+        callContext(request.headers),
       );
       // `BatchApplyActionResponseV2`: only `edits`, and only when asked for.
       return request.body?.options?.returnEdits === "ALL" ? { edits: toObjectEdits(edits) } : {};

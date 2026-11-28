@@ -13,7 +13,7 @@ import type {
   ObjectTypeSchemaSource,
   StoredObject,
 } from "../../store/object-store.js";
-import type { LinkStore } from "../../store/link-store.js";
+import type { LinkReadWriteStore } from "../../store/link-store.js";
 import {
   applyOrderBy,
   applySelect,
@@ -173,7 +173,7 @@ export async function objectRoutesV1(
   app: FastifyInstance,
   opts: {
     store: ObjectReadWriteStore;
-    linkStore: LinkStore;
+    linkStore: LinkReadWriteStore;
     objectTypeSchema?: ObjectTypeSchemaSource;
   },
 ): Promise<void> {
@@ -283,7 +283,7 @@ export async function objectRoutesV1(
     const properties = parseListParam(request.query.properties);
     const orderBy = parseOrderBy(request.query.orderBy);
 
-    const links = linkStore.getAllLinks(ontologyRid, objectType, primaryKey, linkType);
+    const links = await linkStore.getAllLinks(ontologyRid, objectType, primaryKey, linkType);
 
     // The declaration says what the far side is and what it declares, so an
     // unknown property is reported the same way whether the source object has

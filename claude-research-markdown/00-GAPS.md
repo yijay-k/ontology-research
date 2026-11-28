@@ -6,7 +6,7 @@
 - **§4** is the per-layer to-do list.
 - **H**n is a research decision in the brief's §2a; **G/T/I/M**n is a proof; **NV** is the NVIDIA review in §2b.
 
-Status: ✅ done on the branch · 🔜 next · ⏳ pending · ⏸ deferred on purpose.
+Status: ✅ done on the branch · 🟡 partly done · 🔜 next · ⏳ pending · ⏸ deferred on purpose.
 
 ---
 
@@ -59,9 +59,9 @@ These close holes in what is already built. Without them the write path is unsaf
 
 | Gap | Why now | Size | Depends on |
 |---|---|---|---|
-| 🔜 **Postgres as the one authoritative store.** Persist links; fix the primary-key default; make `db/migrations` the only schema source (Compose loads the same); run the in-memory store only in tests. | H2; defects in §4. Everything else is built on this. | M | — |
-| 🔜 **Idempotency key, pending record and outbox.** Every action call takes an idempotency key. Edits, the action log row and an outbox row commit in one svc-objects transaction. Side effects are delivered from the outbox, and a recovery pass completes pending ones. | H5, R3, R19; proofs G1, G2, G5. Today a retried request applies twice. | M | Postgres store |
-| ⏳ **Invariant isolation.** Postgres `applyEdits` runs SERIALIZABLE with retry, or the action declares an anchor object that is locked. | R20; proof G6 | S | Postgres store |
+| 🟡 **Postgres as the one authoritative store.** ✅ Links persist (`PgLinkStore`, migration 018, link rules tested on memory and both schema sources). ✅ Primary-key alias fixed. ✅ `security_invoker` view lint. ⏳ One schema source: blocked on the tenancy decision, because `db/migrations` forces RLS (009). ⏳ Make Postgres the demo default instead of in-memory/JSON files. | H2; defects in §4. Everything else is built on this. | M | Tenancy decision (§3) |
+| 🟡 **Idempotency key, commit log and outbox.** ✅ `Idempotency-Key` header on apply/applyBatch; a repeat replays the first commit without re-evaluating. ✅ `action_commits` row, edits and `action.committed` outbox row in one svc-objects transaction (migration 019). ✅ Outbox read/ack routes. ⏳ A delivery worker and a recovery pass for external side effects (needed with the first writeback; DBOS per research). | H5, R3, R19; proofs G1, G2, G5 | M | — |
+| ✅ **Invariant isolation.** Objects an action only read are sent as `reads`, share-locked and version-checked at commit; deadlock and serialization aborts surface as `ObjectChanged` and are retried. Write-skew test on memory and both schema sources. ⏳ Proof under real parallel connections (PGlite is single-session). | R20; proof G6 | S | — |
 | ⏳ **Per-property editability.** Source-owned properties are not editable; edit-only properties hold action facts. Actions that edit a source-owned property are refused. | §4 L3/L4. Without it an edit permanently hides later source corrections. | S | — |
 | ⏳ **Declarative submission criteria and parameter constraints.** A criteria tree with a failure message per node; one-of, range and regex constraints. | §4 L7. They become tool schemas for agents (R14). | M | — |
 | ⏳ **Value types.** Enum, range and regex, enforced on sync and on actions. | §4 L3 | M | Editability |
@@ -120,8 +120,8 @@ Real bugs in pre-existing code that the research did not cover. Each is small, a
 
 | Defect | Where | Impact |
 |---|---|---|
-| Link store is in-memory even when `DATABASE_URL` is set | `services/svc-objects/src/server.ts` (`new LinkStore()`) | Links are lost on restart in Postgres mode, so the L3 link rules don't persist there |
-| Postgres ontology store sets the key to `"id"` when a definition names it `primaryKey` (as the seeds do) | `services/svc-ontology/src/store/pg-ontology-store.ts` (`primaryKeyApiName ?? "id"`) | Seeded types get the wrong primary key in Postgres mode |
+| ✅ Fixed: link store was in-memory even when `DATABASE_URL` is set | now `PgLinkStore` (`services/svc-objects/src/store/pg-link-store.ts`) | Links survive a restart in Postgres mode |
+| ✅ Fixed: Postgres ontology store set the key to `"id"` when a definition names it `primaryKey` | `normalize` in `services/svc-ontology/src/routes/v2/object-types.ts`; test `pg-primary-key.test.ts` | Seeded types keep their key |
 | `scripts/migrate-rls.sql` reads `app.current_org_rid`; everything else uses `app.org_rid` | `scripts/migrate-rls.sql` | RLS from that script never matches; GUIDE limitation #15 is half stale |
 | Healthcare, logistics and manufacturing demo actions have no logic | `services/svc-actions/src/logic.ts` | Those demos now answer `ApplyActionFailed` (honest, but the demos need logic) |
 | Demo seeds write objects directly; no pest-control type is dataset-backed | `scripts/demo/seed-pest-control.sh` | The demo never exercises the L2 sync path |
