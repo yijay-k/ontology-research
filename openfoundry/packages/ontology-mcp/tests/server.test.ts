@@ -16,6 +16,7 @@ const METADATA: OntologyMetadata = {
       displayName: "Invoice",
       description: "A receivable",
       agentDescription: "One receivable owed by a buyer; amount is in the invoice currency.",
+      metrics: { openAmount: { measure: { type: "sum", property: "amount" }, timeProperty: "dueDate", unit: "EUR" } },
       status: "ACTIVE",
       primaryKeyApiName: "invoiceId",
       properties: {
@@ -49,7 +50,17 @@ const METADATA: OntologyMetadata = {
 };
 
 let requests: LoadObjectsRequest[];
+let applied: Array<{ actionType: string; parameters: Record<string, unknown>; validateOnly: boolean; idempotencyKey?: string }>;
 const api: OntologyApi = {
+  queryMetric: async (_rid, query) => ({ ...query, rows: [{ value: 42 }] }),
+  applyAction: async (_rid, actionType, parameters, options) => {
+    applied.push({ actionType, parameters, ...options });
+    if (parameters.days === 0) {
+      return { validation: { result: "INVALID", submissionCriteria: [{ configuredFailureMessage: "days must be positive", result: "INVALID" }], parameters: { days: { result: "INVALID" } } } };
+    }
+    if (actionType === "write-off") return { validation: { result: "VALID" }, proposal: { rid: "ri.actions.proposal.1", status: "PENDING" } };
+    return { validation: { result: "VALID" }, edits: { modifiedObjectsCount: 1 } };
+  },
   listOntologies: async () => [{ rid: METADATA.rid, apiName: METADATA.apiName }],
   metadata: async () => METADATA,
   loadObjects: async (_rid, request) => {
@@ -58,8 +69,8 @@ const api: OntologyApi = {
   },
 };
 
-async function connect(includeExperimental = false) {
-  const server = createOntologyMcpServer({ api, includeExperimental });
+async function connect(includeExperimental = false, enableActions = false) {
+  const server = createOntologyMcpServer({ api, includeExperimental, enableActions });
   const [clientEnd, serverEnd] = InMemoryTransport.createLinkedPair();
   await server.connect(serverEnd);
   const client = new Client({ name: "test", version: "0.0.0" });
@@ -76,15 +87,18 @@ async function call(client: Client, name: string, args: Record<string, unknown> 
 let client: Client;
 beforeEach(async () => {
   requests = [];
+  applied = [];
   client = await connect();
 });
 
 describe("ontology MCP server", () => {
-  it("offers only read tools", async () => {
+  it("offers only read tools unless actions are enabled", async () => {
     const { tools } = await client.listTools();
     expect(tools.map((t) => t.name).sort()).toEqual(
-      ["check_answerable", "check_readiness", "get_type", "list_actions", "query_objects", "search_types"],
+      ["check_answerable", "check_readiness", "get_type", "list_actions", "query_metric", "query_objects", "search_types"],
     );
+    const withActions = (await (await connect(false, true)).listTools()).tools.map((t) => t.name);
+    expect(withActions).toEqual(expect.arrayContaining(["validate_action", "apply_action"]));
   });
 
   it("reports readiness counting only ACTIVE definitions", async () => {
@@ -147,4 +161,49 @@ describe("ontology MCP server", () => {
     expect((await call(client, "query_objects", { objectType: "Invoice", select: ["amount"], pageSize: 500 })).isError).toBe(true);
     expect(requests).toEqual([]);
   });
+
+  it("lists a type's metrics and queries one", async () => {
+    expect((await call(client, "get_type", { objectType: "Invoice" })).json().metrics).toEqual([
+      { name: "openAmount", measure: { type: "sum", property: "amount" }, timeProperty: "dueDate", unit: "EUR" },
+    ]);
+    const res = (await call(client, "query_metric", { objectType: "Invoice", metric: "openAmount", grain: "month" })).json();
+    expect(res).toMatchObject({ metric: "openAmount", grain: "month", rows: [{ value: 42 }] });
+  });
+
+  describe("with actions enabled", () => {
+    let writer: Client;
+    beforeEach(async () => {
+      writer = await connect(false, true);
+    });
+
+    it("applies with the caller's idempotency key and reports the edits", async () => {
+      const res = (await call(writer, "apply_action", { actionType: "send-reminder", parameters: { invoiceId: "INV-1" }, idempotencyKey: "reminder-INV-1-0001" })).json();
+      expect(res).toEqual({ result: "APPLIED", edits: { modifiedObjectsCount: 1 } });
+      expect(applied[0]).toMatchObject({ validateOnly: false, idempotencyKey: "reminder-INV-1-0001" });
+    });
+
+    it("returns a refusal's reasons verbatim, as an answer", async () => {
+      const res = await call(writer, "validate_action", { actionType: "send-reminder", parameters: { days: 0 } });
+      expect(res.isError).toBe(false);
+      expect(res.json()).toEqual({ result: "REFUSED", reasons: ["days must be positive"], invalidParameters: ["days"] });
+      expect(applied[0].validateOnly).toBe(true);
+    });
+
+    it("reports an action that needs approval as proposed, not applied", async () => {
+      METADATA.actionTypes.push({ apiName: "write-off", status: "ACTIVE", modifiedEntities: { Invoice: { modified: true } } });
+      try {
+        const res = (await call(writer, "apply_action", { actionType: "write-off", parameters: {}, idempotencyKey: "write-off-0001" })).json();
+        expect(res).toMatchObject({ result: "PROPOSED", proposal: { status: "PENDING" } });
+      } finally {
+        METADATA.actionTypes.pop();
+      }
+    });
+
+    it("refuses an action that is not visible, and requires an idempotency key", async () => {
+      expect((await call(writer, "apply_action", { actionType: "ghost", parameters: {}, idempotencyKey: "ghost-00001" })).isError).toBe(true);
+      expect((await call(writer, "apply_action", { actionType: "send-reminder", parameters: {} })).isError).toBe(true);
+      expect(applied).toEqual([]);
+    });
+  });
 });
+

@@ -38,6 +38,7 @@ interface ObjectTypeRow {
   status: string;
   datasources?: ObjectTypeDefinition["datasources"];
   agent_description?: string | null;
+  metrics?: ObjectTypeDefinition["metrics"] | null;
 }
 
 interface ActionTypeRow {
@@ -108,6 +109,7 @@ function rowToObjectType(row: ObjectTypeRow): ObjectTypeDefinition {
     status: row.status as ObjectTypeDefinition["status"],
     datasources: row.datasources ?? [],
     ...(row.agent_description ? { agentDescription: row.agent_description } : {}),
+    ...(row.metrics && Object.keys(row.metrics).length ? { metrics: row.metrics } : {}),
   };
 }
 
@@ -270,6 +272,7 @@ export class PgOntologyStore {
         status: def.status ?? "EXPERIMENTAL",
         datasources: JSON.stringify(def.datasources ?? []),
         agent_description: def.agentDescription ?? null,
+        metrics: JSON.stringify(def.metrics ?? {}),
       })
       .returning();
 
@@ -342,6 +345,7 @@ export class PgOntologyStore {
     if (def.status !== undefined) data.status = def.status;
     if (def.datasources !== undefined) data.datasources = JSON.stringify(def.datasources);
     if (def.agentDescription !== undefined) data.agent_description = def.agentDescription;
+    if (def.metrics !== undefined) data.metrics = JSON.stringify(def.metrics);
 
     if (Object.keys(data).length === 0) {
       return this.getObjectType(ontologyRid, apiName);

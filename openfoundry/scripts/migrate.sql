@@ -1057,3 +1057,6 @@ CREATE TABLE IF NOT EXISTS definition_versions (
     UNIQUE (ontology_rid, version)
 );
 CREATE INDEX IF NOT EXISTS idx_definition_versions_name ON definition_versions (ontology_rid, kind, api_name);
+
+-- Object type metrics (db/migrations/024)
+ALTER TABLE object_types ADD COLUMN IF NOT EXISTS metrics JSONB NOT NULL DEFAULT '{}';

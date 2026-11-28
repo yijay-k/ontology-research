@@ -17,6 +17,7 @@ import { healthRoutes } from "./routes/health.js";
 import { objectRoutes } from "./routes/v2/objects.js";
 import { objectSetRoutes } from "./routes/v2/object-sets.js";
 import { historyRoutes } from "./routes/v2/history.js";
+import { metricRoutes } from "./routes/v2/metrics.js";
 import { linkRoutes } from "./routes/v2/links.js";
 import { v1Routes } from "./routes/v1/index.js";
 import { importRoutes } from "./routes/v2/import.js";
@@ -160,6 +161,14 @@ export async function createServer(
     pool: pgPool,
   });
   await app.register(historyRoutes, { prefix: "/api/v2", store });
+  const ontologyUrl = config.ontologyServiceUrl ?? "http://localhost:8081";
+  await app.register(metricRoutes, {
+    prefix: "/api/v2",
+    store,
+    linkStore,
+    definitions: options.syncSources ?? httpSyncSources(ontologyUrl, config.datasetsServiceUrl ?? "http://localhost:8085"),
+    linkTypes: options.linkTypes ?? httpLinkTypeSource(ontologyUrl),
+  });
   await app.register(objectSetRoutes, {
     prefix: "/api/v2",
     store,

@@ -1,4 +1,5 @@
 import type { PropertyDef, PropertyType } from "./property-types.js";
+import type { MetricDefinition } from "./metric.js";
 
 // ---------------------------------------------------------------------------
 // Object type status
@@ -53,6 +54,9 @@ export interface ObjectTypeDatasource {
 export interface ObjectTypeDefinition {
   /** Unique API name used to reference this object type programmatically. */
   readonly apiName: string;
+
+  /** Governed metrics over this type's objects, by name. An openfoundry extension. */
+  readonly metrics?: Record<string, MetricDefinition>;
 
   /**
    * What an agent should know to use this definition well: when it applies,

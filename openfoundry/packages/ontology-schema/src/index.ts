@@ -70,3 +70,4 @@ export {
   validateOntology,
 } from "./ontology.js";
 export { castValue, migrateProperties, parseMigrationSteps, uncoveredBreaks, type MigrationStep } from "./migration.js";
+export { GRAINS, MEASURE_TYPES, measure, periodOf, validateMetrics, type Grain, type MeasureType, type MetricDefinition } from "./metric.js";

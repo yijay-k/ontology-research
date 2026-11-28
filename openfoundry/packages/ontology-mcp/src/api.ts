@@ -19,6 +19,7 @@ export interface ObjectTypeShape {
   primaryKeyApiName?: string;
   primaryKey?: string;
   properties?: Record<string, PropertyShape>;
+  metrics?: Record<string, { description?: string; measure?: { type: string; property?: string }; timeProperty?: string; unit?: string }>;
 }
 
 export interface ActionTypeShape {
@@ -60,10 +61,32 @@ export interface LoadObjectsResponse {
   nextPageToken?: string;
 }
 
+export interface MetricQuery {
+  objectType: string;
+  metric: string;
+  from?: string;
+  to?: string;
+  grain?: string;
+  groupBy?: string[];
+}
+
+export interface ApplyActionResult {
+  validation: { result: "VALID" | "INVALID"; submissionCriteria?: Array<{ configuredFailureMessage?: string; result: string }>; parameters?: Record<string, { result: string }> };
+  edits?: unknown;
+  proposal?: { rid: string; status: string };
+}
+
 export interface OntologyApi {
   listOntologies(): Promise<Array<{ rid: string; apiName: string; displayName?: string }>>;
   metadata(ontologyRid: string): Promise<OntologyMetadata>;
   loadObjects(ontologyRid: string, request: LoadObjectsRequest): Promise<LoadObjectsResponse>;
+  queryMetric(ontologyRid: string, query: MetricQuery): Promise<Record<string, unknown>>;
+  applyAction(
+    ontologyRid: string,
+    actionType: string,
+    parameters: Record<string, unknown>,
+    options: { validateOnly: boolean; idempotencyKey?: string },
+  ): Promise<ApplyActionResult>;
 }
 
 /** A list that the services answer either bare or as `{ data }` / `{ items }`. */
@@ -90,10 +113,10 @@ export function httpOntologyApi(baseUrl: string, token?: string): OntologyApi {
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
     ...(json ? { "Content-Type": "application/json" } : {}),
   });
-  const call = async (path: string, body?: unknown) => {
+  const call = async (path: string, body?: unknown, extraHeaders: Record<string, string> = {}) => {
     const res = await fetch(`${baseUrl}${path}`, {
       method: body === undefined ? "GET" : "POST",
-      headers: headers(body !== undefined),
+      headers: { ...headers(body !== undefined), ...extraHeaders },
       ...(body === undefined ? {} : { body: JSON.stringify(body) }),
       signal: AbortSignal.timeout(15_000),
     });
@@ -119,6 +142,16 @@ export function httpOntologyApi(baseUrl: string, token?: string): OntologyApi {
     },
     async loadObjects(rid, request) {
       return (await call(`/api/v2/ontologies/${seg(rid)}/objectSets/loadObjects`, request)) as LoadObjectsResponse;
+    },
+    async queryMetric(rid, query) {
+      return (await call(`/api/v2/ontologies/${seg(rid)}/objectSets/metrics/query`, query)) as Record<string, unknown>;
+    },
+    async applyAction(rid, actionType, parameters, { validateOnly, idempotencyKey }) {
+      return (await call(
+        `/api/v2/ontologies/${seg(rid)}/actions/${seg(actionType)}/apply`,
+        { parameters, options: { mode: validateOnly ? "VALIDATE_ONLY" : "VALIDATE_AND_EXECUTE", returnEdits: "ALL" } },
+        idempotencyKey ? { "Idempotency-Key": idempotencyKey } : {},
+      )) as ApplyActionResult;
     },
   };
 }

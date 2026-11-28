@@ -30,6 +30,12 @@ export interface OssieField {
   nonportable_extensions?: Array<{ vendor_name: string; data: Record<string, unknown> }>;
 }
 
+export interface OssieMetric {
+  name: string;
+  expression: { sql: string };
+  description?: string;
+}
+
 export interface OssieDataset {
   name: string;
   source: string;
@@ -37,7 +43,23 @@ export interface OssieDataset {
   description?: string;
   ai_context?: AiContext;
   fields?: OssieField[];
-  metrics?: unknown[];
+  metrics?: OssieMetric[];
+}
+
+const AGGREGATE_SQL: Record<string, string> = { sum: "SUM", avg: "AVG", min: "MIN", max: "MAX", count: "COUNT", countDistinct: "COUNT" };
+
+/** An Ossie metric expression of the simple `AGG(field)` shape as our measure, else undefined. */
+function parseAggregate(sql: string, fields: Set<string>): { type: string; property?: string } | undefined {
+  const m = /^\s*(SUM|AVG|MIN|MAX|COUNT)\s*\(\s*(DISTINCT\s+)?(?:\w+\.)?(\w+|\*)\s*\)\s*$/i.exec(sql);
+  if (!m) return undefined;
+  const fn = m[1].toUpperCase();
+  const field = m[3];
+  if (fn === "COUNT") {
+    if (m[2]) return fields.has(field) ? { type: "countDistinct", property: field } : undefined;
+    return { type: "count" };
+  }
+  if (!fields.has(field)) return undefined;
+  return { type: fn.toLowerCase(), property: field };
 }
 
 export interface OssieRelationship {
@@ -95,6 +117,19 @@ export function toOssie(
       ...(key ? { primary_key: [key] } : {}),
       ...(t.description ? { description: t.description } : {}),
       ...(t.agentDescription ? { ai_context: { instructions: t.agentDescription } } : {}),
+      ...(t.metrics && Object.keys(t.metrics).length
+        ? {
+            metrics: Object.entries(t.metrics)
+              .filter(([, m]) => !m.filter) // a filtered metric has no portable Ossie form here
+              .map(([name, m]) => ({
+                name,
+                expression: {
+                  sql: `${AGGREGATE_SQL[m.measure.type]}(${m.measure.type === "countDistinct" ? "DISTINCT " : ""}${m.measure.property ?? "*"})`,
+                },
+                ...(m.description ? { description: m.description } : {}),
+              })),
+          }
+        : {}),
       fields: Object.entries(t.properties ?? {}).map(([name, p]) => {
         const prop = p as { type?: string; description?: string; editable?: boolean };
         const datatype = TO_OSSIE[String(prop.type ?? "").toUpperCase()];
@@ -190,8 +225,14 @@ export function fromOssie(model: OssieModel): ImportPlan {
       skipped.push(`dataset ${d.name}: primary key ${d.primary_key[0]} is not one of its fields`);
       continue;
     }
+    const metrics: Record<string, unknown> = {};
     for (const metric of d.metrics ?? []) {
-      skipped.push(`dataset ${d.name}: metric ${(metric as { name?: string }).name ?? "?"} (no metric layer yet)`);
+      const measure = metric?.expression?.sql ? parseAggregate(metric.expression.sql, new Set(Object.keys(properties))) : undefined;
+      if (!measure) {
+        skipped.push(`dataset ${d.name}: metric ${metric?.name ?? "?"} is not a single AGG(field) expression`);
+        continue;
+      }
+      metrics[metric.name] = { measure, ...(metric.description ? { description: metric.description } : {}) };
     }
     keys.set(d.name, d.primary_key[0]);
     const agentDescription = instructionsOf(d.ai_context);
@@ -204,6 +245,7 @@ export function fromOssie(model: OssieModel): ImportPlan {
       primaryKeyType: (properties[d.primary_key[0]] as { type: string }).type,
       titlePropertyApiName: d.primary_key[0],
       properties,
+      ...(Object.keys(metrics).length ? { metrics } : {}),
       implements: [],
       status: "EXPERIMENTAL",
     } as unknown as ObjectTypeDefinition);
@@ -228,7 +270,7 @@ export function fromOssie(model: OssieModel): ImportPlan {
     } as LinkTypeDefinition);
   }
   for (const metric of model.metrics ?? []) {
-    skipped.push(`metric ${(metric as { name?: string }).name ?? "?"} (no metric layer yet)`);
+    skipped.push(`metric ${(metric as { name?: string }).name ?? "?"}: model-scoped metrics span datasets; declare it on one type`);
   }
   return { objectTypes, linkTypes, skipped };
 }

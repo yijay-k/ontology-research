@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import {
   parseMigrationSteps,
   validateDatasources,
+  validateMetrics,
   type MigrationStep,
   type ObjectTypeDefinition,
 } from "@openfoundry/ontology-schema";
@@ -34,6 +35,10 @@ function normalize(def: ObjectTypeDefinition): ObjectTypeDefinition {
   const errors = validateDatasources(def);
   if (errors.length > 0) {
     throw invalidArgument("datasources", errors.map((e) => `${e.field} ${e.message}`).join("; "));
+  }
+  const metricErrors = validateMetrics(def as Parameters<typeof validateMetrics>[0]);
+  if (metricErrors.length > 0) {
+    throw invalidArgument("metrics", metricErrors.map((e) => `${e.field} ${e.message}`).join("; "));
   }
   const status = statusOf(def);
   // Seeds and older clients name the key `primaryKey`; the stores read

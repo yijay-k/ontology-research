@@ -90,10 +90,9 @@ describe("Ossie import", () => {
     expect(plan.linkTypes).toEqual([
       expect.objectContaining({ apiName: "owedBy", objectTypeApiName: "Invoice", linkedObjectTypeApiName: "Buyer", foreignKeyPropertyApiName: "buyerId" }),
     ]);
-    expect(plan.skipped).toEqual(expect.arrayContaining([
-      expect.stringMatching(/OrderLine: needs exactly one primary key/),
-      expect.stringMatching(/metric total_open/),
-    ]));
+    expect(plan.skipped).toEqual([expect.stringMatching(/OrderLine: needs exactly one primary key/)]);
+    // A single AGG(field) Ossie metric becomes one of ours.
+    expect(plan.objectTypes[1].metrics).toEqual({ total_open: { measure: { type: "sum", property: "amount" } } });
     const types = await app.inject({ method: "GET", url: `${base}/objectTypes` });
     expect(types.json().data).toEqual([]);
   });

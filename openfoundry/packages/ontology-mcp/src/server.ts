@@ -1,8 +1,15 @@
 /**
- * A read-only MCP server over the ontology, modelled on NVIDIA Auto Ontology's
- * tool set (check_readiness, search, get, check_answerable, query). There are
- * no write tools: actions are added later, one tool per action type, off by
- * default (research R14).
+ * An MCP server over the ontology, modelled on NVIDIA Auto Ontology's read
+ * tools (check_readiness, search, get, check_answerable, query) plus metric
+ * queries. Write tools - validate_action and apply_action - exist only when
+ * `enableActions` is set (research R14: write tools off by default). They go
+ * through svc-actions like any caller: validated, governed, and staged as a
+ * proposal when the action type requires approval.
+ *
+ * ponytail: one generic apply tool rather than one tool per action type, since
+ * tools are fixed when the server connects; list_actions describes each
+ * action's parameters and svc-actions validates them. Register per-type tools
+ * if a client needs typed schemas.
  *
  * What an agent sees is narrowed twice. The platform's permissions apply to
  * every call, since they go through the gateway with the caller's token. On
@@ -21,6 +28,8 @@ export interface OntologyMcpOptions {
   ontology?: string;
   /** Show EXPERIMENTAL definitions too. DEPRECATED ones are never shown. */
   includeExperimental?: boolean;
+  /** Offer validate_action and apply_action. Off by default. */
+  enableActions?: boolean;
 }
 
 /** Most characters one tool result may hold, as NVIDIA caps observations. */
@@ -165,6 +174,13 @@ export function createOntologyMcpServer(options: OntologyMcpOptions): McpServer 
           ...m.linkTypes.filter((l) => l.objectTypeApiName === t.apiName).map((l) => ({ link: l.apiName, to: l.linkedObjectTypeApiName, cardinality: l.cardinality })),
           ...m.linkTypes.filter((l) => l.linkedObjectTypeApiName === t.apiName).map((l) => ({ link: l.apiName, from: l.objectTypeApiName, cardinality: l.cardinality })),
         ],
+        metrics: Object.entries(t.metrics ?? {}).map(([name, mt]) => ({
+          name,
+          ...(mt.description ? { description: mt.description } : {}),
+          measure: mt.measure,
+          ...(mt.timeProperty ? { timeProperty: mt.timeProperty } : {}),
+          ...(mt.unit ? { unit: mt.unit } : {}),
+        })),
         actions: m.actionTypes
           .filter((a) => a.modifiedEntities?.[t.apiName])
           .map((a) => ({ apiName: a.apiName, creates: !!a.modifiedEntities?.[t.apiName]?.created, modifies: !!a.modifiedEntities?.[t.apiName]?.modified })),
@@ -247,6 +263,87 @@ export function createOntologyMcpServer(options: OntologyMcpOptions): McpServer 
       });
     }),
   );
+
+  server.registerTool(
+    "query_metric",
+    {
+      description:
+        "Compute a governed metric declared on an object type (see get_type). Choose a period (from/to, ISO dates), a grain (day, week, month, quarter, year) and groupBy properties or link.property paths across one-to-one links.",
+      inputSchema: z.object({
+        objectType: z.string().min(1),
+        metric: z.string().min(1),
+        from: z.string().optional(),
+        to: z.string().optional(),
+        grain: z.enum(["day", "week", "month", "quarter", "year"]).optional(),
+        groupBy: z.array(z.string().min(1)).optional(),
+        ontology: ontologyArg,
+      }),
+    },
+    guarded(async (args: { objectType: string; metric: string; from?: string; to?: string; grain?: string; groupBy?: string[]; ontology?: string }) => {
+      const m = await resolveOntology(args.ontology);
+      if (!m.objectTypes.some((t) => t.apiName === args.objectType)) return fail(`No visible object type "${args.objectType}".`);
+      return ok(
+        await api.queryMetric(m.rid, {
+          objectType: args.objectType,
+          metric: args.metric,
+          ...(args.from ? { from: args.from } : {}),
+          ...(args.to ? { to: args.to } : {}),
+          ...(args.grain ? { grain: args.grain } : {}),
+          ...(args.groupBy ? { groupBy: args.groupBy } : {}),
+        }),
+      );
+    }),
+  );
+
+  if (options.enableActions) {
+    const actionArgs = {
+      actionType: z.string().min(1),
+      parameters: z.record(z.string(), z.unknown()),
+      ontology: ontologyArg,
+    };
+    const visibleAction = async (ontology: string | undefined, actionType: string) => {
+      const m = await resolveOntology(ontology);
+      return { m, action: m.actionTypes.find((a) => a.apiName === actionType) };
+    };
+    /** A refusal is an answer, not an error: return svc-actions' reasons verbatim. */
+    const outcome = (r: Awaited<ReturnType<OntologyApi["applyAction"]>>) =>
+      r.validation.result === "INVALID"
+        ? {
+            result: "REFUSED",
+            reasons: (r.validation.submissionCriteria ?? []).map((c) => c.configuredFailureMessage).filter(Boolean),
+            invalidParameters: Object.entries(r.validation.parameters ?? {}).filter(([, p]) => p.result === "INVALID").map(([k]) => k),
+          }
+        : r.proposal
+          ? { result: "PROPOSED", proposal: r.proposal, note: "Nothing changed yet: a person must approve this proposal." }
+          : { result: "APPLIED", edits: r.edits };
+
+    server.registerTool(
+      "validate_action",
+      {
+        description: "Check whether an action would be accepted with these parameters, without changing anything.",
+        inputSchema: z.object(actionArgs),
+      },
+      guarded(async ({ actionType, parameters, ontology }: { actionType: string; parameters: Record<string, unknown>; ontology?: string }) => {
+        const { m, action } = await visibleAction(ontology, actionType);
+        if (!action) return fail(`No visible action type "${actionType}". Use list_actions.`);
+        return ok(outcome(await api.applyAction(m.rid, actionType, parameters, { validateOnly: true })));
+      }),
+    );
+
+    server.registerTool(
+      "apply_action",
+      {
+        description:
+          "Apply an action. Pass a fresh idempotencyKey per intended change and reuse it on retries, so a retry cannot apply twice. If the action requires approval the result is PROPOSED and nothing changes until a person approves.",
+        inputSchema: z.object({ ...actionArgs, idempotencyKey: z.string().min(8).max(255) }),
+      },
+      guarded(async ({ actionType, parameters, ontology, idempotencyKey }: { actionType: string; parameters: Record<string, unknown>; ontology?: string; idempotencyKey: string }) => {
+        const { m, action } = await visibleAction(ontology, actionType);
+        if (!action) return fail(`No visible action type "${actionType}". Use list_actions.`);
+        return ok(outcome(await api.applyAction(m.rid, actionType, parameters, { validateOnly: false, idempotencyKey })));
+      }),
+    );
+  }
 
   return server;
 }
