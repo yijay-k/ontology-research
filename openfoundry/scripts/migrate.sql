@@ -1014,3 +1014,30 @@ CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox (id) WHERE delivered_at 
 -- Agent-facing descriptions (db/migrations/020)
 ALTER TABLE object_types ADD COLUMN IF NOT EXISTS agent_description TEXT;
 ALTER TABLE action_types ADD COLUMN IF NOT EXISTS agent_description TEXT;
+
+-- Action approval (db/migrations/021)
+ALTER TABLE action_types ADD COLUMN IF NOT EXISTS requires_approval BOOLEAN NOT NULL DEFAULT false;
+
+CREATE TABLE IF NOT EXISTS action_proposals (
+    id           SERIAL PRIMARY KEY,
+    rid          TEXT NOT NULL UNIQUE,
+    ontology_rid TEXT NOT NULL,
+    action_type  TEXT NOT NULL,
+    parameters   JSONB NOT NULL,
+    edits        JSONB NOT NULL,
+    reads        JSONB NOT NULL DEFAULT '[]',
+    proposed_by  TEXT,
+    status       TEXT NOT NULL CHECK (status IN ('PENDING', 'APPROVED', 'REJECTED', 'STALE')),
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    decided_by   TEXT,
+    decided_at   TIMESTAMPTZ,
+    reason       TEXT,
+    commit_id    TEXT
+);
+CREATE INDEX IF NOT EXISTS idx_action_proposals_status ON action_proposals (ontology_rid, status);
+
+-- Commit changes for edit history and revert (db/migrations/022)
+ALTER TABLE action_commits ADD COLUMN IF NOT EXISTS changes JSONB NOT NULL DEFAULT '[]';
+ALTER TABLE action_commits ADD COLUMN IF NOT EXISTS revert_of TEXT;
+ALTER TABLE action_commits ADD COLUMN IF NOT EXISTS reverted_by TEXT;
+CREATE INDEX IF NOT EXISTS idx_action_commits_changes ON action_commits USING GIN (changes jsonb_path_ops);

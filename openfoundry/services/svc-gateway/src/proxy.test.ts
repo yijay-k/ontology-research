@@ -76,6 +76,18 @@ describe("Gateway proxy routing", () => {
     expect(calledUrl).toContain("mock-ontology:8081");
   });
 
+  it("proxies /api/v2/ontologies/{rid}/proposals to svc-actions", async () => {
+    for (const url of ["/api/v2/ontologies/ri.123/proposals?status=PENDING", "/api/v2/ontologies/ri.123/proposals/p1/approve"]) {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+        new Response("{}", { status: 200, headers: { "content-type": "application/json" } }),
+      );
+      const app = await createServer({ config: TEST_CONFIG });
+      await app.inject({ method: url.endsWith("approve") ? "POST" : "GET", url });
+      const calledUrl = String(vi.mocked(globalThis.fetch).mock.calls.at(-1)![0]);
+      expect(calledUrl).toContain(TEST_CONFIG.services.actions);
+    }
+  });
+
   it("proxies POST /api/v2/ontologies/ri.123/objectTypes to svc-ontology", async () => {
     const mockResponse = new Response(JSON.stringify({ apiName: "Employee" }), {
       status: 201,

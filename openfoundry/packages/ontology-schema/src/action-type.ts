@@ -83,6 +83,14 @@ export interface ActionTypeDefinition {
 
   /** Lifecycle status of this action type. */
   readonly status: ActionTypeStatus;
+
+  /**
+   * When true, applying the action stages a proposal instead of committing:
+   * the evaluated edit plan waits for someone holding `actions:approve`, other
+   * than the proposer, and commits only if nothing it read has changed. Not
+   * part of Foundry's API: an openfoundry extension.
+   */
+  readonly requiresApproval?: boolean;
 }
 
 // ---------------------------------------------------------------------------

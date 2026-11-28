@@ -150,6 +150,10 @@ export interface ObjectReadWriteStore {
   applyEdits(ontologyRid: string, edits: ObjectEdit[], options?: CommitOptions): CommitResult | Promise<CommitResult>;
   /** The commit an idempotency key produced, if any. */
   getCommit(ontologyRid: string, idempotencyKey: string): StoredCommit | undefined | Promise<StoredCommit | undefined>;
+  /** A commit by its ID. */
+  getCommitById(ontologyRid: string, commitId: string): StoredCommit | undefined | Promise<StoredCommit | undefined>;
+  /** Every commit that touched one object, oldest first: its edit history. */
+  commitsTouching(ontologyRid: string, objectType: string, primaryKey: string): StoredCommit[] | Promise<StoredCommit[]>;
   /** Undelivered outbox events, oldest first. */
   pendingOutbox(limit: number): OutboxEvent[] | Promise<OutboxEvent[]>;
   /** Mark outbox events delivered, so they are not handed out again. */
@@ -202,12 +206,27 @@ export interface CommitOptions {
   reads?: ReadVersion[];
   actionType?: string;
   actor?: string;
+  /** The commit this one reverts; marked reverted in the same transaction, at most once. */
+  revertOf?: string;
 }
 
 export interface CommitResult {
   commitId: string;
   /** True when the idempotency key had already committed and nothing was applied. */
   replayed: boolean;
+}
+
+/**
+ * One object's state around a commit: its properties before the commit first
+ * touched it (`null` if the commit created it) and its version after the
+ * commit (`null` if the commit deleted it). Enough to undo the commit while
+ * the object still is at that version.
+ */
+export interface ObjectChange {
+  objectType: string;
+  primaryKey: string;
+  before: Record<string, unknown> | null;
+  afterVersion: number | null;
 }
 
 /** The commit log: one row per committed plan, written with its edits. */
@@ -217,7 +236,52 @@ export interface StoredCommit {
   actionType?: string;
   actor?: string;
   edits: ObjectEdit[];
+  changes: ObjectChange[];
   createdAt: string;
+  revertOf?: string;
+  revertedBy?: string;
+}
+
+/** Foundry-style 409 when a commit has already been reverted. */
+export function commitAlreadyReverted(commitId: string): OpenFoundryApiError {
+  return new OpenFoundryApiError({
+    errorCode: ErrorCode.CONFLICT,
+    errorName: "CommitAlreadyReverted",
+    message: `Commit ${commitId} has already been reverted`,
+    args: [safeArg("commitId", commitId)],
+  });
+}
+
+/**
+ * The edits that undo a commit, each pinned to the version the commit left
+ * the object at: if anyone changed it since, the revert is refused with
+ * `ObjectChanged` rather than overwriting their work. `current` is each
+ * touched object's present properties, needed to clear keys the commit added.
+ */
+export function revertEdits(
+  commit: StoredCommit,
+  current: (objectType: string, primaryKey: string) => Record<string, unknown> | undefined,
+): ObjectEdit[] {
+  const edits: ObjectEdit[] = [];
+  for (const c of commit.changes) {
+    if (c.before === null && c.afterVersion === null) continue; // created and deleted in one commit
+    if (c.before === null) {
+      edits.push({ type: "deleteObject", objectType: c.objectType, primaryKey: c.primaryKey, expectedVersion: c.afterVersion! });
+    } else if (c.afterVersion === null) {
+      edits.push({ type: "addObject", objectType: c.objectType, primaryKey: c.primaryKey, properties: c.before });
+    } else {
+      const now = current(c.objectType, c.primaryKey) ?? {};
+      const cleared = Object.fromEntries(Object.keys(now).filter((k) => !Object.hasOwn(c.before!, k)).map((k) => [k, null]));
+      edits.push({
+        type: "modifyObject",
+        objectType: c.objectType,
+        primaryKey: c.primaryKey,
+        properties: { ...cleared, ...c.before },
+        expectedVersion: c.afterVersion,
+      });
+    }
+  }
+  return edits;
 }
 
 /**
@@ -434,7 +498,7 @@ export class ObjectStore {
   private readonly EDITS_FILE: string | null;
   // ponytail: commits and outbox are not persisted to disk; the file store is
   // the demo mode, and a restart forgetting idempotency keys is acceptable there.
-  private readonly commits = new Map<string, Map<string, StoredCommit>>();
+  private readonly commits = new Map<string, StoredCommit[]>();
   private outbox: OutboxEvent[] = [];
   private outboxSeq = 0;
 
@@ -629,8 +693,11 @@ export class ObjectStore {
    */
   applyEdits(ontologyRid: string, edits: ObjectEdit[], options: CommitOptions = {}): CommitResult {
     const key = options.idempotencyKey;
-    const prior = key === undefined ? undefined : this.commits.get(ontologyRid)?.get(key);
+    const prior = key === undefined ? undefined : this.getCommit(ontologyRid, key);
     if (prior) return { commitId: prior.commitId, replayed: true };
+    const reverted = options.revertOf === undefined ? undefined : this.getCommitById(ontologyRid, options.revertOf);
+    if (options.revertOf !== undefined && !reverted) throw notFound("Commit", options.revertOf);
+    if (reverted?.revertedBy) throw commitAlreadyReverted(reverted.commitId);
 
     for (const read of options.reads ?? []) {
       const stored = this.findTypeMap(ontologyRid, read.objectType)?.get(read.primaryKey);
@@ -659,7 +726,13 @@ export class ObjectStore {
       present.set(key, edit.type !== "deleteObject");
     }
 
+    const before = new Map<string, ObjectChange>();
     for (const edit of edits) {
+      const k = `${edit.objectType}\u0000${edit.primaryKey}`;
+      if (!before.has(k)) {
+        const stored = this.findTypeMap(ontologyRid, edit.objectType)?.get(edit.primaryKey);
+        before.set(k, { objectType: edit.objectType, primaryKey: edit.primaryKey, before: stored ? { ...stored.properties } : null, afterVersion: null });
+      }
       if (edit.type === "addObject") {
         this.createObject(ontologyRid, edit.objectType, edit.primaryKey, edit.properties);
       } else if (edit.type === "modifyObject") {
@@ -672,13 +745,25 @@ export class ObjectStore {
     }
     this.saveEdits();
 
+    const changes = [...before.values()].map((c) => ({
+      ...c,
+      afterVersion: this.findTypeMap(ontologyRid, c.objectType)?.get(c.primaryKey)?.version ?? null,
+    }));
     const commitId = generateRid("actions", "commit").toString();
     const createdAt = new Date().toISOString();
-    if (key !== undefined) {
-      let byKey = this.commits.get(ontologyRid);
-      if (!byKey) this.commits.set(ontologyRid, (byKey = new Map()));
-      byKey.set(key, { commitId, idempotencyKey: key, actionType: options.actionType, actor: options.actor, edits, createdAt });
-    }
+    let log = this.commits.get(ontologyRid);
+    if (!log) this.commits.set(ontologyRid, (log = []));
+    log.push({
+      commitId,
+      ...(key !== undefined ? { idempotencyKey: key } : {}),
+      actionType: options.actionType,
+      actor: options.actor,
+      edits,
+      changes,
+      createdAt,
+      ...(options.revertOf ? { revertOf: options.revertOf } : {}),
+    });
+    if (reverted) reverted.revertedBy = commitId;
     this.outbox.push({
       id: ++this.outboxSeq,
       ontologyRid,
@@ -690,7 +775,17 @@ export class ObjectStore {
   }
 
   getCommit(ontologyRid: string, idempotencyKey: string): StoredCommit | undefined {
-    return this.commits.get(ontologyRid)?.get(idempotencyKey);
+    return this.commits.get(ontologyRid)?.find((c) => c.idempotencyKey === idempotencyKey);
+  }
+
+  getCommitById(ontologyRid: string, commitId: string): StoredCommit | undefined {
+    return this.commits.get(ontologyRid)?.find((c) => c.commitId === commitId);
+  }
+
+  commitsTouching(ontologyRid: string, objectType: string, primaryKey: string): StoredCommit[] {
+    return (this.commits.get(ontologyRid) ?? []).filter((c) =>
+      c.changes.some((ch) => ch.objectType === objectType && ch.primaryKey === primaryKey),
+    );
   }
 
   pendingOutbox(limit: number): OutboxEvent[] {

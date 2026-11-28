@@ -16,6 +16,7 @@ import { PgLinkStore } from "./store/pg-link-store.js";
 import { healthRoutes } from "./routes/health.js";
 import { objectRoutes } from "./routes/v2/objects.js";
 import { objectSetRoutes } from "./routes/v2/object-sets.js";
+import { historyRoutes } from "./routes/v2/history.js";
 import { linkRoutes } from "./routes/v2/links.js";
 import { v1Routes } from "./routes/v1/index.js";
 import { importRoutes } from "./routes/v2/import.js";
@@ -158,6 +159,7 @@ export async function createServer(
     objectTypeSchema: options.objectTypeSchema,
     pool: pgPool,
   });
+  await app.register(historyRoutes, { prefix: "/api/v2", store });
   await app.register(objectSetRoutes, {
     prefix: "/api/v2",
     store,

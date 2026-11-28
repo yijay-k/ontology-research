@@ -84,8 +84,8 @@ These close holes in what is already built. Without them the write path is unsaf
 |---|---|---|
 | ⏳ Schema migrations (drop, move, cast, backfill) so ACTIVE types can change safely | §4 L4; today breaking changes are only refused | M |
 | ⏳ Definition history (a model version per change) | §4 L3 | M |
-| ⏳ Proposals and approval: staged edits a human accepts, re-checked for staleness | §4 L7, R13 | M |
-| ⏳ Revert, edit history, "most recent wins", "drop all edits" | §4 L4/L7 | M |
+| ✅ Proposals and approval: `requiresApproval` action types stage PENDING proposals; Owner approval by someone other than the proposer commits the reviewed plan or marks it STALE; reject with reason. Tested on memory and Postgres. ⏳ Approval tiers (amount thresholds), notification on new proposals | §4 L7, R13 | M |
+| 🟡 ✅ Edit history per object and revert (once, refused over later changes), on memory and both Postgres schemas. ⏳ "Most recent wins" merge strategy, "drop all edits" | §4 L4/L7 | M |
 | ⏳ Derived properties, structs, modelling lint | §4 L3 | M |
 | ⏳ Decide H1: consolidate svc-actions, svc-objects and svc-ontology's write path into one process, or document the single-transaction rule as permanent | H1, H5 | M |
 

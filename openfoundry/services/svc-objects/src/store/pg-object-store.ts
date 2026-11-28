@@ -8,7 +8,7 @@ import {
   encodePageToken,
   type PageToken,
 } from "@openfoundry/pagination";
-import { committedEvent, objectChanged } from "./object-store.js";
+import { commitAlreadyReverted, committedEvent, objectChanged } from "./object-store.js";
 import {
   planSync,
   recordEdit,
@@ -20,6 +20,7 @@ import {
 import type {
   CommitOptions,
   CommitResult,
+  ObjectChange,
   ListOptions,
   ListResult,
   ObjectEdit,
@@ -508,6 +509,23 @@ export class PgObjectStore {
           return { commitId: rows[0].commit_id, replayed: true };
         }
 
+        if (options.revertOf) {
+          // Claim the reverted commit in this transaction: of two concurrent
+          // reverts, only one finds reverted_by still empty.
+          const claimed = await client.query({
+            text: `UPDATE action_commits SET reverted_by = $3
+                   WHERE ontology_rid = $1 AND commit_id = $2 AND reverted_by IS NULL`,
+            values: [ontologyRid, options.revertOf, commitId],
+          });
+          if (claimed.rowCount === 0) {
+            const { rowCount } = await client.query({
+              text: `SELECT 1 FROM action_commits WHERE ontology_rid = $1 AND commit_id = $2`,
+              values: [ontologyRid, options.revertOf],
+            });
+            throw rowCount ? commitAlreadyReverted(options.revertOf) : notFound("Commit", options.revertOf);
+          }
+        }
+
         // Objects the plan only read are share-locked at the version read, so
         // no concurrent action can write them before this one commits.
         for (const read of reads) {
@@ -518,8 +536,18 @@ export class PgObjectStore {
           if (rows[0]?.version !== read.version) throw objectChanged(read.objectType, read.primaryKey);
         }
 
+        // Each touched object's properties before its first edit here, locked.
+        const changes = new Map<string, ObjectChange>();
         for (const edit of edits) {
           const objectTypeRid = typeRids.get(edit.objectType)!;
+          const touched = `${edit.objectType}\u0000${edit.primaryKey}`;
+          if (!changes.has(touched)) {
+            const { rows } = await client.query<{ properties: Record<string, unknown> }>({
+              text: `SELECT properties FROM objects WHERE object_type_rid = $1 AND primary_key = $2 FOR UPDATE`,
+              values: [objectTypeRid, edit.primaryKey],
+            });
+            changes.set(touched, { objectType: edit.objectType, primaryKey: edit.primaryKey, before: rows[0]?.properties ?? null, afterVersion: null });
+          }
           if (edit.type === "addObject") {
             const rid = generateRid("phonograph2-objects", "object").toString();
             const insert = this.insertColumns([rid, objectTypeRid, edit.primaryKey, JSON.stringify(edit.properties)]);
@@ -560,6 +588,18 @@ export class PgObjectStore {
           await this.recordEditRow(client, objectTypeRid, edit);
         }
 
+        for (const change of changes.values()) {
+          const { rows } = await client.query<{ version: number }>({
+            text: `SELECT version FROM objects WHERE object_type_rid = $1 AND primary_key = $2`,
+            values: [typeRids.get(change.objectType), change.primaryKey],
+          });
+          change.afterVersion = rows[0]?.version ?? null;
+        }
+        await client.query({
+          text: `UPDATE action_commits SET changes = $2, revert_of = $3 WHERE commit_id = $1`,
+          values: [commitId, JSON.stringify([...changes.values()]), options.revertOf ?? null],
+        });
+
         const event = this.tenantColumns(
           ["ontology_rid", "topic", "payload"],
           [ontologyRid, "action.committed", JSON.stringify(committedEvent(commitId, edits, options))],
@@ -579,26 +619,40 @@ export class PgObjectStore {
     }
   }
 
-  async getCommit(ontologyRid: string, idempotencyKey: string): Promise<StoredCommit | undefined> {
+  private async commitsWhere(where: string, values: unknown[]): Promise<StoredCommit[]> {
     return this.withTenant(async (client) => {
       const { rows } = await client.query<{
-        commit_id: string; idempotency_key: string; action_type: string | null; actor: string | null;
-        edits: ObjectEdit[]; created_at: Date | string;
-      }>({
-        text: `SELECT * FROM action_commits WHERE ontology_rid = $1 AND idempotency_key = $2`,
-        values: [ontologyRid, idempotencyKey],
-      });
-      const row = rows[0];
-      if (!row) return undefined;
-      return {
+        commit_id: string; idempotency_key: string | null; action_type: string | null; actor: string | null;
+        edits: ObjectEdit[]; changes: ObjectChange[] | null; created_at: Date | string;
+        revert_of: string | null; reverted_by: string | null;
+      }>({ text: `SELECT * FROM action_commits WHERE ${where} ORDER BY id`, values });
+      return rows.map((row) => ({
         commitId: row.commit_id,
-        idempotencyKey: row.idempotency_key,
+        ...(row.idempotency_key ? { idempotencyKey: row.idempotency_key } : {}),
         actionType: row.action_type ?? undefined,
         actor: row.actor ?? undefined,
         edits: row.edits,
+        changes: row.changes ?? [],
         createdAt: new Date(row.created_at).toISOString(),
-      };
+        ...(row.revert_of ? { revertOf: row.revert_of } : {}),
+        ...(row.reverted_by ? { revertedBy: row.reverted_by } : {}),
+      }));
     });
+  }
+
+  async getCommit(ontologyRid: string, idempotencyKey: string): Promise<StoredCommit | undefined> {
+    return (await this.commitsWhere("ontology_rid = $1 AND idempotency_key = $2", [ontologyRid, idempotencyKey]))[0];
+  }
+
+  async getCommitById(ontologyRid: string, commitId: string): Promise<StoredCommit | undefined> {
+    return (await this.commitsWhere("ontology_rid = $1 AND commit_id = $2", [ontologyRid, commitId]))[0];
+  }
+
+  async commitsTouching(ontologyRid: string, objectType: string, primaryKey: string): Promise<StoredCommit[]> {
+    return this.commitsWhere("ontology_rid = $1 AND changes @> $2::jsonb", [
+      ontologyRid,
+      JSON.stringify([{ objectType, primaryKey }]),
+    ]);
   }
 
   async pendingOutbox(limit: number): Promise<OutboxEvent[]> {

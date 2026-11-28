@@ -49,6 +49,7 @@ interface ActionTypeRow {
   modified_entities: Record<string, unknown>;
   status: string;
   agent_description?: string | null;
+  requires_approval?: boolean | null;
 }
 
 interface LinkTypeRow {
@@ -118,6 +119,7 @@ function rowToActionType(row: ActionTypeRow): ActionTypeDefinition {
     modifiedEntities: row.modified_entities as ActionTypeDefinition["modifiedEntities"],
     status: row.status as ActionTypeDefinition["status"],
     ...(row.agent_description ? { agentDescription: row.agent_description } : {}),
+    ...(row.requires_approval ? { requiresApproval: true } : {}),
   };
 }
 
@@ -389,6 +391,7 @@ export class PgOntologyStore {
         modified_entities: jsonbSet(def.modifiedEntities as unknown as Record<string, unknown>),
         status: def.status,
         agent_description: def.agentDescription ?? null,
+        requires_approval: def.requiresApproval === true,
       })
       .returning();
 
@@ -457,6 +460,7 @@ export class PgOntologyStore {
         modified_entities: jsonbSet(def.modifiedEntities as unknown as Record<string, unknown>),
         status: def.status,
         agent_description: def.agentDescription ?? null,
+        requires_approval: def.requiresApproval === true,
       })
       .where("ontology_rid = ? AND api_name = ?", ontologyRid, apiName)
       .returning();

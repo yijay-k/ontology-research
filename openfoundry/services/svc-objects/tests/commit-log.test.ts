@@ -19,7 +19,7 @@ import { citext } from "@electric-sql/pglite/contrib/citext";
 import { pgcrypto } from "@electric-sql/pglite/contrib/pgcrypto";
 import { pg_trgm } from "@electric-sql/pglite/contrib/pg_trgm";
 import { vector } from "@electric-sql/pglite-pgvector";
-import { ObjectStore, type ObjectEdit, type ObjectReadWriteStore } from "../src/store/object-store.js";
+import { ObjectStore, revertEdits, type ObjectEdit, type ObjectReadWriteStore } from "../src/store/object-store.js";
 import { PgObjectStore } from "../src/store/pg-object-store.js";
 
 const RID = "ri.ontology.main.ontology.commits";
@@ -149,4 +149,60 @@ describe.each([
     await store.applyEdits(RID, [withdraw("a", 50)], { reads });
     expect(await balance("a")).toBe(50);
   });
+
+  /** What the revert route does: invert the commit, pinned to the versions it left. */
+  const revert = async (commitId: string) => {
+    const commit = (await store.getCommitById(RID, commitId))!;
+    const current = new Map<string, Record<string, unknown>>();
+    for (const c of commit.changes) {
+      try {
+        current.set(c.primaryKey, (await store.getObject(RID, c.objectType, c.primaryKey)).properties);
+      } catch { /* gone */ }
+    }
+    return store.applyEdits(RID, revertEdits(commit, (_t, pk) => current.get(pk)), { revertOf: commitId, actionType: "revert" });
+  };
+
+  it("keeps each object's edit history with what it held before", async () => {
+    const c1 = await store.applyEdits(RID, [withdraw("a", 70)], { actionType: "withdraw", actor: "alice" });
+    await store.applyEdits(RID, [withdraw("b", 10)]);
+    const c3 = await store.applyEdits(RID, [withdraw("a", 40)]);
+    const history = await store.commitsTouching(RID, "Account", "a");
+    expect(history.map((c) => c.commitId)).toEqual([c1.commitId, c3.commitId]);
+    expect(history[0]).toMatchObject({ actionType: "withdraw", actor: "alice" });
+    expect(history[0].changes).toEqual([{ objectType: "Account", primaryKey: "a", before: { id: "a", balance: 100 }, afterVersion: 2 }]);
+    expect(history[1].changes[0].before).toEqual({ id: "a", balance: 70 });
+  });
+
+  it("reverts a commit once, as a commit of its own", async () => {
+    const c1 = await store.applyEdits(RID, [withdraw("a", 70)]);
+    const r = await revert(c1.commitId);
+    expect(await balance("a")).toBe(100);
+    expect((await store.getCommitById(RID, c1.commitId))?.revertedBy).toBe(r.commitId);
+    expect((await store.getCommitById(RID, r.commitId))?.revertOf).toBe(c1.commitId);
+    await expect(attempt(() => revert(c1.commitId))).rejects.toMatchObject({ statusCode: 409, errorName: "CommitAlreadyReverted" });
+    expect(await balance("a")).toBe(100);
+  });
+
+  it("refuses to revert over a later change", async () => {
+    const c1 = await store.applyEdits(RID, [withdraw("a", 70)]);
+    await store.applyEdits(RID, [withdraw("a", 60)]);
+    await expect(attempt(() => revert(c1.commitId))).rejects.toMatchObject({ errorName: "ObjectChanged" });
+    expect(await balance("a")).toBe(60);
+    expect((await store.getCommitById(RID, c1.commitId))?.revertedBy).toBeUndefined();
+  });
+
+  it("reverts a create by deleting and a delete by re-adding, clearing keys a commit added", async () => {
+    const created = await store.applyEdits(RID, [{ type: "addObject", objectType: "Account", primaryKey: "c", properties: { id: "c", balance: 5 } }]);
+    await revert(created.commitId);
+    expect((await store.allObjects(RID, "Account")).map((o) => o.primaryKey).sort()).toEqual(["a", "b"]);
+
+    const deleted = await store.applyEdits(RID, [{ type: "deleteObject", objectType: "Account", primaryKey: "b" }]);
+    await revert(deleted.commitId);
+    expect(await balance("b")).toBe(100);
+
+    const noted = await store.applyEdits(RID, [{ type: "modifyObject", objectType: "Account", primaryKey: "a", properties: { note: "frozen" } }]);
+    await revert(noted.commitId);
+    expect((await store.getObject(RID, "Account", "a")).properties.note ?? null).toBeNull();
+  });
 });
+

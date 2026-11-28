@@ -89,6 +89,8 @@ export const OPERATION_ROLES = {
   "datasets:delete": "editor",
   "actions:read": "viewer",
   "actions:execute": "editor",
+  // Approving a staged proposal commits someone else's edit plan.
+  "actions:approve": "owner",
   "resource:discover": "discoverer",
   "resource:manage-roles": "owner",
   "admin:manage": "owner",

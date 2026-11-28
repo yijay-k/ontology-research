@@ -6,6 +6,7 @@ import { ErrorCode, OpenFoundryApiError, notFound, safeArg } from "@openfoundry/
 import type { ObjectEdit, ObjectsGateway, OntologySource, ReadVersion } from "./clients.js";
 import type { ActionLogic } from "./logic.js";
 import type { ActionExecutionLog } from "./store/action-log.js";
+import type { Proposal, ProposalStore } from "./store/proposals.js";
 import { validateActionParameters } from "./validation.js";
 
 // Wire shapes below are Foundry's, from `foundry_sdk/v2/ontologies/models.py`.
@@ -36,6 +37,8 @@ export interface ActionDeps {
   ontology: OntologySource;
   objects: ObjectsGateway;
   logic: Readonly<Record<string, ActionLogic>>;
+  /** Where actions that require approval stage their plans. */
+  proposals?: ProposalStore;
 }
 
 export interface Evaluation {
@@ -46,6 +49,8 @@ export interface Evaluation {
   reads?: ReadVersion[];
   /** True when an earlier call with the same idempotency key already committed. */
   replayed?: boolean;
+  /** Set when the action requires approval: the plan was staged, not committed. */
+  proposal?: Proposal;
 }
 
 /** Per-call context for a commit: the caller's idempotency key and identity. */
@@ -315,6 +320,7 @@ export async function applyAction(
     const prior = await deps.objects.getCommit(ontologyRid, call.idempotencyKey);
     if (prior) return { validation: replayedValidation(actionType), edits: prior.edits, replayed: true };
   }
+  if (actionType.requiresApproval) return propose(deps, ontologyRid, actionType, params, call);
   const execution = await log.logStart(actionType.apiName, params);
   try {
     for (let attempt = 1; ; attempt++) {
@@ -351,6 +357,103 @@ export async function applyAction(
   }
 }
 
+/** Evaluate and stage the plan as a PENDING proposal; nothing is written to objects. */
+async function propose(
+  deps: ActionDeps,
+  ontologyRid: string,
+  actionType: ActionTypeDefinition,
+  params: Record<string, unknown>,
+  call: CallContext,
+): Promise<Evaluation> {
+  if (!deps.proposals) applyActionFailed(actionType.apiName, "This action requires approval and no proposal store is configured");
+  const evaluation = await evaluate(deps, ontologyRid, actionType, params);
+  if (!evaluation.edits) return evaluation;
+  const proposal = await deps.proposals.create({
+    ontologyRid,
+    actionType: actionType.apiName,
+    parameters: params,
+    edits: evaluation.edits,
+    reads: evaluation.reads ?? [],
+    proposedBy: call.actor,
+  });
+  return { ...evaluation, proposal };
+}
+
+function conflict(errorName: string, message: string, proposal: string): OpenFoundryApiError {
+  return new OpenFoundryApiError({
+    errorCode: ErrorCode.CONFLICT,
+    errorName,
+    message,
+    args: [safeArg("proposal", proposal)],
+  });
+}
+
+async function pendingProposal(deps: ActionDeps, ontologyRid: string, rid: string): Promise<Proposal> {
+  const proposal = await deps.proposals?.get(ontologyRid, rid);
+  if (!proposal) throw notFound("Proposal", rid);
+  if (proposal.status !== "PENDING") {
+    throw conflict("ProposalNotPending", `Proposal ${rid} is already ${proposal.status}`, rid);
+  }
+  return proposal;
+}
+
+/**
+ * Commit a proposal's plan exactly as it was reviewed. The edits carry the
+ * versions they were computed from and the reads their versions, so if any
+ * of those objects changed since, the commit is refused and the proposal is
+ * marked STALE: it is not re-run on fresh data, because that would commit a
+ * plan nobody reviewed. The idempotency key makes a repeated approval safe.
+ */
+export async function approveProposal(
+  deps: ActionDeps,
+  ontologyRid: string,
+  rid: string,
+  approver: string | undefined,
+): Promise<Proposal> {
+  const proposal = await pendingProposal(deps, ontologyRid, rid);
+  if (proposal.proposedBy && approver === proposal.proposedBy) {
+    throw new OpenFoundryApiError({
+      errorCode: ErrorCode.PERMISSION_DENIED,
+      errorName: "ProposalSelfApproval",
+      message: "A proposal must be approved by someone other than its proposer",
+      args: [safeArg("proposal", rid)],
+    });
+  }
+  let commit;
+  try {
+    commit = await deps.objects.applyEdits(ontologyRid, proposal.edits, {
+      idempotencyKey: `proposal:${rid}`,
+      reads: proposal.reads,
+      actionType: proposal.actionType,
+      actor: approver,
+    });
+  } catch (err) {
+    if (!isObjectChanged(err)) throw err;
+    await deps.proposals!.decide(ontologyRid, rid, {
+      status: "STALE",
+      decidedBy: approver,
+      reason: "An object the plan read or writes changed after it was proposed",
+    });
+    throw conflict("ProposalStale", `Proposal ${rid} is stale: an object it depends on changed. Propose it again.`, rid);
+  }
+  const decided = await deps.proposals!.decide(ontologyRid, rid, { status: "APPROVED", decidedBy: approver, commitId: commit.commitId });
+  // A concurrent approval decided it first; its commit is the same one (same key).
+  return decided ?? (await deps.proposals!.get(ontologyRid, rid))!;
+}
+
+export async function rejectProposal(
+  deps: ActionDeps,
+  ontologyRid: string,
+  rid: string,
+  decidedBy: string | undefined,
+  reason: string | undefined,
+): Promise<Proposal> {
+  await pendingProposal(deps, ontologyRid, rid);
+  const decided = await deps.proposals!.decide(ontologyRid, rid, { status: "REJECTED", decidedBy, reason });
+  if (!decided) throw conflict("ProposalNotPending", `Proposal ${rid} was decided concurrently`, rid);
+  return decided;
+}
+
 /**
  * Apply a batch as one commit: every request is evaluated first, and if any is
  * invalid nothing is applied. Like Foundry's batched write mode, each request's
@@ -364,6 +467,9 @@ export async function applyActionBatch(
   paramSets: Array<Record<string, unknown>>,
   call: CallContext = {},
 ): Promise<ObjectEdit[]> {
+  if (actionType.requiresApproval) {
+    throw badRequest("ApplyActionFailed", "Actions that require approval are proposed one at a time; use apply", actionType.apiName);
+  }
   if (call.idempotencyKey) {
     const prior = await deps.objects.getCommit(ontologyRid, call.idempotencyKey);
     if (prior) return prior.edits;

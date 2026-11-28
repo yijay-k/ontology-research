@@ -26,14 +26,22 @@ export async function ontologyRoutes(app: FastifyInstance): Promise<void> {
     //           GET links (objects/:type/:pk/links/:linkType)
     // /ontologies/{rid}/objectSets/... -> svc-objects
     //   Covers: POST loadObjects
+    // /ontologies/{rid}/commits/... -> svc-objects (openfoundry extension: revert)
     if (/\/ontologies\/[^/]+\/objects(\/|$)/.test(url) ||
-        /\/ontologies\/[^/]+\/objectSets(\/|$)/.test(url)) {
+        /\/ontologies\/[^/]+\/objectSets(\/|$)/.test(url) ||
+        /\/ontologies\/[^/]+\/commits(\/|$)/.test(url)) {
       return proxyRequest(request, reply, app.config.services.objects);
     }
 
     // /ontologies/{rid}/actions/{action}/{apply,applyBatch} -> svc-actions.
     // Foundry v2 has no separate validate route: apply with mode VALIDATE_ONLY.
     if (/\/ontologies\/[^/]+\/actions\/[^/]+\/(apply|applyBatch)(\?|$)/.test(url)) {
+      return proxyRequest(request, reply, app.config.services.actions);
+    }
+
+    // /ontologies/{rid}/proposals[/...] -> svc-actions (openfoundry extension:
+    // plans staged by actions that require approval).
+    if (/\/ontologies\/[^/]+\/proposals(\/|\?|$)/.test(url)) {
       return proxyRequest(request, reply, app.config.services.actions);
     }
 

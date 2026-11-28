@@ -78,9 +78,11 @@ export async function actionRoutes(
         return { validation };
       }
 
-      const { validation, edits } = await applyAction(
+      const { validation, edits, proposal } = await applyAction(
         deps, deps.log, ontologyRid, actionType, parameters, callContext(request.headers),
       );
+      // A staged proposal is reported in place of edits: nothing was applied.
+      if (proposal) return { validation, proposal: { rid: proposal.rid, status: proposal.status } };
       const result = edits ? editsFor(options.returnEdits, edits) : undefined;
       return { validation, ...(result ? { edits: result } : {}) };
     },

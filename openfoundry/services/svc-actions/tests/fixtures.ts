@@ -78,6 +78,14 @@ export const ACTION_TYPES: ActionTypeDefinition[] = [
     status: "ACTIVE",
   },
   {
+    apiName: "bulk-reorder",
+    description: "Reorder stock, above the threshold that needs a second person",
+    parameters: { productId: param("string"), quantity: param("integer"), supplier: param("string", false) },
+    modifiedEntities: { TreatmentProduct: { created: false, modified: true } },
+    status: "ACTIVE",
+    requiresApproval: true,
+  },
+  {
     apiName: "no-logic",
     description: "Declared in the ontology, with no logic behind it",
     parameters: {},

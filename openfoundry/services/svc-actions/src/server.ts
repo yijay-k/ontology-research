@@ -10,6 +10,9 @@ import {
 import { type ActionsConfig, loadConfig } from "./config.js";
 import { ActionLog, type ActionExecutionLog } from "./store/action-log.js";
 import { PgActionLog } from "./store/pg-action-log.js";
+import { MemoryProposalStore, type ProposalStore } from "./store/proposals.js";
+import { PgProposalStore } from "./store/pg-proposals.js";
+import { proposalRoutes } from "./routes/v2/proposals.js";
 import { healthRoutes } from "./routes/health.js";
 import { actionRoutes } from "./routes/v2/actions.js";
 import { v1Routes } from "./routes/v1/index.js";
@@ -42,6 +45,9 @@ export interface CreateServerOptions {
 
   /** Provide an action log (useful for tests). */
   actionLog?: ActionExecutionLog;
+
+  /** Where proposals of actions that require approval are kept. */
+  proposals?: ProposalStore;
 }
 
 /**
@@ -68,6 +74,8 @@ export async function createServer(
     objects: options.objects ?? httpObjectsGateway(config.objectsServiceUrl),
     logic: options.logic ?? ACTION_LOGIC,
     log: actionLog,
+    proposals:
+      options.proposals ?? (config.databaseUrl ? new PgProposalStore(authPool ?? createPool({ connectionString: config.databaseUrl })) : new MemoryProposalStore()),
   };
 
   const app = Fastify({
@@ -142,6 +150,7 @@ export async function createServer(
 
   await app.register(healthRoutes);
   await app.register(actionRoutes, { prefix: "/api/v2", ...deps });
+  await app.register(proposalRoutes, { prefix: "/api/v2", ...deps });
   await app.register(v1Routes, { prefix: "/api/v1", ...deps });
 
   return app;

@@ -429,3 +429,118 @@ describe("error envelope", () => {
     });
   });
 });
+
+describe("actions that require approval", () => {
+  const LOGIC = { ...ACTION_LOGIC, "bulk-reorder": ACTION_LOGIC["reorder-product"] };
+  const proposals = `/api/v2/ontologies/${ONTOLOGY_RID}/proposals`;
+  const as = (user: string, extra: Record<string, string> = {}) => ({ "x-user-id": user, ...extra });
+  const propose = async (user = "alice") => {
+    const res = await app.inject({
+      method: "POST",
+      url: url("bulk-reorder"),
+      headers: as(user),
+      payload: { parameters: { productId: "PROD-1", quantity: 100 }, options: { returnEdits: "ALL" } },
+    });
+    return res.json();
+  };
+  const decide = (rid: string, verdict: "approve" | "reject", user: string, payload?: unknown) =>
+    app.inject({ method: "POST", url: `${proposals}/${rid}/${verdict}`, headers: as(user), ...(payload ? { payload } : {}) });
+
+  beforeEach(async () => {
+    // A named caller is checked against grants even when enforcement is off.
+    for (const [user, roleId] of [["alice", "editor"], ["bob", "owner"], ["carol", "owner"]] as const) {
+      await authz.addGrant({
+        resourceRid: ROOT_RESOURCE, principalType: "user", principalId: user,
+        roleId, grantedBy: "test", grantedAt: new Date().toISOString(),
+      });
+    }
+    await start(LOGIC);
+  });
+
+  it("stages the evaluated plan as a PENDING proposal and commits nothing", async () => {
+    const body = await propose();
+    expect(body.validation.result).toBe("VALID");
+    expect(body.proposal).toMatchObject({ status: "PENDING", rid: expect.stringContaining("proposal") });
+    expect(body).not.toHaveProperty("edits");
+    expect(objects.commits).toBe(0);
+
+    const listed = (await app.inject({ method: "GET", url: `${proposals}?status=PENDING` })).json().data;
+    expect(listed).toEqual([expect.objectContaining({ rid: body.proposal.rid, actionType: "bulk-reorder", proposedBy: "alice" })]);
+    expect(listed[0].edits[0]).toMatchObject({ primaryKey: "PROD-1", expectedVersion: 1 });
+  });
+
+  it("commits once when someone else approves, and refuses a second decision", async () => {
+    const { proposal } = await propose();
+    const approved = await decide(proposal.rid, "approve", "bob");
+    expect(approved.statusCode).toBe(200);
+    expect(approved.json()).toMatchObject({ status: "APPROVED", decidedBy: "bob", commitId: expect.any(String) });
+    expect(objects.commits).toBe(1);
+    expect(objects.rows.get("TreatmentProduct/PROD-1")?.stockQty).toBe(105);
+    expect(objects.commitOptions[0]).toMatchObject({ idempotencyKey: `proposal:${proposal.rid}`, actor: "bob" });
+
+    const again = await decide(proposal.rid, "approve", "carol");
+    expect(again.statusCode).toBe(409);
+    expect(again.json().errorName).toBe("ProposalNotPending");
+    expect(objects.commits).toBe(1);
+  });
+
+  it("refuses approval by the proposer, even one who may approve", async () => {
+    const { proposal } = await propose("bob");
+    const res = await decide(proposal.rid, "approve", "bob");
+    expect(res.statusCode).toBe(403);
+    expect(res.json().errorName).toBe("ProposalSelfApproval");
+    expect(objects.commits).toBe(0);
+  });
+
+  it("marks the proposal STALE, without committing, if what it read changed", async () => {
+    const { proposal } = await propose();
+    objects.write("TreatmentProduct", "PROD-1", { stockQty: 1 }); // someone else's write
+    const res = await decide(proposal.rid, "approve", "bob");
+    expect(res.statusCode).toBe(409);
+    expect(res.json().errorName).toBe("ProposalStale");
+    expect(objects.commits).toBe(0);
+    expect(objects.rows.get("TreatmentProduct/PROD-1")?.stockQty).toBe(1);
+    const stored = (await app.inject({ method: "GET", url: `${proposals}/${proposal.rid}` })).json();
+    expect(stored.status).toBe("STALE");
+  });
+
+  it("records a rejection and its reason", async () => {
+    const { proposal } = await propose();
+    const res = await decide(proposal.rid, "reject", "bob", { reason: "Quantity looks wrong" });
+    expect(res.json()).toMatchObject({ status: "REJECTED", decidedBy: "bob", reason: "Quantity looks wrong" });
+    expect((await decide(proposal.rid, "approve", "carol")).statusCode).toBe(409);
+    expect(objects.commits).toBe(0);
+  });
+
+  it("refuses to batch an action that requires approval", async () => {
+    const res = await app.inject({
+      method: "POST",
+      url: url("bulk-reorder", "applyBatch"),
+      payload: { requests: [{ parameters: { productId: "PROD-1", quantity: 1 } }] },
+    });
+    expect(res.statusCode).toBe(400);
+    expect(objects.commits).toBe(0);
+  });
+
+  describe("with permissions enforced", () => {
+    beforeEach(async () => {
+      await authz.addGrant({
+        resourceRid: ROOT_RESOURCE, principalType: "user", principalId: "test-editor",
+        roleId: "editor", grantedBy: "test", grantedAt: new Date().toISOString(),
+      });
+      setEnforcePermissions(true);
+    });
+    afterEach(() => setEnforcePermissions(false));
+
+    it("needs Owner to approve: an editor may propose but not approve", async () => {
+      const { proposal } = await propose("test-editor");
+      expect((await decide(proposal.rid, "approve", "test-editor")).statusCode).toBe(403);
+      const admin = await app.inject({
+        method: "POST",
+        url: `${proposals}/${proposal.rid}/approve`,
+        headers: as("admin", { "x-user-platform-admin": "true" }),
+      });
+      expect(admin.json().status).toBe("APPROVED");
+    });
+  });
+});
