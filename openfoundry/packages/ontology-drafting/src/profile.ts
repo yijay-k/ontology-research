@@ -62,7 +62,10 @@ const looksLikeKey = (column: string) => /(^id$|_id$|Id$|^key$|_key$|Key$|_code$
 /** Profile a parsed CSV: the first row is the header. */
 export function profileTable(name: string, table: string[][]): TableProfile {
   const [header = [], ...body] = table;
-  const rows = body.slice(0, SAMPLE_ROWS);
+  // Evenly spaced across the table: exports are usually in time order, and a
+  // head-of-file sample sees only the oldest, settled rows.
+  const rows =
+    body.length <= SAMPLE_ROWS ? body : Array.from({ length: SAMPLE_ROWS }, (_, i) => body[Math.floor((i * body.length) / SAMPLE_ROWS)]);
   const columns: ColumnProfile[] = header.map((column, i) => {
     const raw = rows.map((r) => r[i] ?? "");
     const filledValues = raw.filter((v) => v !== "");

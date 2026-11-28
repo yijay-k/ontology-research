@@ -12,6 +12,7 @@ import { type ObjectsConfig, loadConfig } from "./config.js";
 import { ObjectStore, type ObjectTypeSchemaSource } from "./store/object-store.js";
 import { PgObjectStore } from "./store/pg-object-store.js";
 import { LinkStore, type LinkReadWriteStore } from "./store/link-store.js";
+import { withForeignKeyLinks } from "./store/foreign-key-links.js";
 import { PgLinkStore } from "./store/pg-link-store.js";
 import { healthRoutes } from "./routes/health.js";
 import { objectRoutes } from "./routes/v2/objects.js";
@@ -83,8 +84,11 @@ export async function createServer(
 
   // Links live wherever objects live: in Postgres mode a link written before a
   // restart must still be there after it.
-  const linkStore: LinkReadWriteStore =
-    options.linkStore ?? (pgPool ? new PgLinkStore(pgPool) : new LinkStore());
+  const linkStore: LinkReadWriteStore = withForeignKeyLinks(
+    options.linkStore ?? (pgPool ? new PgLinkStore(pgPool) : new LinkStore()),
+    store,
+    options.linkTypes ?? httpLinkTypeSource(config.ontologyServiceUrl ?? "http://localhost:8081"),
+  );
 
   const app = Fastify({
     logger: {

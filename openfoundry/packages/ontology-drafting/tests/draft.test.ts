@@ -86,4 +86,21 @@ describe("drafting", () => {
     expect(cols).not.toHaveProperty("valueSet");
     expect(JSON.stringify(draft())).toBeTypeOf("string");
   });
+
+  it("samples across the whole table, not only its first rows", () => {
+    // Settled history first, the open items last: a head-of-file sample would
+    // see one constant status and never the open ones.
+    const ledger = csv("entry_id,status", range(3000, (i) => `${i},${i > 2900 ? "open" : "settled"}`));
+    const status = profileTable("ledger.csv", ledger).columns[1];
+    expect(status.values).toEqual(["open", "settled"]);
+  });
+
+  it("links a table to itself through an identifier named for it", () => {
+    const customers = csv("customer_id,name,bill_to_customer_id,parent_ref", range(30, (i) => `${i},C${i},${((i - 1) % 5) + 1},${i}`));
+    const d = draftOntology([{ datasetRid: "ri.datasets.main.dataset.customers", profile: profileTable("customers.csv", customers) }]);
+    // parent_ref matches every key but names nothing, so it is not a link.
+    expect(d.linkTypes).toEqual([
+      { apiName: "customerByBillToCustomerId", objectTypeApiName: "Customer", linkedObjectTypeApiName: "Customer", cardinality: "ONE", foreignKeyPropertyApiName: "billToCustomerId" },
+    ]);
+  });
 });

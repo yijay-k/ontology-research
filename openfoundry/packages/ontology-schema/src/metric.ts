@@ -99,10 +99,12 @@ export function measure(type: MeasureType, values: unknown[]): number | null {
   const numbers = present.map(Number).filter((n) => Number.isFinite(n));
   if (numbers.length === 0) return null;
   switch (type) {
+    // 15 significant digits is what a double holds exactly; beyond that a sum
+    // of cents shows binary noise (18046408.859999992 for 18046408.86).
     case "sum":
-      return numbers.reduce((a, b) => a + b, 0);
+      return Number(numbers.reduce((a, b) => a + b, 0).toPrecision(15));
     case "avg":
-      return numbers.reduce((a, b) => a + b, 0) / numbers.length;
+      return Number((numbers.reduce((a, b) => a + b, 0) / numbers.length).toPrecision(15));
     case "min":
       return Math.min(...numbers);
     case "max":

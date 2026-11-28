@@ -109,7 +109,7 @@ Everything above that needed only code is built. What remains needs actual datas
 | Gap | What it needs |
 |---|---|
 | Ingestion beyond CSV: connectors with cursors, incremental APPEND, deletion column, data quality | A real source system (ERP/ledger such as Xero, QuickBooks, NetSuite) or its exported tables, to fix cursor and deletion semantics against real change patterns |
-| Running cold-start drafting for real | The customer's actual tables, to measure how many drafted types and links survive human review |
+| Running cold-start drafting for real | Done once on public data (§2c: 13 of 13 drafted types and links kept). Still needs the customer's own tables |
 | Receivables domain pack: which fields are source-owned (`editable: false`), which metrics are certified | Real invoice, payment and remittance data plus the finance team's definitions |
 | Approval tiers (amount thresholds) | The customer's approval policy and real action volumes |
 | "Most recent wins" merge strategy | Source rows with reliable update timestamps |
@@ -118,6 +118,29 @@ Everything above that needed only code is built. What remains needs actual datas
 | Evidence/knowledge layer | The customer's documents (contracts, SOPs, AR mailbox) |
 | Outbox delivery and recovery | A real writeback target (ledger API, email) to deliver to |
 | One finance workflow end to end (the research's decision gate) | All of the above for one receivables process |
+
+## 2c. First real dataset: Wide World Importers (2026-11-28)
+
+Microsoft's WWI sample (MIT), the sales tables NVIDIA's eval uses, loaded into the local stack. `scripts/demo/wwi/prepare.py` projects six receivables tables (customers, categories, buying groups, payment methods, 70,510 invoices with amounts, due date and outstanding balance, 26,637 payments); `scripts/demo/wwi/load.sh` uploads them and drafts.
+
+**Result.** The drafter proposed 6 object types and 7 links with nothing skipped, all of which a reviewer would keep: invoice→customer, invoice→bill-to customer, customer→bill-to customer (head office), customer→category, customer→buying group, payment→customer, payment→method. Keys and types (INTEGER, DOUBLE, DATE, BOOLEAN) were all right. Applied as EXPERIMENTAL and synced in under a second per table. Metrics `openAmount` (84 unfinalized invoices, $267,011.44), `invoicedAmount`, `invoiceCount` and `collectedAmount` match the raw CSVs to the cent, including group-bys across links.
+
+**Defects it found, fixed in this change:**
+
+| Defect | Fix |
+|---|---|
+| Links declared by a foreign key property had no instances: traversal (searchAround, metric group-by, linked-object listing, derived properties) read only link rows, which dataset-backed types never get, so every drafted link answered nothing | `services/svc-objects/src/store/foreign-key-links.ts` resolves a cardinality-ONE link from the source's `foreignKeyPropertyApiName`, falling back to stored rows |
+| Profiling read the first 1,000 rows; WWI is in date order, so every sampled invoice was settled and `OutstandingBalance` looked constant | Evenly spaced sample across the table |
+| No self-links (`Customer.BillToCustomerID → Customer`) | Allowed when the column is named for the type |
+| Sums showed float noise (`18046408.859999992`) | `measure` rounds sum and avg to 15 significant digits |
+
+**Still open, in order:**
+
+1. Ratio metrics: DSO, collection rate and credit utilisation need one metric over two (open AR ÷ daily sales), which the metric layer cannot express. `check_answerable` still calls DSO "answerable" because it is lexical.
+2. `check_answerable` misses inflections ("invoiced", "unfinalized") and time words ("year"); a synonym or stemming pass is the cheap fix.
+3. `SalespersonPersonID` has no target (People was not loaded); drafting has no "foreign key with no table" hint.
+4. `load.sh` creates new datasets on every run; datasets live only in memory in this mode.
+5. Compare against NVIDIA's run on the same tables (their 31-term glossary) once their output is reproduced.
 
 ## 3. Deferred on purpose
 

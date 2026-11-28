@@ -455,3 +455,12 @@ describe("validateOntology", () => {
     expect(errors.some((e) => e.message.includes("Missing"))).toBe(true);
   });
 });
+
+describe("metric measures", () => {
+  it("sums cents without binary noise", async () => {
+    const { measure } = await import("../src/metric.js");
+    expect(0.1 + 0.2).not.toBe(0.3);
+    expect(measure("sum", [0.1, 0.2])).toBe(0.3);
+    expect(measure("avg", [0.1, 0.2, 0.3])).toBe(0.2);
+  });
+});

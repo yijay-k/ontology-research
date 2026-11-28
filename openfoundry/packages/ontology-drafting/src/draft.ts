@@ -109,7 +109,7 @@ export function draftOntology(sources: DraftSource[]): OntologyDraft {
       // The best target this column's values point into, if any.
       let best: LinkEvidence | undefined;
       for (const to of typed) {
-        if (to === from || to.keyProfile.type !== column.type) continue;
+        if (to.keyProfile.type !== column.type) continue;
         let matched = 0;
         for (const v of column.valueSet) if (to.keyProfile.valueSet.has(v)) matched++;
         const containment = matched / column.distinct;
@@ -118,7 +118,8 @@ export function draftOntology(sources: DraftSource[]): OntologyDraft {
           (stem(column.column) === stem(to.type) || stem(column.column) === stem(to.keyProfile.column) || stem(column.column).includes(stem(to.type)));
         // Small integer codes match small integer keys by chance; without a
         // name to go on, demand string values and enough of them to mean it.
-        const plausible = nameAffinity || (column.type === "STRING" && column.distinct >= 5);
+        // A table pointing at itself (bill-to customer, parent account) needs the name.
+        const plausible = nameAffinity || (to !== from && column.type === "STRING" && column.distinct >= 5);
         if (containment < CONTAINMENT || matched === 0 || !plausible) continue;
         const evidence: LinkEvidence = {
           link: "",
@@ -136,7 +137,7 @@ export function draftOntology(sources: DraftSource[]): OntologyDraft {
       if (!best) continue;
       // `invoiceBuyer`; a second link to the same target is told apart by its column.
       const pascal = (w: string) => w.replace(/^./, (c) => c.toUpperCase());
-      let apiName = `${propertyName(from.type)}${best.to}`;
+      let apiName = best.to === from.type ? `${propertyName(from.type)}By${pascal(propertyName(column.column))}` : `${propertyName(from.type)}${best.to}`;
       if (linkNames.has(apiName)) apiName += `By${pascal(propertyName(column.column))}`;
       linkNames.add(apiName);
       best.link = apiName;
