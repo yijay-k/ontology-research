@@ -61,6 +61,14 @@ export interface ActionTypeDefinition {
   /** Unique API name used to reference this action type programmatically. */
   readonly apiName: string;
 
+  /**
+   * What an agent should know to use this definition well: when it applies,
+   * what its values mean, what to avoid. Shown to agents in place of
+   * `description` when set; people still read `description`. Not part of
+   * Foundry's API: an openfoundry extension.
+   */
+  readonly agentDescription?: string;
+
   /** Human-readable description of what this action does. */
   readonly description: string;
 

@@ -7,6 +7,7 @@ import { linkTypeRoutes } from "./link-types.js";
 import { interfaceTypeRoutes } from "./interface-types.js";
 import { sharedPropertyTypeRoutes } from "./shared-property-types.js";
 import { queryTypeRoutes } from "./query-types.js";
+import { ossieRoutes } from "./ossie.js";
 
 export async function v2Routes(
   app: FastifyInstance,
@@ -21,4 +22,5 @@ export async function v2Routes(
   await app.register(interfaceTypeRoutes, routeOpts);
   await app.register(sharedPropertyTypeRoutes, routeOpts);
   await app.register(queryTypeRoutes, routeOpts);
+  await app.register(ossieRoutes, routeOpts);
 }

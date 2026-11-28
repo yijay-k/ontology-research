@@ -54,6 +54,8 @@ export interface CreateServerOptions {
   linkTypes?: LinkTypeSource;
   /** Where `interfaceBase` object sets find implementing types; defaults to svc-ontology over HTTP. */
   interfaces?: InterfaceSource;
+  /** The most objects one object set may resolve to; see `objectSetRoutes`. */
+  maxObjectSetSize?: number;
 }
 
 /**
@@ -162,6 +164,7 @@ export async function createServer(
     linkStore,
     objectTypeSchema: options.objectTypeSchema,
     interfaces: options.interfaces ?? httpInterfaceSource(config.ontologyServiceUrl ?? "http://localhost:8081"),
+    maxObjectSetSize: options.maxObjectSetSize,
   });
   await app.register(linkRoutes, {
     prefix: "/api/v2",

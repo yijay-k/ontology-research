@@ -1010,3 +1010,7 @@ CREATE TABLE IF NOT EXISTS outbox (
     delivered_at TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_outbox_pending ON outbox (id) WHERE delivered_at IS NULL;
+
+-- Agent-facing descriptions (db/migrations/020)
+ALTER TABLE object_types ADD COLUMN IF NOT EXISTS agent_description TEXT;
+ALTER TABLE action_types ADD COLUMN IF NOT EXISTS agent_description TEXT;

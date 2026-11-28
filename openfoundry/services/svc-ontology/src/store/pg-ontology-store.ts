@@ -37,6 +37,7 @@ interface ObjectTypeRow {
   implements: string[];
   status: string;
   datasources?: ObjectTypeDefinition["datasources"];
+  agent_description?: string | null;
 }
 
 interface ActionTypeRow {
@@ -47,6 +48,7 @@ interface ActionTypeRow {
   parameters: Record<string, unknown>;
   modified_entities: Record<string, unknown>;
   status: string;
+  agent_description?: string | null;
 }
 
 interface LinkTypeRow {
@@ -104,6 +106,7 @@ function rowToObjectType(row: ObjectTypeRow): ObjectTypeDefinition {
     implements: row.implements ?? [],
     status: row.status as ObjectTypeDefinition["status"],
     datasources: row.datasources ?? [],
+    ...(row.agent_description ? { agentDescription: row.agent_description } : {}),
   };
 }
 
@@ -114,6 +117,7 @@ function rowToActionType(row: ActionTypeRow): ActionTypeDefinition {
     parameters: row.parameters as ActionTypeDefinition["parameters"],
     modifiedEntities: row.modified_entities as ActionTypeDefinition["modifiedEntities"],
     status: row.status as ActionTypeDefinition["status"],
+    ...(row.agent_description ? { agentDescription: row.agent_description } : {}),
   };
 }
 
@@ -263,6 +267,7 @@ export class PgOntologyStore {
         implements: (def.implements ?? []) as unknown as string[],
         status: def.status ?? "EXPERIMENTAL",
         datasources: JSON.stringify(def.datasources ?? []),
+        agent_description: def.agentDescription ?? null,
       })
       .returning();
 
@@ -334,6 +339,7 @@ export class PgOntologyStore {
     if (def.implements !== undefined) data.implements = def.implements as unknown as string[];
     if (def.status !== undefined) data.status = def.status;
     if (def.datasources !== undefined) data.datasources = JSON.stringify(def.datasources);
+    if (def.agentDescription !== undefined) data.agent_description = def.agentDescription;
 
     if (Object.keys(data).length === 0) {
       return this.getObjectType(ontologyRid, apiName);
@@ -382,6 +388,7 @@ export class PgOntologyStore {
         parameters: jsonbSet(def.parameters as unknown as Record<string, unknown>),
         modified_entities: jsonbSet(def.modifiedEntities as unknown as Record<string, unknown>),
         status: def.status,
+        agent_description: def.agentDescription ?? null,
       })
       .returning();
 
@@ -449,6 +456,7 @@ export class PgOntologyStore {
         parameters: jsonbSet(def.parameters as unknown as Record<string, unknown>),
         modified_entities: jsonbSet(def.modifiedEntities as unknown as Record<string, unknown>),
         status: def.status,
+        agent_description: def.agentDescription ?? null,
       })
       .where("ontology_rid = ? AND api_name = ?", ontologyRid, apiName)
       .returning();

@@ -24,6 +24,13 @@ export interface PageCursor {
    * which would leave the boundary ambiguous exactly when it matters.
    */
   snapshotSize?: number;
+  /**
+   * Optional digest of the query that issued the token. A route that sets it
+   * refuses the token for any other query, so a page token cannot be replayed
+   * against a different filter, ordering or projection and silently skip or
+   * repeat rows.
+   */
+  queryHash?: string;
 }
 
 /**
@@ -121,8 +128,13 @@ export function decodePageToken(token: PageToken): PageCursor {
     );
   }
 
+  if (obj.queryHash !== undefined && typeof obj.queryHash !== "string") {
+    throw new Error(`Invalid page token: "queryHash" must be a string if present`);
+  }
+
   return {
     offset: obj.offset,
+    ...(obj.queryHash !== undefined && { queryHash: obj.queryHash as string }),
     ...(obj.lastId !== undefined && { lastId: obj.lastId as string }),
     ...(obj.sortValues !== undefined && {
       sortValues: obj.sortValues as unknown[],

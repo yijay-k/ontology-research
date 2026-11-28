@@ -52,6 +52,22 @@ describe.each([
     await db?.close();
   });
 
+  it("stores an agentDescription on object and action types", async () => {
+    const created = await app.inject({
+      method: "POST",
+      url: `/api/v2/ontologies/${ontologyRid}/objectTypes`,
+      payload: {
+        apiName: "Invoice",
+        primaryKey: "invoiceId",
+        agentDescription: "One receivable; amount is in the invoice currency.",
+        properties: { invoiceId: { type: "string" } },
+      },
+    });
+    expect(created.statusCode).toBe(201);
+    const read = await app.inject({ method: "GET", url: `/api/v2/ontologies/${ontologyRid}/objectTypes/Invoice` });
+    expect(read.json().agentDescription).toBe("One receivable; amount is in the invoice currency.");
+  });
+
   it("keeps the key a seed names as `primaryKey`", async () => {
     const created = await app.inject({
       method: "POST",

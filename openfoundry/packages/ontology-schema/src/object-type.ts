@@ -55,6 +55,14 @@ export interface ObjectTypeDefinition {
   readonly apiName: string;
 
   /**
+   * What an agent should know to use this definition well: when it applies,
+   * what its values mean, what to avoid. Shown to agents in place of
+   * `description` when set; people still read `description`. Not part of
+   * Foundry's API: an openfoundry extension.
+   */
+  readonly agentDescription?: string;
+
+  /**
    * Human-readable label for this object type. Persisted in the
    * `object_types.display_name` column; falls back to `apiName` when absent.
    */

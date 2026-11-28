@@ -18,7 +18,15 @@ import {
 import type { LinkReadWriteStore } from "../../store/link-store.js";
 import { encodePageToken, decodePageToken, type PageToken } from "@openfoundry/pagination";
 import { requirePermission } from "@openfoundry/permissions";
-import { invalidArgument, notFound, rejectUnsupportedOntologyScoping } from "@openfoundry/errors";
+import {
+  ErrorCode,
+  OpenFoundryApiError,
+  invalidArgument,
+  notFound,
+  rejectUnsupportedOntologyScoping,
+  safeArg,
+} from "@openfoundry/errors";
+import { createHash } from "node:crypto";
 import {
   assertOrderByClauseListBody,
   assertPropertiesExist,
@@ -339,6 +347,54 @@ interface SearchBody {
 // Plugin
 // ---------------------------------------------------------------------------
 
+/** Foundry's largest `pageSize` for loading objects. */
+const MAX_PAGE_SIZE = 10_000;
+
+/**
+ * Objects one object set may resolve to before a request is refused.
+ *
+ * ponytail: the set is resolved in memory and then counted, so the cap bounds
+ * response and sort cost, not resolution cost; push limits into the store's
+ * queries when sets outgrow memory.
+ */
+const DEFAULT_MAX_OBJECT_SET_SIZE = 100_000;
+
+/** Foundry's `ObjectsExceededLimit`: the set is larger than this API returns. */
+function objectsExceededLimit(limit: number): OpenFoundryApiError {
+  return new OpenFoundryApiError({
+    errorCode: ErrorCode.INVALID_ARGUMENT,
+    errorName: "ObjectsExceededLimit",
+    message: `The object set resolves to more than ${limit} objects; narrow it with a filter.`,
+    args: [safeArg("limit", limit)],
+  });
+}
+
+function parsePageSize(value: unknown, fallback: number): number {
+  if (value === undefined) return fallback;
+  if (!Number.isInteger(value) || (value as number) < 1 || (value as number) > MAX_PAGE_SIZE) {
+    throw invalidArgument("pageSize", `must be an integer from 1 to ${MAX_PAGE_SIZE}`);
+  }
+  return value as number;
+}
+
+/** Digest of what decides a page's contents; a page token is valid only for it. */
+const queryHash = (query: unknown) =>
+  createHash("sha256").update(JSON.stringify(query)).digest("base64url").slice(0, 16);
+
+function readPageToken(token: unknown, hash: string): number {
+  if (token === undefined || token === null || token === "") return 0;
+  let cursor;
+  try {
+    cursor = decodePageToken(token as PageToken);
+  } catch {
+    throw invalidArgument("pageToken", "is not a page token this service issued");
+  }
+  if (cursor.queryHash !== undefined && cursor.queryHash !== hash) {
+    throw invalidArgument("pageToken", "was issued for a different query; start again without it");
+  }
+  return cursor.offset;
+}
+
 export async function objectSetRoutes(
   app: FastifyInstance,
   opts: {
@@ -346,9 +402,16 @@ export async function objectSetRoutes(
     linkStore: LinkReadWriteStore;
     objectTypeSchema?: ObjectTypeSchemaSource;
     interfaces: InterfaceSource;
+    maxObjectSetSize?: number;
   },
 ): Promise<void> {
   const { store, linkStore, objectTypeSchema, interfaces } = opts;
+  const maxObjectSetSize = opts.maxObjectSetSize ?? DEFAULT_MAX_OBJECT_SET_SIZE;
+  const resolveBounded = async (objectSetDef: Record<string, unknown>, ontologyRid: string) => {
+    const objects = await resolveApiObjectSet(objectSetDef, ontologyRid, store, linkStore, interfaces);
+    if (objects.length > maxObjectSetSize) throw objectsExceededLimit(maxObjectSetSize);
+    return objects;
+  };
 
   const declaredProperties = (ontologyRid: string, objectType: string) =>
     objectTypeSchema
@@ -402,9 +465,12 @@ export async function objectSetRoutes(
       // rather than silently swallowed.
       parseBooleanParam("executeInMemoryOnly", request.query.executeInMemoryOnly);
       const { ontologyRid } = request.params;
-      const { objectSet: objectSetDef, pageSize = 100, pageToken } = request.body;
+      const { objectSet: objectSetDef, pageToken } = request.body;
+      const pageSize = parsePageSize(request.body.pageSize, 100);
       const select = assertStringListBody("select", request.body.select);
       const orderBy = assertOrderByClauseListBody("orderBy", request.body.orderBy);
+      const hash = queryHash({ objectSetDef, orderBy, select, ontologyRid });
+      const offset = readPageToken(pageToken, hash);
 
       const declared = await declaredForSet(ontologyRid, objectSetDef);
       assertPropertiesExist(declared.objectTypes, declared.properties, select);
@@ -414,7 +480,7 @@ export async function objectSetRoutes(
         orderBy?.map((clause) => clause.field),
       );
 
-      let objects = await resolveApiObjectSet(objectSetDef, ontologyRid, store, linkStore, interfaces);
+      let objects = await resolveBounded(objectSetDef, ontologyRid);
 
       // Apply ordering
       if (orderBy && orderBy.length > 0) {
@@ -435,13 +501,6 @@ export async function objectSetRoutes(
       }
 
       const totalCount = objects.length;
-
-      // Pagination
-      let offset = 0;
-      if (pageToken) {
-        const cursor = decodePageToken(pageToken as PageToken);
-        offset = cursor.offset;
-      }
 
       const slice = objects.slice(offset, offset + pageSize + 1);
       const hasMore = slice.length > pageSize;
@@ -467,7 +526,7 @@ export async function objectSetRoutes(
       } = { data, totalCount };
 
       if (hasMore) {
-        result.nextPageToken = encodePageToken({ offset: offset + pageSize });
+        result.nextPageToken = encodePageToken({ offset: offset + pageSize, queryHash: hash });
       }
 
       return result;
@@ -496,7 +555,7 @@ export async function objectSetRoutes(
       const { ontologyRid } = request.params;
       const { objectSet: objectSetDef, aggregation: aggregations, groupBy } = request.body;
 
-      const objects = await resolveApiObjectSet(objectSetDef, ontologyRid, store, linkStore, interfaces);
+      const objects = await resolveBounded(objectSetDef, ontologyRid);
 
       if (groupBy && groupBy.length > 0) {
         // Grouped aggregation: use query engine, return new format
@@ -551,7 +610,7 @@ export async function objectSetRoutes(
         pageToken,
       } = request.body;
 
-      const objects = await resolveApiObjectSet(objectSetDef, ontologyRid, store, linkStore, interfaces);
+      const objects = await resolveBounded(objectSetDef, ontologyRid);
 
       const result = queryEngine.search(
         objects as unknown as Record<string, unknown>[],

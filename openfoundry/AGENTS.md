@@ -6,7 +6,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 ## Build sharp edges
 
-`pnpm run build` is green (49/49), as is `typecheck` (45/45). Keep it that way.
+`pnpm run build` is green (50/50), as is `typecheck` (46/46). Keep it that way.
 Run `npx turbo run build --continue` to see every failure at once; plain `build` stops at the first.
 
 `pnpm run lint` is a real check now: it runs `eslint .` directly over all 632 `.ts`/`.tsx`/`.mts`
@@ -39,7 +39,7 @@ Because turbo runs `build` as a dependency of the other tasks, one such gap fail
 
 ## Tests
 
-`pnpm run test` (turbo `test`) is green (97/97).
+`pnpm run test` (turbo `test`) is green (99/99).
 A package running `vitest run` inherits the root `vitest.config.ts`, whose `include` globs are
 resolved against the run's root - the package directory, not the repo root.
 Keep those globs relative (`**/tests/**/*.test.ts`); a root-anchored `packages/**` glob matches
@@ -111,6 +111,14 @@ An object type may declare one dataset datasource in Foundry's `ObjectTypeDataso
 After any successful upload, delete or transaction commit, svc-datasets calls svc-objects' `POST /internal/datasets/:rid/changed`, which re-reads every `.csv` file of that dataset and replaces each backed type's objects (`services/svc-objects/src/sync/`).
 The merge is Palantir's default "apply user edits": `applyEdits` records each Action edit in an edit layer (`object_edits` / `object-store-edits.json`), edited properties outlive later source values, Action-created objects are left alone, Action deletes stick, and a row that leaves the source takes its object until it returns.
 A bad source (repeated key, unconvertible value, missing column) fails the whole sync and the previous objects stand. Direct object writes through the public CRUD routes are not edits and the next sync overwrites them.
+
+## Agent surface: MCP, Ossie, query limits
+
+`packages/ontology-mcp` is a read-only MCP server (`openfoundry-mcp`, stdio) over the public v2 API: `check_readiness`, `search_types`, `get_type`, `list_actions`, `check_answerable`, `query_objects`. It calls the gateway with `OPENFOUNDRY_TOKEN`, so platform permissions apply; on top it shows only ACTIVE definitions, which hides every demo type (the seeds create EXPERIMENTAL ones) unless `OPENFOUNDRY_MCP_INCLUDE_EXPERIMENTAL=true`.
+`check_answerable` is lexical (question terms against type, property and action names) and blind to synonyms; `query_objects` requires `select` and caps pages at 100.
+Object and action types may carry `agentDescription` (column in `db/migrations/020`), shown to agents in place of `description`.
+`/api/v2/ontologies/:rid/ossie` (svc-ontology, not a Foundry endpoint) exports object and link types as Apache Ossie (JSON, or YAML with `?format=yaml`) and imports an Ossie model as EXPERIMENTAL drafts (`?dryRun=true` plans only); composite keys, metrics and non-key joins are reported in `skipped`.
+`loadObjects` refuses `pageSize` outside 1-10,000, an object set over 100,000 objects (`ObjectsExceededLimit`, after in-memory resolution), and a page token issued for a different query (tokens carry a `queryHash`).
 
 ## Serving both API versions
 

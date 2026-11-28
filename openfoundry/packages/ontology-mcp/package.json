@@ -1,0 +1,33 @@
+{
+  "name": "@openfoundry/ontology-mcp",
+  "version": "0.0.1",
+  "private": true,
+  "description": "Read-only MCP server over the openfoundry ontology",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "openfoundry-mcp": "dist/cli.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/server": "^2.4.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@types/node": "^20.14.0",
+    "typescript": "~5.5.4",
+    "vitest": "^3.2.0"
+  }
+}
