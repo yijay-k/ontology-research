@@ -1,0 +1,142 @@
+types:
+  imports:
+    CommonTypes:
+      base-type: any
+      external:
+        java: com.openfoundry.api
+      from: common-types.yml
+  definitions:
+    default-package: com.openfoundry.api.actions
+    objects:
+      Rid:
+        alias: string
+
+      # Shapes follow Foundry's v2 action models (foundry_sdk/v2/ontologies/models.py).
+      ApplyActionMode:
+        values:
+          - VALIDATE_ONLY
+          - VALIDATE_AND_EXECUTE
+
+      ReturnEditsMode:
+        values:
+          - ALL
+          - ALL_V2_WITH_DELETIONS
+          - NONE
+
+      ApplyActionRequestOptions:
+        fields:
+          mode: optional<ApplyActionMode>
+          returnEdits: optional<ReturnEditsMode>
+
+      ActionApplyRequest:
+        docs: ApplyActionRequestV2
+        fields:
+          parameters: map<string, any>
+          options: optional<ApplyActionRequestOptions>
+
+      ValidationResultValue:
+        values:
+          - VALID
+          - INVALID
+
+      SubmissionCriteriaEvaluation:
+        fields:
+          configuredFailureMessage: optional<string>
+          result: ValidationResultValue
+
+      ParameterEvaluationResult:
+        fields:
+          result: ValidationResultValue
+          evaluatedConstraints: list<any>
+          required: boolean
+
+      ValidationResult:
+        docs: ValidateActionResponseV2
+        fields:
+          result: ValidationResultValue
+          submissionCriteria: list<SubmissionCriteriaEvaluation>
+          parameters: map<string, ParameterEvaluationResult>
+
+      ObjectEdit:
+        fields:
+          type: string
+          objectType: string
+          primaryKey: string
+
+      ObjectEdits:
+        fields:
+          type: string
+          edits: list<ObjectEdit>
+          addedObjectCount: integer
+          modifiedObjectsCount: integer
+          deletedObjectsCount: integer
+          addedLinksCount: integer
+          deletedLinksCount: integer
+
+      ActionApplyResponse:
+        docs: SyncApplyActionResponseV2. A 200 with an INVALID validation was not applied.
+        fields:
+          validation: optional<ValidationResult>
+          edits: optional<ObjectEdits>
+
+      BatchApplyRequestItem:
+        fields:
+          parameters: map<string, any>
+
+      BatchApplyRequestOptions:
+        fields:
+          returnEdits: optional<ReturnEditsMode>
+
+      BatchApplyRequest:
+        docs: BatchApplyActionRequestV2
+        fields:
+          requests: list<BatchApplyRequestItem>
+          options: optional<BatchApplyRequestOptions>
+
+      BatchApplyResponse:
+        docs: BatchApplyActionResponseV2
+        fields:
+          edits: optional<ObjectEdits>
+
+services:
+  ActionService:
+    name: Action Service
+    package: com.openfoundry.api.actions
+    base-path: /api/v2
+    default-auth: header
+    endpoints:
+      apply:
+        http: POST /ontologies/{ontologyRid}/actions/{actionApiName}/apply
+        docs: |
+          Apply (execute) an action with the given parameters, or with
+          options.mode VALIDATE_ONLY only validate it. Parameters are checked
+          against the action type, then the action's logic, then its edits are
+          committed atomically.
+        args:
+          ontologyRid:
+            type: Rid
+            param-type: path
+          actionApiName:
+            type: string
+            param-type: path
+          body:
+            type: ActionApplyRequest
+            param-type: body
+        returns: ActionApplyResponse
+
+      applyBatch:
+        http: POST /ontologies/{ontologyRid}/actions/{actionApiName}/applyBatch
+        docs: |
+          Apply an action multiple times in a single request. Every request is
+          validated first and the edits are committed together, or not at all.
+        args:
+          ontologyRid:
+            type: Rid
+            param-type: path
+          actionApiName:
+            type: string
+            param-type: path
+          body:
+            type: BatchApplyRequest
+            param-type: body
+        returns: BatchApplyResponse
