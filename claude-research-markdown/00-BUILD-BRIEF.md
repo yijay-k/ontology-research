@@ -44,6 +44,8 @@ The research's own rule is to build each layer on the one before it.
 
 For the detailed done / pending / deferred list with reasons, see [00-GAPS.md](00-GAPS.md).
 
+**Status 28 Nov 2026 (third pass):** every code-only gap in P0–P2, plus the metric layer and MCP tools from P3, is built and pushed (PR #1). The remaining work is blocked on real data: see `00-GAPS.md` §2b.
+
 **Next, in order** (revised for §2a and §2b):
 1. Idempotency key per action call, plus edits, audit and outbox committed in one Postgres transaction (H5; proofs G1, G2, G5).
 2. Postgres as the one authoritative store: links persisted, one schema source, the primary-key bug fixed (H2).

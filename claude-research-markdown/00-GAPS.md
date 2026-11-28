@@ -94,13 +94,30 @@ These close holes in what is already built. Without them the write path is unsaf
 | Gap | Why | Size |
 |---|---|---|
 | ⏳ Ingestion beyond CSV: connectors with cursors (`>=` plus boundary hashes), incremental APPEND, deletion column, data-quality expectations | L2, R22; proofs I1–I3 | L |
-| ⏳ Metric layer: measure + filter + period + grain, compiled with the join matrix and 2-hop cap; checked text-to-SQL only for exploration | L8, R15, R23, R24; proofs M1–M5; NV | L |
+| 🟡 ✅ Metric layer: metrics declared on object types, period + grain + group-by at query time, fan-out across one-to-many links refused, Ossie round trip, MCP `query_metric`. ⏳ Model-scoped (cross-type) metrics, currency/timezone, pushdown to Postgres; checked text-to-SQL for exploration | L8, R15, R23, R24; proofs M1–M5; NV | L |
 | ⏳ Evidence/knowledge with provenance and validity times | L9, R16, H3 | L |
 | ⏳ Agent sessions, evals (≥3 runs per case, end-state scoring) and versioned agent releases | L10, R17, H7 | L |
 | ⏳ Durable workflows and automations (DBOS recommended; proof D1) | L11 | L |
 | ⏳ One finance workflow end to end (receivables: sync → query → action → approval → writeback → reconcile → eval). This is the research's decision gate for freezing H1–H7. | Research decision gate | L |
 
 ---
+
+## 2b. Blocked on real data (stop here until datasets are loaded)
+
+Everything above that needed only code is built. What remains needs actual datasets or systems, so it cannot be done honestly with synthetic fixtures:
+
+| Gap | What it needs |
+|---|---|
+| Ingestion beyond CSV: connectors with cursors, incremental APPEND, deletion column, data quality | A real source system (ERP/ledger such as Xero, QuickBooks, NetSuite) or its exported tables, to fix cursor and deletion semantics against real change patterns |
+| Running cold-start drafting for real | The customer's actual tables, to measure how many drafted types and links survive human review |
+| Receivables domain pack: which fields are source-owned (`editable: false`), which metrics are certified | Real invoice, payment and remittance data plus the finance team's definitions |
+| Approval tiers (amount thresholds) | The customer's approval policy and real action volumes |
+| "Most recent wins" merge strategy | Source rows with reliable update timestamps |
+| "Mostly-null property" lint, value types/enums from data | Loaded objects |
+| Agent evals (≥3 runs, end-state scoring) | 30–100 real competency questions with expected answers (research cold start §4) |
+| Evidence/knowledge layer | The customer's documents (contracts, SOPs, AR mailbox) |
+| Outbox delivery and recovery | A real writeback target (ledger API, email) to deliver to |
+| One finance workflow end to end (the research's decision gate) | All of the above for one receivables process |
 
 ## 3. Deferred on purpose
 
