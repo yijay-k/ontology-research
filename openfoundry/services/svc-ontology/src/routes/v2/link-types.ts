@@ -133,7 +133,7 @@ export async function linkTypeRoutes(
       preHandler: requirePermission("ontology:delete"),
     },
     async (request, reply) => {
-      store.deleteLinkType(
+      await store.deleteLinkType(
         request.params.ontologyRid,
         request.params.linkTypeApiName,
       );

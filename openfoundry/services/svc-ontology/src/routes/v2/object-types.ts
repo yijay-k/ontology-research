@@ -1,12 +1,14 @@
 import type { FastifyInstance } from "fastify";
 import {
+  parseMigrationSteps,
   validateDatasources,
+  type MigrationStep,
   type ObjectTypeDefinition,
 } from "@openfoundry/ontology-schema";
 import { generateRid } from "@openfoundry/rid";
 import type { OntologyStore } from "../../store/ontology-store.js";
 import { requirePermission } from "@openfoundry/permissions";
-import { invalidArgument, rejectUnsupportedOntologyScoping } from "@openfoundry/errors";
+import { OpenFoundryApiError, invalidArgument, rejectUnsupportedOntologyScoping } from "@openfoundry/errors";
 import { paginateArray } from "./pagination-helpers.js";
 import { assertDeleteAllowed, assertUpdateAllowed, statusOf } from "./object-type-evolution.js";
 import { parseBooleanParam } from "./query-params.js";
@@ -51,9 +53,31 @@ function normalize(def: ObjectTypeDefinition): ObjectTypeDefinition {
   };
 }
 
+/** Where a schema migration's data half runs: svc-objects. */
+export interface ObjectMigrator {
+  migrate(ontologyRid: string, objectType: string, steps: MigrationStep[], dryRun: boolean): Promise<{ objects: number; changed: number }>;
+}
+
+export function httpObjectMigrator(objectsServiceUrl: string): ObjectMigrator {
+  return {
+    async migrate(rid, objectType, steps, dryRun) {
+      const url = `${objectsServiceUrl}/internal/ontologies/${encodeURIComponent(rid)}/objectTypes/${encodeURIComponent(objectType)}/migrate`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ steps, dryRun }),
+        signal: AbortSignal.timeout(120_000),
+      });
+      const body = await res.json().catch(() => undefined);
+      if (!res.ok) throw OpenFoundryApiError.fromResponse({ status: res.status, body: body as never });
+      return body as { objects: number; changed: number };
+    },
+  };
+}
+
 export async function objectTypeRoutes(
   app: FastifyInstance,
-  opts: { store: OntologyStore },
+  opts: { store: OntologyStore; migrator?: ObjectMigrator },
 ): Promise<void> {
   const { store } = opts;
 
@@ -124,7 +148,7 @@ export async function objectTypeRoutes(
   // Update object type
   app.put<{
     Params: { ontologyRid: string; objectTypeApiName: string };
-    Body: ObjectTypeDefinition;
+    Body: ObjectTypeDefinition & { migrations?: unknown };
   }>(
     "/ontologies/:ontologyRid/objectTypes/:objectTypeApiName",
     {
@@ -132,13 +156,26 @@ export async function objectTypeRoutes(
     },
     async (request) => {
       const { ontologyRid, objectTypeApiName } = request.params;
+      const { migrations, ...body } = request.body ?? ({} as ObjectTypeDefinition & { migrations?: unknown });
+      let steps: MigrationStep[] = [];
+      if (migrations !== undefined) {
+        try {
+          steps = parseMigrationSteps(migrations);
+        } catch (err) {
+          throw invalidArgument("migrations", (err as Error).message);
+        }
+      }
       const current = await store.getObjectType(ontologyRid, objectTypeApiName);
-      assertUpdateAllowed(current, request.body, objectTypeApiName);
-      const objectType = await store.updateObjectType(
-        ontologyRid,
-        objectTypeApiName,
-        normalize(request.body),
-      );
+      assertUpdateAllowed(current, body as ObjectTypeDefinition, objectTypeApiName, steps);
+      const next = normalize(body as ObjectTypeDefinition);
+      if (steps.length > 0) {
+        if (!opts.migrator) throw invalidArgument("migrations", "no object service is configured to migrate data");
+        // Every value is checked before any changes; then the data moves, then
+        // the definition. A refusal at either data step leaves both untouched.
+        await opts.migrator.migrate(ontologyRid, objectTypeApiName, steps, true);
+        await opts.migrator.migrate(ontologyRid, objectTypeApiName, steps, false);
+      }
+      const objectType = await store.updateObjectType(ontologyRid, objectTypeApiName, next);
       return withDatasources(objectType, false);
     },
   );

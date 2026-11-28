@@ -2,6 +2,7 @@ import type { FastifyInstance } from "fastify";
 import { invalidArgument, notFound } from "@openfoundry/errors";
 import { requirePermission } from "@openfoundry/permissions";
 import type { CommitOptions, ObjectEdit, ObjectReadWriteStore, ReadVersion } from "../store/object-store.js";
+import { parseMigrationSteps } from "@openfoundry/ontology-schema";
 
 const EDIT_TYPES = new Set(["addObject", "modifyObject", "deleteObject"]);
 
@@ -99,6 +100,27 @@ export async function editRoutes(
       const commit = await opts.store.getCommit(request.params.ontologyRid, request.params.idempotencyKey);
       if (!commit) throw notFound("Commit", request.params.idempotencyKey);
       return commit;
+    },
+  );
+
+  // A schema migration's data half, called by svc-ontology before it writes
+  // the new definition. `dryRun` checks every value without changing any.
+  app.post<{ Params: { ontologyRid: string; objectType: string }; Body: { steps?: unknown; dryRun?: unknown } }>(
+    "/ontologies/:ontologyRid/objectTypes/:objectType/migrate",
+    { preHandler: requirePermission("objects:write") },
+    async (request) => {
+      let steps;
+      try {
+        steps = parseMigrationSteps(request.body?.steps);
+      } catch (err) {
+        throw invalidArgument("steps", (err as Error).message);
+      }
+      return opts.store.migrateObjectType(
+        request.params.ontologyRid,
+        request.params.objectType,
+        steps,
+        request.body?.dryRun === true,
+      );
     },
   );
 

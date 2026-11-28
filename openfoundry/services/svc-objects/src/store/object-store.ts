@@ -1,6 +1,7 @@
 import type { Filter } from "@openfoundry/object-set";
 import type { Aggregation } from "@openfoundry/object-set";
 import { generateRid } from "@openfoundry/rid";
+import { migrateProperties, type MigrationStep } from "@openfoundry/ontology-schema";
 import {
   ErrorCode,
   OpenFoundryApiError,
@@ -152,6 +153,18 @@ export interface ObjectReadWriteStore {
   getCommit(ontologyRid: string, idempotencyKey: string): StoredCommit | undefined | Promise<StoredCommit | undefined>;
   /** A commit by its ID. */
   getCommitById(ontologyRid: string, commitId: string): StoredCommit | undefined | Promise<StoredCommit | undefined>;
+  /**
+   * Apply a schema migration to every object of a type and to its edit-layer
+   * patches, all or none: a value that cannot be cast refuses the whole thing.
+   * Migrated objects get a new version, so action plans computed before it
+   * fail with `ObjectChanged` instead of writing old-shaped values.
+   */
+  migrateObjectType(
+    ontologyRid: string,
+    objectType: string,
+    steps: MigrationStep[],
+    dryRun: boolean,
+  ): MigrationResult | Promise<MigrationResult>;
   /** Every commit that touched one object, oldest first: its edit history. */
   commitsTouching(ontologyRid: string, objectType: string, primaryKey: string): StoredCommit[] | Promise<StoredCommit[]>;
   /** Undelivered outbox events, oldest first. */
@@ -185,6 +198,35 @@ export type ObjectEdit =
       expectedVersion?: number;
     }
   | { type: "deleteObject"; objectType: string; primaryKey: string; expectedVersion?: number };
+
+export interface MigrationResult {
+  objects: number;
+  changed: number;
+}
+
+/** Run the steps over every object first; any failure names the object and refuses all. */
+export function planMigration(
+  objectType: string,
+  objects: Array<{ primaryKey: string; properties: Record<string, unknown> }>,
+  steps: MigrationStep[],
+): Map<string, Record<string, unknown>> {
+  const changed = new Map<string, Record<string, unknown>>();
+  for (const o of objects) {
+    let next: Record<string, unknown>;
+    try {
+      next = migrateProperties(o.properties, steps);
+    } catch (err) {
+      throw new OpenFoundryApiError({
+        errorCode: ErrorCode.INVALID_ARGUMENT,
+        errorName: "SchemaMigrationFailed",
+        message: `${objectType}:${o.primaryKey}: ${(err as Error).message}`,
+        args: [safeArg("objectType", objectType), safeArg("primaryKey", o.primaryKey)],
+      });
+    }
+    if (JSON.stringify(next) !== JSON.stringify(o.properties)) changed.set(o.primaryKey, next);
+  }
+  return changed;
+}
 
 /** An object an action only read, at the version it read it. */
 export interface ReadVersion {
@@ -776,6 +818,29 @@ export class ObjectStore {
 
   getCommit(ontologyRid: string, idempotencyKey: string): StoredCommit | undefined {
     return this.commits.get(ontologyRid)?.find((c) => c.idempotencyKey === idempotencyKey);
+  }
+
+  migrateObjectType(ontologyRid: string, objectType: string, steps: MigrationStep[], dryRun: boolean): MigrationResult {
+    const typeMap = this.findTypeMap(ontologyRid, objectType);
+    const objects = [...(typeMap?.values() ?? [])];
+    const changed = planMigration(objectType, objects, steps);
+    const records = this.editRecords(ontologyRid, objectType);
+    const patches = planMigration(
+      objectType,
+      [...records].map(([primaryKey, r]) => ({ primaryKey, properties: r.patch })),
+      steps,
+    );
+    if (!dryRun) {
+      const now = new Date().toISOString();
+      for (const [pk, properties] of changed) {
+        const o = typeMap!.get(pk)!;
+        typeMap!.set(pk, { ...o, properties, version: o.version + 1, updatedAt: now });
+      }
+      for (const [pk, patch] of patches) records.set(pk, { ...records.get(pk)!, patch });
+      this.saveToDisk();
+      this.saveEdits();
+    }
+    return { objects: objects.length, changed: changed.size };
   }
 
   getCommitById(ontologyRid: string, commitId: string): StoredCommit | undefined {

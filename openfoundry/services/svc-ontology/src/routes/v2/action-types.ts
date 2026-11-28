@@ -84,7 +84,7 @@ export async function actionTypeRoutes(
       preHandler: requirePermission("ontology:delete"),
     },
     async (request, reply) => {
-      store.deleteActionType(
+      await store.deleteActionType(
         request.params.ontologyRid,
         request.params.actionTypeApiName,
       );

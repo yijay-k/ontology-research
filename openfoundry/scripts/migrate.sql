@@ -1041,3 +1041,19 @@ ALTER TABLE action_commits ADD COLUMN IF NOT EXISTS changes JSONB NOT NULL DEFAU
 ALTER TABLE action_commits ADD COLUMN IF NOT EXISTS revert_of TEXT;
 ALTER TABLE action_commits ADD COLUMN IF NOT EXISTS reverted_by TEXT;
 CREATE INDEX IF NOT EXISTS idx_action_commits_changes ON action_commits USING GIN (changes jsonb_path_ops);
+
+-- Definition history (db/migrations/023)
+CREATE TABLE IF NOT EXISTS definition_versions (
+    id           SERIAL PRIMARY KEY,
+    ontology_rid TEXT NOT NULL,
+    version      INTEGER NOT NULL,
+    kind         TEXT NOT NULL CHECK (kind IN ('objectType', 'actionType', 'linkType')),
+    api_name     TEXT NOT NULL,
+    change       TEXT NOT NULL CHECK (change IN ('CREATED', 'UPDATED', 'DELETED')),
+    before       JSONB,
+    after        JSONB,
+    actor        TEXT,
+    created_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (ontology_rid, version)
+);
+CREATE INDEX IF NOT EXISTS idx_definition_versions_name ON definition_versions (ontology_rid, kind, api_name);

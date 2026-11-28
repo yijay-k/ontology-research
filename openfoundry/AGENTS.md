@@ -103,6 +103,10 @@ The outbox is read and acknowledged at `GET /internal/outbox` and `POST /interna
 
 ## Ontology definition and link rules
 
+Every create, update and delete of an object, action or link type is recorded as a numbered per-ontology model version with before, after and actor (`withDefinitionHistory` wraps the store; actor via `AsyncLocalStorage`; `definition_versions`, migration 023; `GET /api/v2/ontologies/:rid/definitionHistory`). The history row is written after the definition change, not in its transaction.
+An ACTIVE or DEPRECATED type accepts a breaking property change when the PUT body carries `migrations` covering it (`dropProperty`, `renameProperty`, `castProperty`, `packages/ontology-schema/src/migration.ts`); svc-ontology calls svc-objects' `/internal/.../objectTypes/:type/migrate` (dry run, then real; all objects and edit patches or none, versions bumped) before writing the definition. A primary-key change is never migratable.
+`GET /api/v2/ontologies/:rid/lint` returns modelling warnings (action sprawl, undescribed ACTIVE types, dangling or undeclared links, ACTIVE actions on EXPERIMENTAL types).
+
 Object types follow Palantir's lifecycle statuses (`services/svc-ontology/src/routes/v2/object-type-evolution.ts`): a type created without a status is EXPERIMENTAL and may change freely; ACTIVE and DEPRECATED types refuse breaking changes (primary key changed, property removed, property type changed); ACTIVE types cannot be deleted - deprecate first; no update renames a type. There are no migrations yet, so a breaking change to a live type means demoting it to EXPERIMENTAL first.
 A link is created only through a declared link type (svc-objects reads it from svc-ontology): matching source and target object types, both objects present, no duplicate (`LinkAlreadyExists`), and at most one target per source for cardinality ONE, checked inside the synchronous `LinkStore.createLink` so concurrent requests cannot both land.
 Object sets accept Foundry's `interfaceBase` (objects of every type that `implements` the interface, unmapped); any object set type the resolver does not know is a 400, never an empty result.

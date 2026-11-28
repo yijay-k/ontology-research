@@ -204,5 +204,27 @@ describe.each([
     await revert(noted.commitId);
     expect((await store.getObject(RID, "Account", "a")).properties.note ?? null).toBeNull();
   });
+
+  it("migrates every object and edit patch, or none, bumping versions", async () => {
+    await store.applyEdits(RID, [withdraw("a", 70)]); // leaves an edit patch { balance: 70 }
+    const v = await versionOf("a");
+    const steps = [
+      { type: "renameProperty" as const, from: "balance", to: "amount" },
+      { type: "castProperty" as const, property: "amount", to: "STRING" },
+    ];
+    expect(await store.migrateObjectType(RID, "Account", steps, true)).toEqual({ objects: 2, changed: 2 });
+    expect(await balance("a")).toBe(70); // dry run changed nothing
+
+    await store.migrateObjectType(RID, "Account", steps, false);
+    const a = await store.getObject(RID, "Account", "a");
+    expect(a.properties).toEqual({ id: "a", amount: "70" });
+    expect(a.version).toBe(v + 1);
+
+    await store.createObject(RID, "Account", "x", { id: "x", amount: "not a number" });
+    await expect(
+      attempt(() => store.migrateObjectType(RID, "Account", [{ type: "castProperty", property: "amount", to: "INTEGER" }], false)),
+    ).rejects.toMatchObject({ errorName: "SchemaMigrationFailed" });
+    expect((await store.getObject(RID, "Account", "a")).properties.amount).toBe("70"); // untouched
+  });
 });
 

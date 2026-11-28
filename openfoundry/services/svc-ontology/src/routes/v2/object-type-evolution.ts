@@ -1,4 +1,4 @@
-import type { ObjectTypeDefinition } from "@openfoundry/ontology-schema";
+import { uncoveredBreaks, type MigrationStep, type ObjectTypeDefinition } from "@openfoundry/ontology-schema";
 import { ErrorCode, OpenFoundryApiError, safeArg } from "@openfoundry/errors";
 
 /**
@@ -17,9 +17,10 @@ import { ErrorCode, OpenFoundryApiError, safeArg } from "@openfoundry/errors";
  * whose data type changed
  * (https://www.palantir.com/docs/foundry/object-edits/schema-migrations/).
  *
- * ponytail: refusal only. Palantir instead accepts a breaking change with an
- * explicit migration (drop, cast, move edits); add migrations when a type's
- * schema has to change after it goes ACTIVE.
+ * As Palantir does, a breaking property change is accepted with migration
+ * steps that cover it (drop or rename a removed property, cast a retyped one);
+ * the steps are applied to existing objects before the definition changes. A
+ * primary-key change has no migration and stays refused.
  */
 
 type Status = "ACTIVE" | "EXPERIMENTAL" | "DEPRECATED";
@@ -66,13 +67,15 @@ export function assertUpdateAllowed(
   current: ObjectTypeDefinition,
   next: ObjectTypeDefinition,
   pathApiName: string,
+  steps: MigrationStep[] = [],
 ): void {
   if (next.apiName !== undefined && next.apiName !== pathApiName) {
     refuse("ObjectTypeApiNameChange", `apiName "${pathApiName}" cannot be changed`, pathApiName);
   }
   const status = statusOf(current);
   if (status === "EXPERIMENTAL") return;
-  const changes = breakingChanges(current, next);
+  const keyChange = breakingChanges(current, next).filter((c) => c.startsWith("primary key"));
+  const changes = [...keyChange, ...uncoveredBreaks(current.properties ?? {}, next.properties ?? {}, steps)];
   if (changes.length > 0) {
     refuse(
       "BreakingObjectTypeChange",

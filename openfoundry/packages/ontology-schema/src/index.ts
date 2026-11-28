@@ -69,3 +69,4 @@ export {
   type OntologyValidationError,
   validateOntology,
 } from "./ontology.js";
+export { castValue, migrateProperties, parseMigrationSteps, uncoveredBreaks, type MigrationStep } from "./migration.js";

@@ -12,6 +12,16 @@ import { OntologyStore, type StoredOntology } from "./store/ontology-store.js";
 import { PgOntologyStore } from "./store/pg-ontology-store.js";
 import { healthRoutes } from "./routes/health.js";
 import { v2Routes } from "./routes/v2/index.js";
+import {
+  MemoryDefinitionHistory,
+  PgDefinitionHistory,
+  definitionActor,
+  withDefinitionHistory,
+  type DefinitionHistory,
+} from "./definition-history.js";
+import { definitionHistoryRoutes } from "./routes/v2/definition-history.js";
+import { httpObjectMigrator, type ObjectMigrator } from "./routes/v2/object-types.js";
+import { identityFromHeaders } from "@openfoundry/permissions";
 import { draftRoutes, httpDatasetReader, type DatasetReader } from "./routes/v2/drafts.js";
 import { v1Routes } from "./routes/v1/index.js";
 
@@ -28,6 +38,10 @@ export interface CreateServerOptions {
   store?: OntologyStore | PgOntologyStore;
   /** Where cold-start drafting reads datasets; defaults to svc-datasets over HTTP. */
   datasets?: DatasetReader;
+  /** Where definition changes are recorded. */
+  history?: DefinitionHistory;
+  /** Where schema migrations move existing objects; defaults to svc-objects over HTTP. */
+  objectMigrator?: ObjectMigrator;
 }
 
 /**
@@ -134,8 +148,22 @@ export async function createServer(
     },
   });
 
+  // Every definition change made through the routes below is recorded, with
+  // the caller this request carries.
+  const history =
+    options.history ?? (authPool ? new PgDefinitionHistory(authPool) : new MemoryDefinitionHistory());
+  store = withDefinitionHistory(store, history);
+  app.addHook("onRequest", (request, _reply, done) => {
+    definitionActor.run({ actor: identityFromHeaders(request.headers)?.userId }, done);
+  });
+
   await app.register(healthRoutes);
-  await app.register(v2Routes, { prefix: "/api/v2", store: store as OntologyStore });
+  await app.register(definitionHistoryRoutes, { prefix: "/api/v2", history, store: store as OntologyStore });
+  await app.register(v2Routes, {
+    prefix: "/api/v2",
+    store: store as OntologyStore,
+    migrator: options.objectMigrator ?? httpObjectMigrator(config.objectsServiceUrl ?? "http://localhost:8082"),
+  });
   await app.register(draftRoutes, {
     prefix: "/api/v2",
     store: store as OntologyStore,

@@ -19,6 +19,9 @@ export interface OntologyServiceConfig {
 
   /** svc-datasets, where cold-start drafting reads dataset files. */
   readonly datasetsServiceUrl?: string;
+
+  /** svc-objects, where schema migrations move existing objects. */
+  readonly objectsServiceUrl?: string;
 }
 
 function env(key: string, fallback: string): string {
@@ -45,5 +48,6 @@ export function loadConfig(): OntologyServiceConfig {
     nodeEnv: env("NODE_ENV", "development"),
     databaseUrl: process.env.DATABASE_URL || undefined,
     datasetsServiceUrl: process.env.DATASETS_SERVICE_URL || undefined,
+    objectsServiceUrl: process.env.OBJECTS_SERVICE_URL || undefined,
   };
 }

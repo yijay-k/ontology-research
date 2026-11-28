@@ -82,11 +82,11 @@ These close holes in what is already built. Without them the write path is unsaf
 
 | Gap | Why | Size |
 |---|---|---|
-| ⏳ Schema migrations (drop, move, cast, backfill) so ACTIVE types can change safely | §4 L4; today breaking changes are only refused | M |
-| ⏳ Definition history (a model version per change) | §4 L3 | M |
+| ✅ Schema migrations: drop, rename (moves values and edits), cast; ACTIVE types accept covered breaking changes, data migrated all-or-nothing before the definition. ⏳ Backfill of new required properties | §4 L4 | M |
+| ✅ Definition history: numbered model version per change with before/after/actor (memory and Postgres). ⏳ History row in the same transaction as the change | §4 L3 | M |
 | ✅ Proposals and approval: `requiresApproval` action types stage PENDING proposals; Owner approval by someone other than the proposer commits the reviewed plan or marks it STALE; reject with reason. Tested on memory and Postgres. ⏳ Approval tiers (amount thresholds), notification on new proposals | §4 L7, R13 | M |
 | 🟡 ✅ Edit history per object and revert (once, refused over later changes), on memory and both Postgres schemas. ⏳ "Most recent wins" merge strategy, "drop all edits" | §4 L4/L7 | M |
-| ⏳ Derived properties, structs, modelling lint | §4 L3 | M |
+| 🟡 ✅ Derived properties at query time (`withProperties`, ≤3 hops) and modelling lint (definition rules). ⏳ Stored derived properties, structs, "mostly-null" lint (needs object data) | §4 L3 | M |
 | ⏳ Decide H1: consolidate svc-actions, svc-objects and svc-ontology's write path into one process, or document the single-transaction rule as permanent | H1, H5 | M |
 
 ### P3: new layers, after P0–P1

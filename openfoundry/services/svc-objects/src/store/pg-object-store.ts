@@ -8,7 +8,8 @@ import {
   encodePageToken,
   type PageToken,
 } from "@openfoundry/pagination";
-import { commitAlreadyReverted, committedEvent, objectChanged } from "./object-store.js";
+import { commitAlreadyReverted, committedEvent, objectChanged, planMigration, type MigrationResult } from "./object-store.js";
+import type { MigrationStep } from "@openfoundry/ontology-schema";
 import {
   planSync,
   recordEdit,
@@ -642,6 +643,38 @@ export class PgObjectStore {
 
   async getCommit(ontologyRid: string, idempotencyKey: string): Promise<StoredCommit | undefined> {
     return (await this.commitsWhere("ontology_rid = $1 AND idempotency_key = $2", [ontologyRid, idempotencyKey]))[0];
+  }
+
+  async migrateObjectType(ontologyRid: string, objectType: string, steps: MigrationStep[], dryRun: boolean): Promise<MigrationResult> {
+    const typeRid = await this.resolveObjectTypeRid(ontologyRid, objectType);
+    return this.withTenant(async (client) => {
+      const { rows } = await client.query<{ primary_key: string; properties: Record<string, unknown> }>({
+        text: `SELECT primary_key, properties FROM objects WHERE object_type_rid = $1 FOR UPDATE`,
+        values: [typeRid],
+      });
+      const changed = planMigration(objectType, rows.map((r) => ({ primaryKey: r.primary_key, properties: r.properties })), steps);
+      const { rows: edits } = await client.query<{ primary_key: string; patch: Record<string, unknown> }>({
+        text: `SELECT primary_key, patch FROM object_edits WHERE object_type_rid = $1 FOR UPDATE`,
+        values: [typeRid],
+      });
+      const patches = planMigration(objectType, edits.map((r) => ({ primaryKey: r.primary_key, properties: r.patch })), steps);
+      if (!dryRun) {
+        for (const [pk, properties] of changed) {
+          await client.query({
+            text: `UPDATE objects SET properties = $3, version = version + 1, updated_at = NOW()
+                   WHERE object_type_rid = $1 AND primary_key = $2`,
+            values: [typeRid, pk, JSON.stringify(properties)],
+          });
+        }
+        for (const [pk, patch] of patches) {
+          await client.query({
+            text: `UPDATE object_edits SET patch = $3 WHERE object_type_rid = $1 AND primary_key = $2`,
+            values: [typeRid, pk, JSON.stringify(patch)],
+          });
+        }
+      }
+      return { objects: rows.length, changed: changed.size };
+    });
   }
 
   async getCommitById(ontologyRid: string, commitId: string): Promise<StoredCommit | undefined> {
