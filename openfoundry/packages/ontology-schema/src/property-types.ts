@@ -131,6 +131,15 @@ export interface PropertyDef<
 
   /** For TIMESERIES type: the value type of the series. */
   readonly timeseriesValueType?: "NUMERIC" | "STRING";
+
+  /**
+   * `false` means actions may not modify this property: its value is owned by
+   * the source system (an ERP's invoice amount or due date), and an edit would
+   * otherwise mask every later source correction, since edits win over source
+   * values. Actions may still set it when they create an object. Omitted means
+   * editable. Not part of Foundry's API: an openfoundry extension.
+   */
+  readonly editable?: boolean;
 }
 
 // ---------------------------------------------------------------------------

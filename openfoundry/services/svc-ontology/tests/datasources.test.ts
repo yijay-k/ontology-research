@@ -67,6 +67,22 @@ describe("object type datasources", () => {
     expect(res.json().parameters.reason).toMatch(message);
   });
 
+  it("rejects an editOnly property declared editable: false, and accepts a source-owned one", async () => {
+    const editOnlyLocked = valid();
+    (editOnlyLocked.properties.note as Record<string, unknown>).editable = false;
+    const refused = await app.inject({ method: "POST", url: base, payload: editOnlyLocked });
+    expect(refused.statusCode).toBe(400);
+    expect(refused.json().parameters.reason).toMatch(/note .*editOnly/);
+
+    const sourceLocked = valid();
+    (sourceLocked.properties.name as Record<string, unknown>).editable = false;
+    sourceLocked.datasources = [datasource({ id: { type: "column", column: "customer_id" }, name: { type: "column", column: "name" } })];
+    const created = await app.inject({ method: "POST", url: base, payload: sourceLocked });
+    expect(created.statusCode).toBe(201);
+    const read = await app.inject({ method: "GET", url: `${base}/Customer` });
+    expect(read.json().properties.name.editable).toBe(false);
+  });
+
   it("validates datasources on update too", async () => {
     await app.inject({ method: "POST", url: base, payload: customer([]) });
     const res = await app.inject({

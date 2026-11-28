@@ -20,7 +20,7 @@ export const TEST_CONFIG = {
 const str = { type: "string", nullable: true, multiplicity: "SINGLE" };
 const int = { type: "integer", nullable: true, multiplicity: "SINGLE" };
 
-function objectType(apiName: string, key: string, props: Record<string, typeof str>): ObjectTypeDefinition {
+function objectType(apiName: string, key: string, props: Record<string, typeof str & { editable?: boolean }>): ObjectTypeDefinition {
   // Shaped like the demo seed's payload, which names the key `primaryKey`.
   return { apiName, primaryKey: key, properties: { [key]: str, ...props } } as unknown as ObjectTypeDefinition;
 }
@@ -28,7 +28,9 @@ function objectType(apiName: string, key: string, props: Record<string, typeof s
 const OBJECT_TYPES: ObjectTypeDefinition[] = [
   objectType("ServiceJob", "jobId", {
     customerId: str, technicianId: str, status: str, completedDate: str, treatmentUsed: str,
-    technicianNotes: str, customerRating: int, amountCharged: int,
+    technicianNotes: str, customerRating: int,
+    // The source system owns what was charged; actions may not modify it.
+    amountCharged: { ...int, editable: false },
   }),
   objectType("Technician", "technicianId", { name: str, activeJobCount: int }),
   objectType("Vehicle", "vehicleId", { assignedTechnicianId: str }),

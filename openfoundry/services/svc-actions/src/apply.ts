@@ -55,12 +55,17 @@ export interface CallContext {
 }
 
 /** A Foundry `BadRequestError`: `INVALID_ARGUMENT`, 400, naming the action type. */
-function badRequest(errorName: string, message: string, actionType: string): OpenFoundryApiError {
+function badRequest(
+  errorName: string,
+  message: string,
+  actionType: string,
+  extra: Record<string, string> = {},
+): OpenFoundryApiError {
   return new OpenFoundryApiError({
     errorCode: ErrorCode.INVALID_ARGUMENT,
     errorName,
     message,
-    args: [safeArg("actionType", actionType)],
+    args: [safeArg("actionType", actionType), ...Object.entries(extra).map(([k, v]) => safeArg(k, v))],
   });
 }
 
@@ -179,6 +184,19 @@ async function checkEdits(
     );
     if (unknown.length > 0) {
       applyActionFailed(actionType.apiName, `${where}: undeclared properties ${unknown.join(", ")}`);
+    }
+    if (edit.type === "modifyObject") {
+      const readOnly = Object.keys(edit.properties).filter(
+        (key) => (objectType.properties?.[key] as { editable?: boolean } | undefined)?.editable === false,
+      );
+      if (readOnly.length > 0) {
+        throw badRequest(
+          "ActionEditsReadOnlyEntity",
+          `${where}: ${readOnly.join(", ")} ${readOnly.length === 1 ? "is" : "are"} not editable by actions`,
+          actionType.apiName,
+          { objectType: edit.objectType, properties: readOnly.join(",") },
+        );
+      }
     }
     if (edit.type === "addObject") {
       // Seeds name the key `primaryKey`; the schema type names it `primaryKeyApiName`.

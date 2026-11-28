@@ -264,6 +264,32 @@ describe("concurrent writes", () => {
   });
 });
 
+describe("non-editable properties", () => {
+  const changeJob = (properties: Record<string, unknown>) =>
+    start({
+      "assign-technician": async () => ({
+        edits: [{ type: "modifyObject", objectType: "ServiceJob", primaryKey: "JOB-1", properties }],
+      }),
+    });
+
+  it("refuses an action that modifies a property declared editable: false", async () => {
+    await changeJob({ amountCharged: 1 });
+    const res = await apply("assign-technician", { parameters: { jobId: "JOB-1", technicianId: "TECH-2" } });
+    expect(res.statusCode).toBe(400);
+    expect(res.json().errorName).toBe("ActionEditsReadOnlyEntity");
+    expect(res.json().parameters).toMatchObject({ objectType: "ServiceJob", properties: "amountCharged" });
+    expect(objects.commits).toBe(0);
+    expect(objects.rows.get("ServiceJob/JOB-1")?.amountCharged).toBe(1000);
+  });
+
+  it("lets the same action modify the type's editable properties", async () => {
+    await changeJob({ status: "on-hold" });
+    const res = await apply("assign-technician", { parameters: { jobId: "JOB-1", technicianId: "TECH-2" } });
+    expect(res.json().validation.result).toBe("VALID");
+    expect(objects.rows.get("ServiceJob/JOB-1")?.status).toBe("on-hold");
+  });
+});
+
 describe("idempotency and read-only objects", () => {
   const complete = (key?: string) =>
     app.inject({

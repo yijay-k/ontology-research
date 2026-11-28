@@ -202,6 +202,9 @@ export function validateDatasources(
       errors.push({ field: `propertyMapping.${property}`, message: "column must be non-empty" });
     } else if (mapping.type !== "column" && mapping.type !== "editOnly") {
       errors.push({ field: `propertyMapping.${property}`, message: "must be a column or editOnly mapping" });
+    } else if (mapping.type === "editOnly" && (properties[property] as { editable?: boolean }).editable === false) {
+      // An edit-only property has no source; with edits refused it could never hold a value.
+      errors.push({ field: `propertyMapping.${property}`, message: "is editOnly, so it cannot be declared editable: false" });
     }
   }
   // Seeds name the key `primaryKey`; the schema type names it `primaryKeyApiName`.
